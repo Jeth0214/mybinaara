@@ -1,0 +1,22 @@
+{
+  "name": "mybinaara-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/customer",
+    "apps/store-admin",
+    "apps/admin-web",
+    "packages/shared"
+  ],
+  "scripts": {
+    "customer": "npm run start --workspace=apps/customer",
+    "store": "npm run start --workspace=apps/store-admin",
+    "admin": "npm run start --workspace=apps/admin-web",
+    "build:all": "npm run build --workspaces --if-present",
+    "lint:all": "npm run lint --workspaces --if-present",
+    "test:all": "npm run test --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}
