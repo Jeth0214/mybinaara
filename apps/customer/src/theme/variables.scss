@@ -7,6 +7,15 @@
  */
 
 :root {
+  /* Force True Light Mode Defaults out of the box */
+  --ion-background-color: #ffffff;
+  --ion-background-color-rgb: 255, 255, 255;
+  --ion-text-color: #000000;
+  --ion-text-color-rgb: 0, 0, 0;
+  --ion-card-background: #ffffff;
+  --ion-item-background: #ffffff;
+  --ion-toolbar-background: #ffffff;
+
   --ion-color-primary: #1a3f22;
   --ion-color-primary-rgb: 26, 63, 34;
   --ion-color-primary-contrast: #ffffff;
@@ -74,41 +83,50 @@
  * ----------------------------------------------------------------------------
  * Center the dark theme around a deep green-charcoal base for a softer feel.
  */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --ion-background-color: #0c120e;
-    --ion-background-color-rgb: 12, 18, 14;
+.ion-palette-dark {
+  /* Override default dark.class.css (which is blue) with our Brand Colors */
+  --ion-color-primary: #1a3f22;
+  --ion-color-primary-rgb: 26, 63, 34;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-secondary: #58761b;
+  --ion-color-secondary-rgb: 88, 118, 27;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-tertiary: #d99201;
+  --ion-color-tertiary-rgb: 217, 146, 1;
+  --ion-color-tertiary-contrast: #ffffff;
 
-    --ion-text-color: #e0e6e1;
-    --ion-text-color-rgb: 224, 230, 225;
+  --ion-background-color: #0c120e;
+  --ion-background-color-rgb: 12, 18, 14;
 
-    --ion-color-step-50: #121814;
-    --ion-color-step-100: #181d1a;
-    --ion-color-step-150: #1d231f;
-    --ion-color-step-200: #232925;
-    --ion-color-step-250: #292f2b;
-    --ion-color-step-300: #2e3531;
-    --ion-color-step-350: #343b36;
-    --ion-color-step-400: #39403c;
-    --ion-color-step-450: #3f4642;
-    --ion-color-step-500: #454c48;
-    --ion-color-step-550: #4b524e;
-    --ion-color-step-600: #515853;
-    --ion-color-step-650: #575e59;
-    --ion-color-step-700: #5d645e;
-    --ion-color-step-750: #636964;
-    --ion-color-step-800: #696f6a;
-    --ion-color-step-850: #6f7570;
-    --ion-color-step-900: #757b76;
-    --ion-color-step-950: #7b817c;
+  --ion-text-color: #e0e6e1;
+  --ion-text-color-rgb: 224, 230, 225;
 
-    --ion-card-background: #161f18;
-    --ion-item-background: #161f18;
-    --ion-toolbar-background: #0c120e;
+  --ion-color-step-50: #121814;
+  --ion-color-step-100: #181d1a;
+  --ion-color-step-150: #1d231f;
+  --ion-color-step-200: #232925;
+  --ion-color-step-250: #292f2b;
+  --ion-color-step-300: #2e3531;
+  --ion-color-step-350: #343b36;
+  --ion-color-step-400: #39403c;
+  --ion-color-step-450: #3f4642;
+  --ion-color-step-500: #454c48;
+  --ion-color-step-550: #4b524e;
+  --ion-color-step-600: #515853;
+  --ion-color-step-650: #575e59;
+  --ion-color-step-700: #5d645e;
+  --ion-color-step-750: #636964;
+  --ion-color-step-800: #696f6a;
+  --ion-color-step-850: #6f7570;
+  --ion-color-step-900: #757b76;
+  --ion-color-step-950: #7b817c;
 
-    /* Legible Brand Tints for Dark Mode */
-    --brand-primary-legible: #81c784;
-    --brand-secondary-legible: #aed581;
-    --brand-tertiary-legible: #ffca28;
-  }
+  --ion-card-background: #161f18;
+  --ion-item-background: #161f18;
+  --ion-toolbar-background: #0c120e;
+
+  /* Legible Brand Tints for Dark Mode */
+  --brand-primary-legible: #81c784;
+  --brand-secondary-legible: #aed581;
+  --brand-tertiary-legible: #ffca28;
 }

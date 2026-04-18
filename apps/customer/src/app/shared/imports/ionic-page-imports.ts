@@ -1,3 +1,5 @@
+import { CommonModule } from '@angular/common';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import {
   IonHeader,
   IonToolbar,
@@ -46,7 +48,8 @@ import {
   IonBadge,
   IonSelectOption,
   IonInputPasswordToggle,
-  IonListHeader
+  IonListHeader,
+  IonApp
 } from '@ionic/angular/standalone';
 
 export const IONIC_PAGE_IMPORTS = [
@@ -63,7 +66,6 @@ export const IONIC_PAGE_IMPORTS = [
   IonCardSubtitle,
   IonList,
   IonItem,
-  IonList,
   IonThumbnail,
   IonLabel,
   IonSpinner,
@@ -82,7 +84,6 @@ export const IONIC_PAGE_IMPORTS = [
   IonTabBar,
   IonTab,
   IonTabs,
-  IonIcon,
   IonBackButton,
   IonRouterLink,
   IonRouterOutlet,
@@ -99,5 +100,9 @@ export const IONIC_PAGE_IMPORTS = [
   IonBadge,
   IonSelectOption,
   IonInputPasswordToggle,
-  IonListHeader
+  IonListHeader,
+  IonApp,
+  CommonModule,
+  RouterLink,
+  RouterLinkActive
 ];

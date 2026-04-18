@@ -1,0 +1,35 @@
+<ion-tabs>
+  <!-- Custom Floating Home Button (Unclippable because it's outside the tab-bar shadow DOM) -->
+  <div class="floating-home-container" routerLink="/home">
+    <div class="home-fab">
+      <ion-icon name="home-outline"></ion-icon>
+    </div>
+  </div>
+
+  <ion-tab-bar slot="bottom" class="mb-tab-bar">
+    <ion-tab-button tab="search" href="/search">
+      <ion-icon name="search-outline" class="tab-icon"></ion-icon>
+      <ion-label>Search</ion-label>
+    </ion-tab-button>
+
+    <ion-tab-button tab="nearby" href="/nearby">
+      <ion-icon name="location-outline" class="tab-icon"></ion-icon>
+      <ion-label>Nearby</ion-label>
+    </ion-tab-button>
+
+    <!-- Invisible Spacer for the Home Tab - Maintains routing & label -->
+    <ion-tab-button tab="home" href="/home" class="spacer-btn">
+      <ion-label>Home</ion-label>
+    </ion-tab-button>
+
+    <ion-tab-button tab="saved" href="/saved">
+      <ion-icon name="bookmark-outline" class="tab-icon"></ion-icon>
+      <ion-label>Saved</ion-label>
+    </ion-tab-button>
+
+    <ion-tab-button tab="profile" href="/profile">
+      <ion-icon name="person-outline" class="tab-icon"></ion-icon>
+      <ion-label>Profile</ion-label>
+    </ion-tab-button>
+  </ion-tab-bar>
+</ion-tabs>
