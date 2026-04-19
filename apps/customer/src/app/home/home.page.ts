@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonList, IonListHeader, IonItem, IonLabel } from '@ionic/angular/standalone';
 import { IONIC_PAGE_IMPORTS } from '../shared/imports/ionic-page-imports';
 
 @Component({
