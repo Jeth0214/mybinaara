@@ -1,0 +1,13 @@
+<div class="greeting-header">
+  <div class="greeting-content">
+    <h2 class="greeting-title ion-no-margin">Good morning, <strong>{{ profile()?.firstName }}</strong> 👳‍♂️</h2>
+    <p class="greeting-subtitle ion-no-margin">Find tools & hardware near you</p>
+  </div>
+  
+  <ion-button fill="clear" class="notification-btn" aria-label="Notifications">
+    <ion-icon name="notifications-outline" slot="icon-only"></ion-icon>
+    @if (profile()?.notificationCount) {
+      <ion-badge color="warning" class="notification-badge">{{ profile()?.notificationCount }}</ion-badge>
+    }
+  </ion-button>
+</div>
