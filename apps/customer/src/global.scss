@@ -50,4 +50,38 @@ body {
 
 :root {
   --ion-font-family: 'Outfit', sans-serif;
+
+  /* Search bar always uses light background (light + dark mode) */
+  --app-search-bg: #ffffff;
+  --app-search-text: #222428;
+  --app-search-placeholder: #92949c;
+  --app-search-icon: #92949c;
+}
+
+/* ===================================================
+   Global Dark Mode Overrides
+   Applied when .ion-palette-dark class is on <html>
+   =================================================== */
+.ion-palette-dark {
+  /* Search bar stays crisp and light in dark mode */
+  --app-search-bg: #1e2d22;
+  --app-search-text: #e0e6e1;
+  --app-search-placeholder: #7a8a7d;
+  --app-search-icon: #7a8a7d;
+
+  /* Ensure bare <p>, <h1>–<h6>, <span> inherit the correct text color */
+  --ion-text-color: #e0e6e1;
+  --ion-text-color-rgb: 224, 230, 225;
+
+  /* Ensure background color applies to body + ion-content natively */
+  --ion-background-color: #0c120e;
+  --ion-background-color-rgb: 12, 18, 14;
+}
+
+/* Force all native text elements to respect Ionic's text color token globally
+   Exclude .header-section which always has its own white-on-green styling */
+body, p, h1, h2, h3, h4, h5, h6, span, label, a {
+  &:not(.header-section *) {
+    color: var(--ion-text-color);
+  }
 }

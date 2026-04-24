@@ -1,17 +1,16 @@
 import { Component } from '@angular/core';
-import { IONIC_PAGE_IMPORTS } from './shared/imports/ionic-page-imports';
-import { addIcons } from 'ionicons';
-import { personOutline } from 'ionicons/icons';
+import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
+import { registerGlobalIcons } from './shared/imports/ionic-icons-import';
 
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
   standalone: true,
-  imports: [...IONIC_PAGE_IMPORTS],
+  imports: [IonApp, IonRouterOutlet],
 })
 export class AppComponent {
   constructor() {
-    addIcons({ personOutline });
+    registerGlobalIcons();
     this.initializeTheme();
   }
 
@@ -19,7 +18,6 @@ export class AppComponent {
     const theme = localStorage.getItem('theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
 
-    // Helper to apply theme
     const applyTheme = (isDark: boolean) => {
       document.documentElement.classList.toggle('ion-palette-dark', isDark);
       // Failsafe: clean up any lingering classes on body from previous local tests
