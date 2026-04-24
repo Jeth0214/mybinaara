@@ -12,38 +12,50 @@
 }
 
 .greeting-title {
-  color: var(--ion-color-light, #ffffff);
+  // Always white — sits on the persistent green header
+  color: #ffffff !important;
   font-size: 20px;
   font-weight: 500;
-  
+
   strong {
     font-weight: 700;
   }
 }
 
 .greeting-subtitle {
-  color: var(--ion-color-light, #ffffff);
-  opacity: 0.8;
+  // Always white with slight transparency
+  color: rgba(255, 255, 255, 0.85) !important;
   font-size: 14px;
 }
 
 .notification-btn {
-  --color: var(--ion-color-light, #ffffff);
-  --background: rgba(255, 255, 255, 0.1);
+  // Always light — sits on the green header
+  --color: #ffffff;
+  --background: rgba(255, 255, 255, 0.15);
   --border-radius: 50%;
-  --padding-start: 12px;
-  --padding-end: 12px;
-  width: 48px;
-  height: 48px;
+  --padding-start: 0;
+  --padding-end: 0;
+  width: 44px;
+  height: 44px;
   margin: 0;
   position: relative;
+  flex-shrink: 0;
 
   &::part(native) {
     border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    // Override any dark mode background bleed
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
   }
 
   ion-icon {
-    font-size: 24px;
+    font-size: 22px;
+    color: #ffffff !important;
   }
 }
 

@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -E \"\\\\.\\(json|ts|md\\)$\")",
+      "Bash(git -C /c/laragon/www/mybinaara log --oneline --decorate -20)",
+      "Bash(git -C /c/laragon/www/mybinaara branch -a)",
+      "Bash(git -C /c/laragon/www/mybinaara diff origin/main HEAD --name-only)",
+      "Bash(git -C /c/laragon/www/mybinaara diff origin/main HEAD --stat)",
+      "Bash(git -C /c/laragon/www/mybinaara log --oneline feature/ui-home-overview -5)"
+    ]
+  }
+}

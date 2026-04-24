@@ -7,28 +7,29 @@
 .search-bar {
   display: flex;
   align-items: center;
-  background-color: var(--ion-color-light, #ffffff);
+  // Use global token -- adapts automatically in light and dark mode
+  background-color: var(--app-search-bg);
   border-radius: 16px;
   padding: 0 16px;
   height: 52px;
-  
+
   .search-icon {
     font-size: 20px;
-    color: var(--ion-color-medium, #92949c);
+    color: var(--app-search-icon);
     margin-right: 12px;
   }
-  
+
   .search-input {
     flex: 1;
     border: none;
     background: transparent;
     height: 100%;
     font-size: 16px;
-    color: var(--ion-color-dark, #222428);
+    color: var(--app-search-text);
     outline: none;
-    
+
     &::placeholder {
-      color: var(--ion-color-medium, #92949c);
+      color: var(--app-search-placeholder);
     }
   }
 }
@@ -41,13 +42,14 @@
   border-radius: 20px;
   width: max-content;
   gap: 8px;
-  
+
   ion-icon {
     font-size: 16px;
   }
-  
+
   span {
-    color: var(--ion-color-light, #ffffff);
+    // always white since it's on the green header
+    color: #ffffff;
     font-size: 14px;
     font-weight: 500;
   }

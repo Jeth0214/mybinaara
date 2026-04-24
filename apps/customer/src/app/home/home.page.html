@@ -1,14 +1,20 @@
 <ion-content [fullscreen]="true" class="home-content">
-  
+
   <!-- Green Header Section -->
   <div class="header-section">
     <app-home-greeting [profile]="userProfile()"></app-home-greeting>
     <app-home-search></app-home-search>
   </div>
 
-  <!-- Main Content Section (Trending Near You, etc.) -->
-  <div class="main-content ion-padding">
-    <!-- Placeholder for Trending Near You section, etc. -->
+  <!-- Main Content Section -->
+  <div class="main-content">
+
+    <!-- Recent Searches -->
+    <app-home-recent-search
+      [isLoggedIn]="isLoggedIn()"
+      [recentSearches]="recentSearches()"
+    ></app-home-recent-search>
+
   </div>
 
 </ion-content>

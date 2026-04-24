@@ -3,7 +3,10 @@ import {
   notificationsOutline,
   searchOutline,
   locationOutline,
-  personOutline
+  personOutline,
+  timeOutline,
+  hammerOutline,
+  logInOutline,
 } from 'ionicons/icons';
 
 export const registerGlobalIcons = () => {
@@ -12,6 +15,9 @@ export const registerGlobalIcons = () => {
     'search-outline': searchOutline,
     'location-outline': locationOutline,
     'person-outline': personOutline,
+    'time-outline': timeOutline,
+    'hammer-outline': hammerOutline,
+    'log-in-outline': logInOutline,
     // Add new globally used icons here
   });
 };
