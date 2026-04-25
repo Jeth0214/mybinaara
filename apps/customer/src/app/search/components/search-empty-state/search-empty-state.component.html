@@ -1,0 +1,11 @@
+<div class="empty-state">
+  @if (!hasQuery()) {
+    <ion-icon name="search-outline" class="empty-icon"></ion-icon>
+    <p class="empty-title">What are you looking for?</p>
+    <span class="empty-subtitle">Search for cement, steel, wood, paint and more.</span>
+  } @else {
+    <ion-icon name="search-outline" class="empty-icon no-results"></ion-icon>
+    <p class="empty-title">No results for "{{ query() }}"</p>
+    <span class="empty-subtitle">Try a different keyword or check your spelling.</span>
+  }
+</div>

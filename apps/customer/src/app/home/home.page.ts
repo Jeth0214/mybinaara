@@ -1,4 +1,5 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { IONIC_PAGE_IMPORTS } from '../shared/imports/ionic-page-imports';
 import { HomeGreetingComponent } from './components/home-greeting/home-greeting.component';
@@ -29,7 +30,13 @@ import { Store } from '../core/models/store.model';
   ],
 })
 export class HomePage {
+  private router = inject(Router);
+
   recentSearches = signal<RecentSearchProduct[]>(MOCK_RECENT_SEARCHES);
   categories = signal<Category[]>(MOCK_CATEGORIES);
   stores = signal<Store[]>(MOCK_STORES);
+
+  onCategorySelected(category: Category) {
+    this.router.navigate(['/search'], { queryParams: { cat: category.name } });
+  }
 }

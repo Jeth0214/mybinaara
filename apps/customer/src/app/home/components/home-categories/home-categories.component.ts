@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { IonIcon } from '@ionic/angular/standalone';
 import { Category } from '../../../core/models/category.model';
 
@@ -11,4 +11,6 @@ import { Category } from '../../../core/models/category.model';
 })
 export class HomeCategoriesComponent {
   categories = input<Category[]>([]);
+  activeCategory = input<string | null>(null);
+  categorySelected = output<Category>();
 }

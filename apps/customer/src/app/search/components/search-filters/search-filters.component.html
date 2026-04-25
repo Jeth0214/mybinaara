@@ -1,0 +1,15 @@
+<div class="filters-wrapper">
+  @for (chip of chips; track chip.key) {
+    <button
+      class="filter-chip"
+      [class.active]="activeFilter() === chip.key"
+      (click)="filterChange.emit(chip.key)"
+    >
+      @if (chip.key === 'price') {
+        Price {{ priceAsc() ? '↑' : '↓' }}
+      } @else {
+        {{ chip.label }}
+      }
+    </button>
+  }
+</div>

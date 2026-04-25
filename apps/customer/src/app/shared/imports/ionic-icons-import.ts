@@ -11,7 +11,11 @@ import {
   colorPaletteOutline,
   gridOutline,
   storefrontOutline,
-  mapOutline
+  mapOutline,
+  arrowBackOutline,
+  optionsOutline,
+  chevronForwardOutline,
+  refreshOutline,
 } from 'ionicons/icons';
 
 export const registerGlobalIcons = () => {
@@ -27,6 +31,10 @@ export const registerGlobalIcons = () => {
     'color-palette-outline': colorPaletteOutline,
     'grid-outline': gridOutline,
     'storefront-outline': storefrontOutline,
-    'map-outline': mapOutline
+    'map-outline': mapOutline,
+    'arrow-back-outline': arrowBackOutline,
+    'options-outline': optionsOutline,
+    'chevron-forward-outline': chevronForwardOutline,
+    'refresh-outline': refreshOutline,
   });
 };
