@@ -16,6 +16,8 @@ import {
   optionsOutline,
   chevronForwardOutline,
   refreshOutline,
+  heart,
+  heartOutline,
 } from 'ionicons/icons';
 
 export const registerGlobalIcons = () => {
@@ -36,5 +38,7 @@ export const registerGlobalIcons = () => {
     'options-outline': optionsOutline,
     'chevron-forward-outline': chevronForwardOutline,
     'refresh-outline': refreshOutline,
+    'heart': heart,
+    'heart-outline': heartOutline,
   });
 };

@@ -1,4 +1,5 @@
-import { Component, input, ViewChild, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, input, inject, ViewChild, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
+import { Router } from '@angular/router';
 import { IonIcon, IonBadge } from '@ionic/angular/standalone';
 import { RecentSearchProduct } from '../../../core/models/recent-search.model';
 
@@ -10,17 +11,38 @@ import { RecentSearchProduct } from '../../../core/models/recent-search.model';
   imports: [IonIcon, IonBadge],
 })
 export class HomeRecentSearchComponent implements AfterViewInit, OnDestroy {
+  private router = inject(Router);
+
   recentSearches = input<RecentSearchProduct[]>([]);
 
   @ViewChild('carousel') carouselRef!: ElementRef<HTMLDivElement>;
 
   private isDragging = false;
+  private hasDragged = false;
   private startX = 0;
   private scrollLeft = 0;
 
-  // Store bound listeners so we can remove them on destroy
+  private readonly CATEGORY_ICONS: Record<string, string> = {
+    Cement: 'cube-outline',
+    Glass: 'apps-outline',
+    Steel: 'cut-outline',
+    Wood: 'leaf-outline',
+    Paint: 'color-palette-outline',
+    Tiles: 'grid-outline',
+  };
+
+  getCategoryIcon(category: string): string {
+    return this.CATEGORY_ICONS[category] ?? 'hammer-outline';
+  }
+
+  navigateToProduct(id: string): void {
+    if (this.hasDragged) return;
+    this.router.navigate(['/product', id]);
+  }
+
   private onMouseDown = (e: MouseEvent) => {
     this.isDragging = true;
+    this.hasDragged = false;
     this.startX = e.pageX - this.carouselRef.nativeElement.offsetLeft;
     this.scrollLeft = this.carouselRef.nativeElement.scrollLeft;
     this.carouselRef.nativeElement.classList.add('dragging');
@@ -34,13 +56,15 @@ export class HomeRecentSearchComponent implements AfterViewInit, OnDestroy {
   private onMouseUp = () => {
     this.isDragging = false;
     this.carouselRef.nativeElement.classList.remove('dragging');
+    setTimeout(() => { this.hasDragged = false; }, 0);
   };
 
   private onMouseMove = (e: MouseEvent) => {
     if (!this.isDragging) return;
     e.preventDefault();
+    this.hasDragged = true;
     const x = e.pageX - this.carouselRef.nativeElement.offsetLeft;
-    const walk = (x - this.startX) * 1.5; // drag speed multiplier
+    const walk = (x - this.startX) * 1.5;
     this.carouselRef.nativeElement.scrollLeft = this.scrollLeft - walk;
   };
 

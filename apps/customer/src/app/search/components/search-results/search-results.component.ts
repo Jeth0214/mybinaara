@@ -1,5 +1,6 @@
-import { Component, input } from '@angular/core';
+import { Component, input, inject } from '@angular/core';
 import { IonIcon } from '@ionic/angular/standalone';
+import { Router } from '@angular/router';
 import { SearchProduct } from '../../../core/models/search-product.model';
 
 @Component({
@@ -10,9 +11,15 @@ import { SearchProduct } from '../../../core/models/search-product.model';
   imports: [IonIcon],
 })
 export class SearchResultsComponent {
+  private router = inject(Router);
+
   products = input<SearchProduct[]>([]);
   query = input<string>('');
   selectedCategory = input<string | null>(null);
+
+  navigateToProduct(product: SearchProduct) {
+    this.router.navigate(['/product', product.id]);
+  }
 
   private readonly CATEGORY_ICONS: Record<string, string> = {
     'Cement': 'cube-outline',
