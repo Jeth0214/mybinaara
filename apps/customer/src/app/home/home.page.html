@@ -15,6 +15,7 @@
 
     <app-home-categories
       [categories]="categories()"
+      (categorySelected)="onCategorySelected($event)"
     ></app-home-categories>
 
     <app-home-stores-nearby

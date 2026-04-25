@@ -8,7 +8,7 @@
 
   <div class="categories-carousel">
     @for (category of categories(); track category.id) {
-      <div class="category-card">
+      <div class="category-card" [class.active]="activeCategory() === category.name" (click)="categorySelected.emit(category)">
         <div class="category-icon-wrapper">
           <ion-icon [name]="category.icon" class="category-icon"></ion-icon>
         </div>

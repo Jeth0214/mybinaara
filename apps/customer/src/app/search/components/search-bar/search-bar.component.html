@@ -1,0 +1,21 @@
+<div class="search-bar-wrapper">
+  <button class="back-btn" (click)="goBack()" aria-label="Go back">
+    <ion-icon name="arrow-back-outline"></ion-icon>
+  </button>
+
+  <div class="search-input-wrapper">
+    <ion-icon name="search-outline" class="search-icon"></ion-icon>
+    <input
+      #searchInput
+      type="text"
+      class="search-input"
+      placeholder="Search tools, hardware, pipes..."
+      [value]="query()"
+      (input)="onInput($event)"
+    />
+  </div>
+
+  <button class="filter-btn" aria-label="Filters">
+    <ion-icon name="options-outline"></ion-icon>
+  </button>
+</div>
