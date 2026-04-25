@@ -12,6 +12,11 @@ export const routes: Routes = [
       import('./search/search.page').then((m) => m.SearchPage),
   },
   {
+    path: 'product/:id',
+    loadComponent: () =>
+      import('./product/product.page').then((m) => m.ProductPage),
+  },
+  {
     path: '**',
     redirectTo: '',
   },

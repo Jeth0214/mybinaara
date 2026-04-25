@@ -7,10 +7,9 @@ import { HomeSearchComponent } from './components/home-search/home-search.compon
 import { HomeRecentSearchComponent } from './components/home-recent-search/home-recent-search.component';
 import { HomeCategoriesComponent } from './components/home-categories/home-categories.component';
 import { HomeStoresNearbyComponent } from './components/home-stores-nearby/home-stores-nearby.component';
-import { MOCK_RECENT_SEARCHES } from '../core/data/mock-recent-searches.data';
 import { MOCK_CATEGORIES } from '../core/data/mock-categories.data';
 import { MOCK_STORES } from '../core/data/mock-stores.data';
-import { RecentSearchProduct } from '../core/models/recent-search.model';
+import { RecentViewsService } from '../shared/services/recent-views.service';
 import { Category } from '../core/models/category.model';
 import { Store } from '../core/models/store.model';
 
@@ -31,8 +30,9 @@ import { Store } from '../core/models/store.model';
 })
 export class HomePage {
   private router = inject(Router);
+  private recentViewsService = inject(RecentViewsService);
 
-  recentSearches = signal<RecentSearchProduct[]>(MOCK_RECENT_SEARCHES);
+  recentSearches = this.recentViewsService.recentViews;
   categories = signal<Category[]>(MOCK_CATEGORIES);
   stores = signal<Store[]>(MOCK_STORES);
 
