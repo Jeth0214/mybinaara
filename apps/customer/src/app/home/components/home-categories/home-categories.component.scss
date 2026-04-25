@@ -54,7 +54,19 @@
 
   &:active {
     transform: scale(0.96);
+  }
+
+  &.active {
+    background: var(--ion-color-primary);
     border-color: var(--ion-color-primary);
+
+    .category-icon {
+      color: #d99201;
+    }
+
+    .category-name {
+      color: #ffffff;
+    }
   }
 }
 

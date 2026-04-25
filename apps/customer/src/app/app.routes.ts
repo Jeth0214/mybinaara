@@ -7,6 +7,11 @@ export const routes: Routes = [
       import('./home/home.page').then((m) => m.HomePage),
   },
   {
+    path: 'search',
+    loadComponent: () =>
+      import('./search/search.page').then((m) => m.SearchPage),
+  },
+  {
     path: '**',
     redirectTo: '',
   },
