@@ -1,23 +1,32 @@
 import { addIcons } from 'ionicons';
 import {
-  notificationsOutline,
   searchOutline,
   locationOutline,
-  personOutline,
   timeOutline,
   hammerOutline,
-  logInOutline,
+  cubeOutline,
+  appsOutline,
+  cutOutline,
+  leafOutline,
+  colorPaletteOutline,
+  gridOutline,
+  storefrontOutline,
+  mapOutline
 } from 'ionicons/icons';
 
 export const registerGlobalIcons = () => {
   addIcons({
-    'notifications-outline': notificationsOutline,
     'search-outline': searchOutline,
     'location-outline': locationOutline,
-    'person-outline': personOutline,
     'time-outline': timeOutline,
     'hammer-outline': hammerOutline,
-    'log-in-outline': logInOutline,
-    // Add new globally used icons here
+    'cube-outline': cubeOutline,
+    'apps-outline': appsOutline,
+    'cut-outline': cutOutline,
+    'leaf-outline': leafOutline,
+    'color-palette-outline': colorPaletteOutline,
+    'grid-outline': gridOutline,
+    'storefront-outline': storefrontOutline,
+    'map-outline': mapOutline
   });
 };

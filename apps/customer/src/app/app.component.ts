@@ -11,33 +11,5 @@ import { registerGlobalIcons } from './shared/imports/ionic-icons-import';
 export class AppComponent {
   constructor() {
     registerGlobalIcons();
-    this.initializeTheme();
-  }
-
-  private initializeTheme() {
-    const theme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
-
-    const applyTheme = (isDark: boolean) => {
-      document.documentElement.classList.toggle('ion-palette-dark', isDark);
-      // Failsafe: clean up any lingering classes on body from previous local tests
-      document.body.classList.toggle('ion-palette-dark', isDark);
-    };
-
-    if (theme === 'dark') {
-      applyTheme(true);
-    } else if (theme === 'light') {
-      applyTheme(false);
-    } else {
-      // Support system default if no preference saved
-      applyTheme(prefersDark.matches);
-    }
-
-    // Optional: listen for system changes if user hasn't overridden
-    prefersDark.addEventListener('change', (e) => {
-      if (!localStorage.getItem('theme')) {
-        applyTheme(e.matches);
-      }
-    });
   }
 }

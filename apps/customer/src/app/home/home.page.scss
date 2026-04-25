@@ -8,8 +8,6 @@
   /* Adjust top padding for safe areas to avoid overlapping status bar */
   padding-top: calc(env(safe-area-inset-top) + 24px);
 
-  /* Creates a subtle bottom shadow or border if needed, 
-     but keeping it clean and flat matches the reference. */
 }
 
 .main-content {

@@ -2,18 +2,24 @@
 
   <!-- Green Header Section -->
   <div class="header-section">
-    <app-home-greeting [profile]="userProfile()"></app-home-greeting>
+    <app-home-greeting></app-home-greeting>
     <app-home-search></app-home-search>
   </div>
 
   <!-- Main Content Section -->
   <div class="main-content">
 
-    <!-- Recent Searches -->
     <app-home-recent-search
-      [isLoggedIn]="isLoggedIn()"
       [recentSearches]="recentSearches()"
     ></app-home-recent-search>
+
+    <app-home-categories
+      [categories]="categories()"
+    ></app-home-categories>
+
+    <app-home-stores-nearby
+      [stores]="stores()"
+    ></app-home-stores-nearby>
 
   </div>
 

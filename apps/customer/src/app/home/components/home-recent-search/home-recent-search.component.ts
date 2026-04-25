@@ -1,6 +1,5 @@
 import { Component, input, ViewChild, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { IonIcon, IonButton, IonBadge } from '@ionic/angular/standalone';
+import { IonIcon, IonBadge } from '@ionic/angular/standalone';
 import { RecentSearchProduct } from '../../../core/models/recent-search.model';
 
 @Component({
@@ -8,10 +7,9 @@ import { RecentSearchProduct } from '../../../core/models/recent-search.model';
   templateUrl: './home-recent-search.component.html',
   styleUrls: ['./home-recent-search.component.scss'],
   standalone: true,
-  imports: [IonIcon, IonButton, IonBadge, RouterLink],
+  imports: [IonIcon, IonBadge],
 })
 export class HomeRecentSearchComponent implements AfterViewInit, OnDestroy {
-  isLoggedIn = input<boolean>(false);
   recentSearches = input<RecentSearchProduct[]>([]);
 
   @ViewChild('carousel') carouselRef!: ElementRef<HTMLDivElement>;
