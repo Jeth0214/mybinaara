@@ -2,6 +2,7 @@ import { Component, input, computed, inject } from '@angular/core';
 import { IonIcon } from '@ionic/angular/standalone';
 import { Store } from '../../../core/models/store.model';
 import { LocationService } from '../../../shared/services/location.service';
+import { Router } from '@angular/router';
 
 interface StoreWithDistance extends Store {
   distanceKm: number;
@@ -18,10 +19,7 @@ export class HomeStoresNearbyComponent {
   stores = input<Store[]>([]);
 
   private locationService = inject(LocationService);
-
-  readonly loading = this.locationService.loading;
-  readonly permissionDenied = this.locationService.permissionDenied;
-  readonly skeletonItems = [1, 2, 3];
+  private router = inject(Router);
 
   displayStores = computed<StoreWithDistance[]>(() => {
     const coords = this.locationService.coords();
@@ -35,7 +33,7 @@ export class HomeStoresNearbyComponent {
       .sort((a, b) => a.distanceKm - b.distanceKm);
   });
 
-  retryLocation(): void {
-    this.locationService.initialize();
+  navigateToStore(storeId: string) {
+    this.router.navigate(['/store', storeId]);
   }
 }

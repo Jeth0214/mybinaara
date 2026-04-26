@@ -4,10 +4,10 @@
     <input type="text" class="search-input" placeholder="Search tools, hardware, pipes..." readonly />
   </div>
 
-  @if (locationDenied()) {
-    <div class="location-chip location-chip--denied" (click)="retryLocation()" role="button">
+  @if (locationError()) {
+    <div class="location-chip location-chip--error" (click)="retryLocation()" role="button">
       <ion-icon name="refresh-outline"></ion-icon>
-      <span>Enable Location</span>
+      <span>{{ currentLocation() }}</span>
     </div>
   } @else {
     <div class="location-chip" [class.location-chip--loading]="locationLoading()">

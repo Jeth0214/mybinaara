@@ -6,22 +6,85 @@
     <app-home-search></app-home-search>
   </div>
 
-  <!-- Main Content Section -->
-  <div class="main-content">
+  @if (locationLoading()) {
+    <div class="main-content">
 
-    <app-home-recent-search
-      [recentSearches]="recentSearches()"
-    ></app-home-recent-search>
+      <!-- Recent Searches skeleton -->
+      <section class="skeleton-section">
+        <div class="sk-header"><div class="sk-line sk-title"></div></div>
+        <div class="sk-carousel">
+          @for (i of skeletonItems; track i) {
+            <div class="sk-product-card">
+              <div class="sk-product-image"></div>
+              <div class="sk-product-body">
+                <div class="sk-line sk-cat-line"></div>
+                <div class="sk-line sk-name-line"></div>
+                <div class="sk-line sk-brand-line"></div>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
 
-    <app-home-categories
-      [categories]="categories()"
-      (categorySelected)="onCategorySelected($event)"
-    ></app-home-categories>
+      <!-- Categories skeleton -->
+      <section class="skeleton-section">
+        <div class="sk-header"><div class="sk-line sk-title"></div></div>
+        <div class="sk-cat-row">
+          @for (i of [1,2,3,4,5]; track i) {
+            <div class="sk-cat-item">
+              <div class="sk-cat-icon"></div>
+              <div class="sk-line sk-cat-name"></div>
+            </div>
+          }
+        </div>
+      </section>
 
-    <app-home-stores-nearby
-      [stores]="stores()"
-    ></app-home-stores-nearby>
+      <!-- Stores Nearby skeleton -->
+      <section class="skeleton-section">
+        <div class="sk-header"><div class="sk-line sk-title"></div></div>
+        <div class="sk-stores-list">
+          @for (i of skeletonItems; track i) {
+            <div class="sk-store-card">
+              <div class="sk-store-icon"></div>
+              <div class="sk-store-info">
+                <div class="sk-line sk-s-name"></div>
+                <div class="sk-line sk-s-loc"></div>
+                <div class="sk-line sk-s-dist"></div>
+              </div>
+              <div class="sk-store-btn"></div>
+            </div>
+          }
+        </div>
+      </section>
 
-  </div>
+    </div>
+  } @else if (!locationCoords()) {
+    <div class="location-required">
+      <ion-icon name="location-outline" class="lr-icon"></ion-icon>
+      <h3 class="lr-title">Location Required</h3>
+      <p class="lr-text">We need your location to show nearby stores and search results.</p>
+      <button class="lr-retry-btn" (click)="retryLocation()">
+        <ion-icon name="refresh-outline"></ion-icon>
+        Try Again
+      </button>
+    </div>
+  } @else {
+    <div class="main-content">
+
+      <app-home-recent-search
+        [recentSearches]="recentSearches()"
+      ></app-home-recent-search>
+
+      <app-home-categories
+        [categories]="categories()"
+        (categorySelected)="onCategorySelected($event)"
+      ></app-home-categories>
+
+      <app-home-stores-nearby
+        [stores]="stores()"
+      ></app-home-stores-nearby>
+
+    </div>
+  }
 
 </ion-content>

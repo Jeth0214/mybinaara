@@ -6,8 +6,8 @@
 }
 
 ion-toolbar {
-  --background: transparent;
-  --border-color: transparent;
+  --background: var(--ion-color-primary, #1a3f22);;
+  --border-color: var(--ion-color-tertiary, #d99201);
   --box-shadow: none;
 }
 

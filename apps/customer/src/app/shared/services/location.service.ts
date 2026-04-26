@@ -16,6 +16,7 @@ export class LocationService {
   async initialize(): Promise<void> {
     this.loading.set(true);
     this.permissionDenied.set(false);
+    this.locationLabel.set('Locating...');
 
     try {
       await Geolocation.requestPermissions();
@@ -30,9 +31,10 @@ export class LocationService {
       });
       const lat = pos.coords.latitude;
       const lng = pos.coords.longitude;
+      console.log('Got location:', lat, lng);
       this.coords.set({ lat, lng });
+      await this.reverseGeocode(lat, lng);
       this.loading.set(false);
-      this.reverseGeocode(lat, lng);
     } catch (err: unknown) {
       this.loading.set(false);
       const code = (err as GeolocationPositionError | null)?.code;
@@ -46,19 +48,32 @@ export class LocationService {
   }
 
   private async reverseGeocode(lat: number, lng: number): Promise<void> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
     try {
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
+        {
+          signal: controller.signal,
+          headers: {
+            'User-Agent': 'mybinaara-app/1.0 (mybinaaraapp@gmail.com)',
+            'Accept-Language': 'en',
+          },
+        }
       );
+      clearTimeout(timeoutId);
       const data = await res.json();
+      console.log(data);
       const addr = data.address ?? {};
       const city = addr.city ?? addr.town ?? addr.village ?? addr.county ?? '';
       const suburb = addr.suburb ?? addr.neighbourhood ?? addr.district ?? '';
       this.locationLabel.set(
-        city && suburb ? `${city}, ${suburb}` : city || suburb || 'Location found'
+        city && suburb ? `${suburb}, ${city}` : city || suburb || 'Nearest location'
       );
     } catch {
-      this.locationLabel.set('Location found');
+      clearTimeout(timeoutId);
+      this.locationLabel.set('Nearest location'); 
     }
   }
 

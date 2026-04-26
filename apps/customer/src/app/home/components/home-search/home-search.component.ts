@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonIcon } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
@@ -17,7 +17,9 @@ export class HomeSearchComponent {
 
   currentLocation = this.locationService.locationLabel;
   locationLoading = this.locationService.loading;
-  locationDenied = this.locationService.permissionDenied;
+  locationError = computed(
+    () => !this.locationService.loading() && this.locationService.coords() === null
+  );
 
   navigateToSearch() {
     this.router.navigate(['/search']);

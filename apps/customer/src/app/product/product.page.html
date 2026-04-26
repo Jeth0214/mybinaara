@@ -5,6 +5,7 @@
         <ion-icon name="arrow-back-outline"></ion-icon>
       </button>
     </ion-buttons>
+    <ion-title color="light">Product Details</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -75,7 +76,9 @@
           </div>
         </div>
 
-        <button class="view-store-btn">View Store →</button>
+        <button class="view-store-btn" (click)="navigateToStore(item.store.id)">
+          View Store →
+        </button>
       </div>
       }
     </div>

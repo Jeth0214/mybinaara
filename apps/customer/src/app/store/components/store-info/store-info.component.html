@@ -1,0 +1,51 @@
+<div class="info-card">
+
+  <div class="info-row">
+    <div class="icon-wrapper">
+      <ion-icon name="call-outline" class="info-icon"></ion-icon>
+    </div>
+    <div class="info-content">
+      <span class="info-label">PHONE</span>
+      <span class="info-value">{{ store().phone }}</span>
+    </div>
+  </div>
+
+  <div class="info-divider"></div>
+
+  <div class="info-row">
+    <div class="icon-wrapper">
+      <ion-icon name="logo-whatsapp" class="info-icon info-icon--wa"></ion-icon>
+    </div>
+    <div class="info-content">
+      <span class="info-label">WHATSAPP</span>
+      <span class="info-value">{{ store().whatsapp }}</span>
+    </div>
+  </div>
+
+  <div class="info-divider"></div>
+
+  <div class="info-row">
+    <div class="icon-wrapper">
+      <ion-icon name="time-outline" class="info-icon"></ion-icon>
+    </div>
+    <div class="info-content">
+      <span class="info-label">WORKING HOURS</span>
+      <span class="info-value">{{ store().workingHours }}</span>
+    </div>
+  </div>
+
+  <div class="info-divider"></div>
+
+  <div class="info-row">
+    <div class="icon-wrapper">
+      <ion-icon name="location-outline" class="info-icon info-icon--loc"></ion-icon>
+    </div>
+    <div class="info-content">
+      <span class="info-label">DISTANCE</span>
+      <span class="info-value" [class.info-value--accent]="distance() !== null">
+        {{ distance() !== null ? distance() + ' km from your location' : 'Calculating...' }}
+      </span>
+    </div>
+  </div>
+
+</div>
