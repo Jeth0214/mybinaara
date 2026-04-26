@@ -18,6 +18,10 @@ import {
   refreshOutline,
   heart,
   heartOutline,
+  callOutline,
+  logoWhatsapp,
+  navigateOutline,
+  location,
 } from 'ionicons/icons';
 
 export const registerGlobalIcons = () => {
@@ -40,5 +44,9 @@ export const registerGlobalIcons = () => {
     'refresh-outline': refreshOutline,
     'heart': heart,
     'heart-outline': heartOutline,
+    'call-outline': callOutline,
+    'logo-whatsapp': logoWhatsapp,
+    'navigate-outline': navigateOutline,
+    'location': location,
   });
 };

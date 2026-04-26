@@ -1,6 +1,7 @@
 import { Component, signal, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { IonIcon } from '@ionic/angular/standalone';
 import { IONIC_PAGE_IMPORTS } from '../shared/imports/ionic-page-imports';
 import { HomeGreetingComponent } from './components/home-greeting/home-greeting.component';
 import { HomeSearchComponent } from './components/home-search/home-search.component';
@@ -10,6 +11,7 @@ import { HomeStoresNearbyComponent } from './components/home-stores-nearby/home-
 import { MOCK_CATEGORIES } from '../core/data/mock-categories.data';
 import { MOCK_STORES } from '../core/data/mock-stores.data';
 import { RecentViewsService } from '../shared/services/recent-views.service';
+import { LocationService } from '../shared/services/location.service';
 import { Category } from '../core/models/category.model';
 import { Store } from '../core/models/store.model';
 
@@ -20,6 +22,7 @@ import { Store } from '../core/models/store.model';
   standalone: true,
   imports: [
     CommonModule,
+    IonIcon,
     ...IONIC_PAGE_IMPORTS,
     HomeGreetingComponent,
     HomeSearchComponent,
@@ -31,10 +34,19 @@ import { Store } from '../core/models/store.model';
 export class HomePage {
   private router = inject(Router);
   private recentViewsService = inject(RecentViewsService);
+  private locationService = inject(LocationService);
+
+  readonly locationLoading = this.locationService.loading;
+  readonly locationCoords  = this.locationService.coords;
+  readonly skeletonItems   = [1, 2, 3];
 
   recentSearches = this.recentViewsService.recentViews;
   categories = signal<Category[]>(MOCK_CATEGORIES);
   stores = signal<Store[]>(MOCK_STORES);
+
+  retryLocation(): void {
+    this.locationService.initialize();
+  }
 
   onCategorySelected(category: Category) {
     this.router.navigate(['/search'], { queryParams: { cat: category.name } });

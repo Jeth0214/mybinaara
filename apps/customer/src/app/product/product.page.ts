@@ -1,7 +1,7 @@
 import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
-import { IonContent, IonHeader, IonToolbar, IonButtons, IonIcon } from '@ionic/angular/standalone';
-import { ActivatedRoute } from '@angular/router';
+import { IonContent, IonHeader, IonToolbar, IonButtons, IonIcon, IonTitle } from '@ionic/angular/standalone';
+import { ActivatedRoute, Router } from '@angular/router';
 import { SearchProduct } from '../core/models/search-product.model';
 import { ProductDetail } from '../core/models/product-detail.model';
 import { MOCK_SEARCH_PRODUCTS } from '../core/data/mock-search-products.data';
@@ -24,10 +24,11 @@ interface StoreAvail {
   templateUrl: 'product.page.html',
   styleUrls: ['product.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonToolbar, IonButtons, IonIcon],
+  imports: [IonTitle, IonContent, IonHeader, IonToolbar, IonButtons, IonIcon],
 })
 export class ProductPage implements OnInit {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private locationNav = inject(Location);
   private locationService = inject(LocationService);
   private recentViews = inject(RecentViewsService);
@@ -67,6 +68,10 @@ export class ProductPage implements OnInit {
 
   goBack() {
     this.locationNav.back();
+  }
+
+  navigateToStore(storeId: string) {
+    this.router.navigate(['/store', storeId]);
   }
 
   toggleSaved() {

@@ -1,0 +1,60 @@
+.actions-wrapper {
+  padding: 0 20px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.primary-row {
+  display: flex;
+  gap: 12px;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  border-radius: 14px;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 16px;
+  transition: opacity 0.15s ease;
+
+  ion-icon {
+    font-size: 20px;
+  }
+
+  span {
+    font-size: 15px;
+  }
+
+  &:active {
+    opacity: 0.82;
+  }
+
+  &--whatsapp {
+    flex: 1;
+    background: #25d366;
+    color: #ffffff;
+  }
+
+  &--call {
+    flex: 1;
+    background: var(--ion-color-primary);
+    color: #ffffff;
+  }
+
+  &--directions {
+    width: 100%;
+    background: transparent;
+    color: #1a1a1a;
+    border: 1.5px solid #d0d0d0;
+
+    span {
+      font-size: 14px;
+    }
+  }
+}

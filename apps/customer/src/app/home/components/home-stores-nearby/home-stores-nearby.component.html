@@ -2,56 +2,35 @@
   <div class="section-header">
     <div class="section-title">
       <ion-icon name="map-outline" class="section-icon"></ion-icon>
-      <h2 class="ion-no-margin">
-        @if (loading()) { Stores Nearby } @else { {{ displayStores().length }} Stores Nearby }
-      </h2>
+      <h2 class="ion-no-margin">{{ displayStores().length }} Stores Nearby</h2>
     </div>
   </div>
 
-  @if (loading()) {
-    <div class="stores-list">
-      @for (item of skeletonItems; track item) {
-        <div class="store-card skeleton-card">
-          <div class="skeleton-icon"></div>
-          <div class="skeleton-info">
-            <div class="skeleton-line skeleton-name"></div>
-            <div class="skeleton-line skeleton-location"></div>
-            <div class="skeleton-line skeleton-distance"></div>
-          </div>
-          <div class="skeleton-btn"></div>
+  <div class="stores-list">
+    @for (store of displayStores(); track store.id) {
+      <div class="store-card">
+        <div class="store-icon-wrapper">
+          <ion-icon name="storefront-outline" class="store-icon"></ion-icon>
         </div>
-      }
-    </div>
-  } @else if (permissionDenied()) {
-    <div class="denied-state">
-      <ion-icon name="location-outline" class="denied-icon"></ion-icon>
-      <p class="denied-title">Location access denied</p>
-      <span class="denied-subtitle">Enable location to see nearby stores</span>
-      <button class="retry-btn" (click)="retryLocation()">
-        <ion-icon name="refresh-outline"></ion-icon>
-        Try Again
-      </button>
-    </div>
-  } @else {
-    <div class="stores-list">
-      @for (store of displayStores(); track store.id) {
-        <div class="store-card">
-          <div class="store-icon-wrapper">
-            <ion-icon name="storefront-outline" class="store-icon"></ion-icon>
-          </div>
 
-          <div class="store-info">
-            <p class="store-name ion-no-margin">{{ store.name }}</p>
-            <span class="store-location">{{ store.district }}, {{ store.city }}</span>
-            <div class="store-distance">
-              <ion-icon name="location-outline" class="distance-icon"></ion-icon>
-              <span>{{ store.distanceKm }} km</span>
-            </div>
+        <div class="store-info">
+          <p class="store-name ion-no-margin">{{ store.name }}</p>
+          <span class="store-location"
+            >{{ store.district }}, {{ store.city }}</span
+          >
+          <div class="store-distance">
+            <ion-icon
+              name="location-outline"
+              class="distance-icon"
+            ></ion-icon>
+            <span>{{ store.distanceKm }} km</span>
           </div>
-
-          <button class="view-store-btn">View Store →</button>
         </div>
-      }
-    </div>
-  }
+
+        <button class="view-store-btn" (click)="navigateToStore(store.id)">
+          View Store →
+        </button>
+      </div>
+    }
+  </div>
 </section>

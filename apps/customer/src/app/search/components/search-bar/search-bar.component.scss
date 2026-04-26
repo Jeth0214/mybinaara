@@ -3,8 +3,8 @@
   align-items: center;
   gap: 10px;
   padding: 14px 16px;
-  background: #ffffff;
-  border-bottom: 1px solid #efefef;
+  background: var(--ion-color-primary, #1a3f22);
+  border-bottom: 1px solid var(--ion-color-tertiary, #d99201);
 }
 
 .back-btn,
@@ -32,7 +32,7 @@
 }
 
 .filter-btn {
-  background: var(--ion-color-primary);
+  background: var(--ion-color-primary, #1a3f22);
   color: #ffffff;
   border-radius: 10px;
 

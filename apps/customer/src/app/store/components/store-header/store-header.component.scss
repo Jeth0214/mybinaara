@@ -1,0 +1,54 @@
+.store-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 20px 24px;
+  background: #eef5ef;
+}
+
+.logo-wrapper {
+  width: 64px;
+  height: 64px;
+  background: #ffffff;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.logo-icon {
+  font-size: 30px;
+  color: var(--ion-color-primary);
+}
+
+.store-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.store-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 6px;
+  line-height: 1.3;
+}
+
+.store-location {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.loc-icon {
+  font-size: 14px;
+  color: var(--ion-color-medium);
+  flex-shrink: 0;
+}
+
+.store-location span {
+  font-size: 13px;
+  color: var(--ion-color-medium);
+}
