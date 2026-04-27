@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
+import { SplashScreen } from '@capacitor/splash-screen';
 import { registerGlobalIcons } from './shared/imports/ionic-icons-import';
 import { LocationService } from './shared/services/location.service';
 
@@ -15,5 +16,6 @@ export class AppComponent {
   constructor() {
     registerGlobalIcons();
     this.locationService.initialize();
+    SplashScreen.hide({ fadeOutDuration: 400 });
   }
 }

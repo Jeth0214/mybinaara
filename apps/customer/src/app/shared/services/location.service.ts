@@ -13,7 +13,11 @@ export class LocationService {
   readonly loading = signal<boolean>(true);
   readonly permissionDenied = signal<boolean>(false);
 
+  private initializing = false;
+
   async initialize(): Promise<void> {
+    if (this.initializing) return;
+    this.initializing = true;
     this.loading.set(true);
     this.permissionDenied.set(false);
     this.locationLabel.set('Locating...');
@@ -35,8 +39,10 @@ export class LocationService {
       this.coords.set({ lat, lng });
       await this.reverseGeocode(lat, lng);
       this.loading.set(false);
+      this.initializing = false;
     } catch (err: unknown) {
       this.loading.set(false);
+      this.initializing = false;
       const code = (err as GeolocationPositionError | null)?.code;
       if (code === GeolocationPositionError.PERMISSION_DENIED) {
         this.permissionDenied.set(true);
