@@ -1,11 +1,7 @@
 <div class="map-section">
-  <div class="map-wrapper" (click)="openDirections()">
-    <div class="map-tiles"></div>
-    <div class="road road--h"></div>
-    <div class="road road--v"></div>
-    <div class="pin-container">
-      <ion-icon name="location" class="pin-icon"></ion-icon>
-      <div class="pin-label">{{ store().name }}</div>
-    </div>
-  </div>
+  <div id="store-map" class="map-container"></div>
+  <button class="directions-btn" (click)="openDirections()">
+    <ion-icon name="navigate-outline"></ion-icon>
+    Get Directions
+  </button>
 </div>

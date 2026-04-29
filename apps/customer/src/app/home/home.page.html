@@ -61,12 +61,22 @@
   } @else if (!locationCoords()) {
     <div class="location-required">
       <ion-icon name="location-outline" class="lr-icon"></ion-icon>
-      <h3 class="lr-title">Location Required</h3>
-      <p class="lr-text">We need your location to show nearby stores and search results.</p>
-      <button class="lr-retry-btn" (click)="retryLocation()">
-        <ion-icon name="refresh-outline"></ion-icon>
-        Try Again
-      </button>
+
+      @if (locationDenied()) {
+        <h3 class="lr-title">Location Access Denied</h3>
+        <p class="lr-text">You've denied location access. Please enable it in your device settings to see nearby stores and search results.</p>
+        <button class="lr-retry-btn" (click)="openAppSettings()">
+          <ion-icon name="settings-outline"></ion-icon>
+          Open Settings
+        </button>
+      } @else {
+        <h3 class="lr-title">Can't Locate You</h3>
+        <p class="lr-text">We couldn't determine your location. Check your GPS signal and try again.</p>
+        <button class="lr-retry-btn" (click)="retryLocation()">
+          <ion-icon name="refresh-outline"></ion-icon>
+          Try Again
+        </button>
+      }
     </div>
   } @else {
     <div class="main-content">

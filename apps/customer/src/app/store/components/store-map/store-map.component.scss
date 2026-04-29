@@ -2,67 +2,56 @@
   padding: 0 20px 16px;
 }
 
-.map-wrapper {
-  position: relative;
-  height: 200px;
+.map-container {
+  height: 220px;
   border-radius: 16px;
   overflow: hidden;
-  cursor: pointer;
-  background-color: #cfe0cf;
+  z-index: 0;
 }
 
-.map-tiles {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.28) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.28) 1px, transparent 1px);
-  background-size: 38px 38px;
-}
+:host ::ng-deep {
+  .map-pin {
+    border-radius: 50%;
+    border: 3px solid #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
 
-.road {
-  position: absolute;
-  background: rgba(255, 255, 255, 0.72);
+    &--store {
+      width: 22px;
+      height: 22px;
+      background: var(--ion-color-primary, #1a3f22);
+    }
 
-  &--h {
-    top: 58%;
-    left: 0;
-    right: 0;
-    height: 14px;
-  }
-
-  &--v {
-    left: 38%;
-    top: 0;
-    bottom: 0;
-    width: 10px;
+    &--user {
+      width: 18px;
+      height: 18px;
+      background: #2196f3;
+    }
   }
 }
 
-.pin-container {
-  position: absolute;
-  top: 46%;
-  left: 50%;
-  transform: translate(-50%, -100%);
+.directions-btn {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 3px;
-}
-
-.pin-icon {
-  font-size: 40px;
-  color: var(--ion-color-primary);
-  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.28));
-}
-
-.pin-label {
-  background: #ffffff;
-  padding: 5px 12px;
-  border-radius: 8px;
-  font-size: 11px;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 12px;
+  width: 100%;
+  background: var(--ion-color-primary, #1a3f22);
+  color: var(--ion-color-tertiary, #d99201);
+  border: none;
+  border-radius: 12px;
+  padding: 13px;
+  font-size: 14px;
   font-weight: 600;
-  color: #1a1a1a;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  white-space: nowrap;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+
+  ion-icon {
+    font-size: 18px;
+  }
+
+  &:active {
+    opacity: 0.85;
+  }
 }

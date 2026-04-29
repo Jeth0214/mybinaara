@@ -1,5 +1,4 @@
-import { Component, input, output, ViewChild, ElementRef, AfterViewInit, inject } from '@angular/core';
-import { Location } from '@angular/common';
+import { Component, input, output, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { IonIcon } from '@ionic/angular/standalone';
 
 @Component({
@@ -15,17 +14,11 @@ export class SearchBarComponent implements AfterViewInit {
 
   @ViewChild('searchInput') searchInputRef!: ElementRef<HTMLInputElement>;
 
-  private location = inject(Location);
-
   ngAfterViewInit() {
     setTimeout(() => this.searchInputRef?.nativeElement.focus(), 200);
   }
 
   onInput(event: Event) {
     this.queryChange.emit((event.target as HTMLInputElement).value);
-  }
-
-  goBack() {
-    this.location.back();
   }
 }

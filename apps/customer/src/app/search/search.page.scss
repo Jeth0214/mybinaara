@@ -1,24 +1,58 @@
-.search-content {
-  --background: #f4f5f8;
+.search-page-header {
+  &::after {
+    display: none;
+  }
 }
 
-.search-header {
-  background: #ffffff;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  border-bottom: 1px solid #efefef;
+ion-toolbar {
+  --background: var(--ion-color-primary, #1a3f22);
+  --border-color: transparent;
+  --box-shadow: none;
+}
 
-  // Remove the default section padding from categories when used inside header
-  app-home-categories {
-    ::ng-deep .categories-section {
-      padding: 12px 16px 14px;
-    }
+ion-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #ffffff;
+}
 
-    ::ng-deep .section-header {
-      display: none;
-    }
+.back-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin: 0 4px;
+
+  ion-icon {
+    font-size: 20px;
+    color: var(--ion-color-tertiary, #d99201);
   }
+
+  &:active {
+    opacity: 0.75;
+  }
+}
+
+// Categories strip inside header
+app-home-categories {
+  ::ng-deep .categories-section {
+    padding: 10px 16px 12px;
+    background: var(--ion-color-primary, #1a3f22);
+    border-bottom: 2px solid var(--ion-color-tertiary, #d99201);
+  }
+
+  ::ng-deep .section-header {
+    display: none;
+  }
+}
+
+.search-content {
+  --background: #f4f5f8;
 }
 
 .search-body {

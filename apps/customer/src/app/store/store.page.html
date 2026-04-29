@@ -13,7 +13,7 @@
   @if (store(); as s) {
     <app-store-header [store]="s"></app-store-header>
     <app-store-info [store]="s" [distance]="distance()"></app-store-info>
-    <app-store-map [store]="s"></app-store-map>
+    <app-store-map [store]="s" [userCoords]="locationCoords()"></app-store-map>
     <app-store-actions [store]="s"></app-store-actions>
   } @else {
     <div class="not-found">

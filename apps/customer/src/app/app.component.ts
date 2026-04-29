@@ -16,6 +16,6 @@ export class AppComponent {
   constructor() {
     registerGlobalIcons();
     this.locationService.initialize();
-    SplashScreen.hide({ fadeOutDuration: 400 });
+    setTimeout(() => SplashScreen.hide({ fadeOutDuration: 500 }), 2000);
   }
 }

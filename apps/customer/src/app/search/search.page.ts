@@ -1,5 +1,13 @@
 import { Component, signal, computed, inject, OnInit } from '@angular/core';
-import { IonContent } from '@ionic/angular/standalone';
+import { Location } from '@angular/common';
+import {
+  IonContent,
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonButtons,
+  IonIcon,
+} from '@ionic/angular/standalone';
 import { ActivatedRoute } from '@angular/router';
 import { SearchBarComponent } from './components/search-bar/search-bar.component';
 import { SearchFiltersComponent, SearchFilter } from './components/search-filters/search-filters.component';
@@ -17,6 +25,11 @@ import { Category } from '../core/models/category.model';
   standalone: true,
   imports: [
     IonContent,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonButtons,
+    IonIcon,
     SearchBarComponent,
     SearchFiltersComponent,
     SearchResultsComponent,
@@ -26,6 +39,7 @@ import { Category } from '../core/models/category.model';
 })
 export class SearchPage implements OnInit {
   private route = inject(ActivatedRoute);
+  private location = inject(Location);
 
   query = signal<string>('');
   activeFilter = signal<SearchFilter>('all');
@@ -72,6 +86,10 @@ export class SearchPage implements OnInit {
     this.query.set(q);
     const cat = this.route.snapshot.queryParamMap.get('cat') ?? '';
     if (cat) this.selectedCategory.set(cat);
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 
   onFilterChange(filter: SearchFilter) {

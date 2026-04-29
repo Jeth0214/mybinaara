@@ -2,6 +2,7 @@ import { Component, signal, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { IonIcon } from '@ionic/angular/standalone';
+import { NativeSettings, AndroidSettings, IOSSettings } from 'capacitor-native-settings';
 import { IONIC_PAGE_IMPORTS } from '../shared/imports/ionic-page-imports';
 import { HomeGreetingComponent } from './components/home-greeting/home-greeting.component';
 import { HomeSearchComponent } from './components/home-search/home-search.component';
@@ -38,6 +39,7 @@ export class HomePage {
 
   readonly locationLoading = this.locationService.loading;
   readonly locationCoords  = this.locationService.coords;
+  readonly locationDenied  = this.locationService.permissionDenied;
   readonly skeletonItems   = [1, 2, 3];
 
   recentSearches = this.recentViewsService.recentViews;
@@ -46,6 +48,13 @@ export class HomePage {
 
   retryLocation(): void {
     this.locationService.initialize();
+  }
+
+  async openAppSettings(): Promise<void> {
+    await NativeSettings.open({
+      optionAndroid: AndroidSettings.ApplicationDetails,
+      optionIOS: IOSSettings.App,
+    });
   }
 
   onCategorySelected(category: Category) {

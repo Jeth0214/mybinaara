@@ -41,6 +41,7 @@ export class StorePage implements OnInit {
   private locationService = inject(LocationService);
 
   store = signal<Store | null>(null);
+  readonly locationCoords = this.locationService.coords;
 
   distance = computed<number | null>(() => {
     const s = this.store();

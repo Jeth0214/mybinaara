@@ -22,6 +22,7 @@ import {
   logoWhatsapp,
   navigateOutline,
   location,
+  settingsOutline,
 } from 'ionicons/icons';
 
 export const registerGlobalIcons = () => {
@@ -48,5 +49,6 @@ export const registerGlobalIcons = () => {
     'logo-whatsapp': logoWhatsapp,
     'navigate-outline': navigateOutline,
     'location': location,
+    'settings-outline': settingsOutline,
   });
 };
