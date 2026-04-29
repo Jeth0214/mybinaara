@@ -1,0 +1,276 @@
+// ── Transparent Header ──────────────────────────────────
+.product-header {
+  &::after {
+    display: none;
+  }
+}
+
+ion-toolbar {
+  --background: var(--ion-color-primary, #1a3f22);;
+  --border-color: var(--ion-color-tertiary, #d99201);
+  --box-shadow: none;
+}
+
+.nav-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--ion-color-primary, #1a3f22);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  margin: 0 4px;
+
+  ion-icon {
+    font-size: 18px;
+    color: var(--ion-color-tertiary, #d99201);
+  }
+
+  &:active {
+    opacity: 0.8;
+    transform: scale(0.94);
+  }
+}
+
+// ── Hero ─────────────────────────────────────────────────
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 280px;
+  width: 100%;
+}
+
+.hero-icon {
+  font-size: 110px;
+  color: var(--ion-color-primary);
+  opacity: 0.6;
+}
+
+// ── Content Sheet ─────────────────────────────────────────
+.content-sheet {
+  background: #ffffff;
+  border-radius: 24px 24px 0 0;
+  margin-top: -24px;
+  padding: 24px 20px 48px;
+  min-height: 60vh;
+}
+
+// ── Tags ──────────────────────────────────────────────────
+.tags-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.tag {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+
+  &--category {
+    background: #e8f5eb;
+    color: var(--ion-color-primary);
+  }
+
+  &--brand {
+    background: #fff8e1;
+    color: #b08000;
+  }
+}
+
+// ── Product Name ──────────────────────────────────────────
+.product-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 12px;
+  line-height: 1.3;
+}
+
+// ── Price ─────────────────────────────────────────────────
+.price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.price {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--ion-color-primary);
+}
+
+.per-unit {
+  font-size: 13px;
+  color: var(--ion-color-medium);
+}
+
+// ── Description ───────────────────────────────────────────
+.description {
+  font-size: 14px;
+  color: #555555;
+  line-height: 1.65;
+  margin: 0 0 18px;
+}
+
+// ── Specs ─────────────────────────────────────────────────
+.specs-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.spec-chip {
+  font-size: 12px;
+  font-weight: 500;
+  color: #444444;
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-radius: 20px;
+  padding: 5px 14px;
+}
+
+// ── Stores Section ────────────────────────────────────────
+.stores-divider {
+  height: 1px;
+  background: #f0f0f0;
+  margin-bottom: 20px;
+}
+
+.stores-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.stores-label {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.stores-count {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ion-color-primary);
+}
+
+// ── Store Cards ───────────────────────────────────────────
+.stores-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.store-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #f9fafb;
+  border-radius: 16px;
+  padding: 14px 16px;
+  border: 1px solid #f0f0f0;
+}
+
+.store-icon-wrapper {
+  width: 44px;
+  height: 44px;
+  background: #eef3ef;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.store-icon {
+  font-size: 22px;
+  color: var(--ion-color-primary);
+}
+
+.store-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.store-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a1a1a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.store-location {
+  font-size: 12px;
+  color: var(--ion-color-medium);
+}
+
+.store-meta {
+  display: flex;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.meta-chip {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+
+  span {
+    font-size: 12px;
+    color: var(--ion-color-medium);
+    font-weight: 500;
+  }
+}
+
+.meta-icon {
+  font-size: 12px;
+
+  &--loc {
+    color: var(--ion-color-medium);
+  }
+
+  &--stock {
+    color: #d99201;
+  }
+}
+
+.view-store-btn {
+  background: var(--ion-color-primary);
+  color: var(--ion-color-tertiary, #d99201);
+  border: none;
+  border-radius: 20px;
+  padding: 9px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+  flex-shrink: 0;
+  transition: opacity 0.15s ease;
+
+  &:active {
+    opacity: 0.85;
+  }
+}
+
+.not-found {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 50vh;
+  color: var(--ion-color-medium);
+}

@@ -1,0 +1,92 @@
+<ion-header class="ion-no-border product-header">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <button class="nav-btn" (click)="goBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title color="light">Product Details</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  @if (productView(); as p) {
+
+  <div class="hero" [style.background]="p.iconBg">
+    <ion-icon [name]="getCategoryIcon(p.category)" class="hero-icon"></ion-icon>
+  </div>
+
+  <div class="content-sheet">
+    <div class="tags-row">
+      <span class="tag tag--category">{{ p.category }}</span>
+      <span class="tag tag--brand">{{ p.brand }}</span>
+    </div>
+
+    <h1 class="product-name">{{ p.name }}</h1>
+
+    <div class="price-row">
+      <span class="price">SAR {{ formatPrice(p.price) }}</span>
+      <span class="per-unit">per {{ p.unit }}</span>
+    </div>
+
+    <p class="description">{{ p.description }}</p>
+
+    <div class="specs-row">
+      @for (spec of p.specs; track spec) {
+      <span class="spec-chip">{{ spec }}</span>
+      }
+    </div>
+
+    <div class="stores-divider"></div>
+
+    <div class="stores-header-row">
+      <span class="stores-label">Available at</span>
+      <span class="stores-count"
+        >{{ storesWithAvailability().length }} stores nearby</span
+      >
+    </div>
+
+    <div class="stores-list">
+      @for (item of storesWithAvailability(); track item.store.id) {
+      <div class="store-card">
+        <div class="store-icon-wrapper">
+          <ion-icon name="storefront-outline" class="store-icon"></ion-icon>
+        </div>
+
+        <div class="store-info">
+          <p class="store-name ion-no-margin">{{ item.store.name }}</p>
+          <span class="store-location"
+            >{{ item.store.district }}, {{ item.store.city }}</span
+          >
+          <div class="store-meta">
+            <div class="meta-chip">
+              <ion-icon
+                name="location-outline"
+                class="meta-icon meta-icon--loc"
+              ></ion-icon>
+              <span>{{ formatDistance(item.distanceKm) }}</span>
+            </div>
+            <div class="meta-chip">
+              <ion-icon
+                name="cube-outline"
+                class="meta-icon meta-icon--stock"
+              ></ion-icon>
+              <span>{{ item.stock }} {{ p.unit }}s</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="view-store-btn" (click)="navigateToStore(item.store.id)">
+          View Store →
+        </button>
+      </div>
+      }
+    </div>
+  </div>
+
+  } @else {
+  <div class="not-found">
+    <p>Product not found.</p>
+  </div>
+  }
+</ion-content>

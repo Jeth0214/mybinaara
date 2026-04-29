@@ -1,0 +1,23 @@
+<ion-header class="ion-no-border store-page-header">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <button class="back-btn" (click)="goBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>Store Details</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  @if (store(); as s) {
+    <app-store-header [store]="s"></app-store-header>
+    <app-store-info [store]="s" [distance]="distance()"></app-store-info>
+    <app-store-map [store]="s" [userCoords]="locationCoords()"></app-store-map>
+    <app-store-actions [store]="s"></app-store-actions>
+  } @else {
+    <div class="not-found">
+      <p>Store not found.</p>
+    </div>
+  }
+</ion-content>

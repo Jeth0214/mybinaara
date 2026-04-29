@@ -3,5 +3,9 @@ export interface Store {
   name: string;
   city: string;
   district: string;
-  distanceKm: number;
+  lat: number;
+  lng: number;
+  phone: string;
+  whatsapp: string;
+  workingHours: string;
 }

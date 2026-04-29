@@ -2,12 +2,12 @@
   <div class="section-header">
     <div class="section-title">
       <ion-icon name="map-outline" class="section-icon"></ion-icon>
-      <h2 class="ion-no-margin">{{ stores().length }} Stores Nearby</h2>
+      <h2 class="ion-no-margin">{{ displayStores().length }} Stores Nearby</h2>
     </div>
   </div>
 
   <div class="stores-list">
-    @for (store of stores(); track store.id) {
+    @for (store of displayStores(); track store.id) {
       <div class="store-card">
         <div class="store-icon-wrapper">
           <ion-icon name="storefront-outline" class="store-icon"></ion-icon>
@@ -19,12 +19,17 @@
             >{{ store.district }}, {{ store.city }}</span
           >
           <div class="store-distance">
-            <ion-icon name="location-outline" class="distance-icon"></ion-icon>
+            <ion-icon
+              name="location-outline"
+              class="distance-icon"
+            ></ion-icon>
             <span>{{ store.distanceKm }} km</span>
           </div>
         </div>
 
-        <button class="view-store-btn">View Store →</button>
+        <button class="view-store-btn" (click)="navigateToStore(store.id)">
+          View Store →
+        </button>
       </div>
     }
   </div>

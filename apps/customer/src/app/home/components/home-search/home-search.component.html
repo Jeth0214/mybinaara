@@ -1,11 +1,18 @@
 <div class="search-section">
-  <div class="search-bar">
+  <div class="search-bar" (click)="navigateToSearch()" role="button">
     <ion-icon name="search-outline" class="search-icon"></ion-icon>
-    <input type="text" class="search-input" placeholder="Search tools, hardware, pipes..." />
+    <input type="text" class="search-input" placeholder="Search tools, hardware, pipes..." readonly />
   </div>
-  
-  <div class="location-chip">
-    <ion-icon name="location-outline" color="warning"></ion-icon>
-    <span>{{ currentLocation() }}</span>
-  </div>
+
+  @if (locationError()) {
+    <div class="location-chip location-chip--error" (click)="retryLocation()" role="button">
+      <ion-icon name="refresh-outline"></ion-icon>
+      <span>{{ currentLocation() }}</span>
+    </div>
+  } @else {
+    <div class="location-chip" [class.location-chip--loading]="locationLoading()">
+      <ion-icon name="location-outline" color="warning"></ion-icon>
+      <span>{{ currentLocation() }}</span>
+    </div>
+  }
 </div>

@@ -11,7 +11,18 @@ import {
   colorPaletteOutline,
   gridOutline,
   storefrontOutline,
-  mapOutline
+  mapOutline,
+  arrowBackOutline,
+  optionsOutline,
+  chevronForwardOutline,
+  refreshOutline,
+  heart,
+  heartOutline,
+  callOutline,
+  logoWhatsapp,
+  navigateOutline,
+  location,
+  settingsOutline,
 } from 'ionicons/icons';
 
 export const registerGlobalIcons = () => {
@@ -27,6 +38,17 @@ export const registerGlobalIcons = () => {
     'color-palette-outline': colorPaletteOutline,
     'grid-outline': gridOutline,
     'storefront-outline': storefrontOutline,
-    'map-outline': mapOutline
+    'map-outline': mapOutline,
+    'arrow-back-outline': arrowBackOutline,
+    'options-outline': optionsOutline,
+    'chevron-forward-outline': chevronForwardOutline,
+    'refresh-outline': refreshOutline,
+    'heart': heart,
+    'heart-outline': heartOutline,
+    'call-outline': callOutline,
+    'logo-whatsapp': logoWhatsapp,
+    'navigate-outline': navigateOutline,
+    'location': location,
+    'settings-outline': settingsOutline,
   });
 };
