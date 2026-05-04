@@ -1,0 +1,128 @@
+.login-wrapper {
+  display: flex;
+  min-height: 100vh;
+}
+
+// ── Left: Brand Panel ────────────────────────────────────────────
+.brand-panel {
+  flex: 0 0 60%;
+  background-image: url('/images/brand/brand.jpeg');
+  background-size: cover;
+  background-position: center center;
+  background-color: var(--brand-green-dark);
+  position: relative;
+  flex-direction: column;
+  justify-content: flex-end;
+
+  .overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 61, 35, 0.25);
+  }
+
+  .tagline {
+    position: relative;
+    z-index: 1;
+    padding: 2rem 2.5rem;
+
+    p {
+      color: rgba(255, 255, 255, 0.88);
+      font-size: 1rem;
+      font-style: italic;
+      letter-spacing: 0.03em;
+      margin: 0;
+    }
+  }
+}
+
+// ── Right: Form Panel ────────────────────────────────────────────
+.form-panel {
+  flex: 1;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  min-height: 100vh;
+  overflow-y: auto;
+}
+
+.form-inner {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+// ── Logo ─────────────────────────────────────────────────────────
+.logo-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+
+  .logo {
+    height: 72px;
+    width: auto;
+  }
+
+  .portal-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--brand-gold);
+  }
+}
+
+// ── Heading ──────────────────────────────────────────────────────
+.heading {
+  h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--brand-green-dark);
+    margin: 0 0 0.25rem;
+  }
+
+  p {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0;
+  }
+}
+
+// ── Login Button ─────────────────────────────────────────────────
+.login-btn {
+  width: 100%;
+  height: 48px;
+  background-color: var(--brand-gold);
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background-color: var(--brand-green-dark);
+  }
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+}
+
+// ── Contact Line ─────────────────────────────────────────────────
+.contact-link {
+  color: var(--brand-green);
+  text-decoration: none;
+  margin-left: 0.2rem;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
