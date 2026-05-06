@@ -23,25 +23,11 @@
         <!-- Email -->
         <div
           class="field"
-          [class.has-error]="
-            form.get('email')?.invalid && form.get('email')?.touched
-          "
+          [class.has-error]="form.get('email')?.invalid && form.get('email')?.touched"
         >
           <label for="email">Email address</label>
           <div class="input-wrap">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <rect x="2" y="4" width="20" height="16" rx="2" />
-              <path d="m2 7 10 7 10-7" />
-            </svg>
+            <i class="bi bi-envelope"></i>
             <input
               type="email"
               id="email"
@@ -50,14 +36,9 @@
               autocomplete="email"
             />
           </div>
-          @if (
-            form.get("email")?.hasError("required") &&
-            form.get("email")?.touched
-          ) {
+          @if (form.get("email")?.hasError("required") && form.get("email")?.touched) {
             <p class="field-error">Please enter a valid email address.</p>
-          } @else if (
-            form.get("email")?.hasError("email") && form.get("email")?.touched
-          ) {
+          } @else if (form.get("email")?.hasError("email") && form.get("email")?.touched) {
             <p class="field-error">Please enter a valid email address.</p>
           }
         </div>
@@ -65,25 +46,11 @@
         <!-- Password -->
         <div
           class="field"
-          [class.has-error]="
-            form.get('password')?.invalid && form.get('password')?.touched
-          "
+          [class.has-error]="form.get('password')?.invalid && form.get('password')?.touched"
         >
           <label for="password">Password</label>
           <div class="input-wrap">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <rect x="3" y="11" width="18" height="11" rx="2" />
-              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-            </svg>
+            <i class="bi bi-lock"></i>
             <input
               [type]="passwordVisible() ? 'text' : 'password'"
               id="password"
@@ -97,43 +64,10 @@
               (click)="togglePassword()"
               aria-label="Toggle password visibility"
             >
-              @if (passwordVisible()) {
-                <svg
-                  width="17"
-                  height="17"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path
-                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
-                  />
-                  <line x1="1" y1="1" x2="23" y2="23" />
-                </svg>
-              } @else {
-                <svg
-                  width="17"
-                  height="17"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-              }
+              <i [class]="passwordVisible() ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
             </button>
           </div>
-          @if (
-            form.get("password")?.hasError("required") &&
-            form.get("password")?.touched
-          ) {
+          @if (form.get("password")?.hasError("required") && form.get("password")?.touched) {
             <p class="field-error">Password cannot be empty.</p>
           }
         </div>
@@ -156,37 +90,14 @@
         >
           <span>{{ loading() ? "Signing in…" : "Sign In" }}</span>
           @if (!loading()) {
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M5 12h14M13 6l6 6-6 6" />
-            </svg>
+            <i class="bi bi-arrow-right"></i>
           }
         </button>
       </form>
 
       <!-- Info banner -->
       <div class="info-banner">
-        <svg
-          width="15"
-          height="15"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <circle cx="12" cy="12" r="10" />
-          <path d="M12 16v-4M12 8h.01" />
-        </svg>
+        <i class="bi bi-info-circle"></i>
         <p>
           <strong>First time signing in?</strong> Use the temporary credentials
           sent to you by the MyBinaara team. Contact us to get started.

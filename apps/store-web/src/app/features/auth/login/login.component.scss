@@ -54,16 +54,6 @@
   padding: 48px 36px;
 }
 
-// ── Eyebrow ──────────────────────────────────────────────────────
-.eyebrow {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--brand-gold);
-  margin-bottom: 12px;
-}
-
 // ── Heading ──────────────────────────────────────────────────────
 h1 {
   font-family: 'Outfit', sans-serif;
@@ -80,119 +70,12 @@ h1 {
   margin-bottom: 36px;
 }
 
-// ── Gold divider ─────────────────────────────────────────────────
-.divider {
-  width: 40px;
-  height: 2px;
-  background: var(--brand-gold);
-  margin-bottom: 32px;
-  border-radius: 2px;
-}
-
-// ── Field ────────────────────────────────────────────────────────
-label {
-  display: block;
-  font-size: 12.5px;
-  font-weight: 500;
-  color: var(--brand-text-mid);
-  margin-bottom: 6px;
-  letter-spacing: 0.02em;
-}
-
-.field {
-  margin-bottom: 20px;
-}
-
-.input-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-
-  // only the direct-child icon SVG — NOT the SVG inside .toggle-pw
-  & > svg {
-    position: absolute;
-    left: 14px;
-    color: var(--brand-text-light);
-    pointer-events: none;
-    flex-shrink: 0;
-  }
-}
-
-input[type="email"],
-input[type="password"],
-input[type="text"] {
-  width: 100%;
-  height: 46px;
-  padding: 0 42px 0 40px;
-  border: 1.5px solid var(--brand-border);
-  border-radius: 8px;
-  font-family: 'Outfit', sans-serif;
-  font-size: 14px;
-  color: var(--brand-text-dark);
-  background: var(--brand-surface);
-  transition: border-color 0.18s, box-shadow 0.18s;
-  outline: none;
-
-  &::placeholder { color: var(--brand-text-light); }
-
-  &:focus {
-    border-color: var(--brand-green);
-    box-shadow: 0 0 0 3px rgba(45, 122, 79, 0.10);
-  }
-}
-
-// password toggle
-.toggle-pw {
-  position: absolute;
-  right: 18px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--brand-text-light);
-  display: flex;
-  align-items: center;
-  padding: 4px;
-  transition: color 0.15s;
-
-  &:hover { color: var(--brand-text-dark); }
-}
-
-// error state
-.field-error {
-  font-size: 12px;
-  color: var(--brand-error);
-  margin-top: 5px;
-  margin-bottom: 0;
-}
-
-.field.has-error {
-  input { border-color: var(--brand-error); }
-}
-
 // ── Remember / Forgot row ────────────────────────────────────────
 .row-meta {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 28px;
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--brand-text-mid);
-  cursor: pointer;
-
-  input[type="checkbox"] {
-    width: 15px;
-    height: 15px;
-    accent-color: var(--brand-green);
-    cursor: pointer;
-    padding: 0;
-    border: none;
-  }
 }
 
 .forgot {
@@ -229,7 +112,7 @@ input[type="text"] {
     background: var(--brand-green);
     box-shadow: 0 4px 20px rgba(26, 63, 34, 0.28);
 
-    svg { transform: translateX(3px); }
+    i { transform: translateX(3px); }
   }
 
   &:active:not(:disabled) { transform: translateY(1px); }
@@ -239,32 +122,7 @@ input[type="text"] {
     opacity: 0.75;
   }
 
-  svg { transition: transform 0.2s; }
-}
-
-// ── Info banner ──────────────────────────────────────────────────
-.info-banner {
-  margin-top: 20px;
-  padding: 14px 16px;
-  background: #eef4ee;
-  border: 1px solid #b6d4b8;
-  border-radius: 8px;
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-
-  svg {
-    flex-shrink: 0;
-    margin-top: 1px;
-    color: var(--brand-green);
-  }
-
-  p {
-    font-size: 12.5px;
-    color: var(--brand-green-dark);
-    line-height: 1.55;
-    margin: 0;
-  }
+  i { font-size: 15px; transition: transform 0.2s; }
 }
 
 // ── Footer ───────────────────────────────────────────────────────

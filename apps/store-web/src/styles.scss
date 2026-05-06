@@ -1,50 +1,18 @@
 @use '@angular/material' as mat;
 @use 'bootstrap/scss/bootstrap' as *;
 
-:root {
-  /* Core brand — aligned with customer app ion-color-primary / tertiary */
-  --brand-green-dark:  #1a3f22;
-  --brand-green:       #2d7a4f;
-  --brand-gold:        #d99201;
-  --brand-gold-light:  #dd9d1a;
+// Tokens & base
+@use './styles/variables';
 
-  /* Text */
-  --brand-text-dark:   #1c2319;
-  --brand-text-mid:    #4a5544;
-  --brand-text-light:  #8a9487;
+// Utilities
+@use './styles/utilities';
 
-  /* Surfaces & borders */
-  --brand-surface:     #fafaf8;
-  --brand-bg:          #f7f8f5;
-  --brand-border:      #e2e6df;
-
-  /* Semantic */
-  --brand-error:       #c0392b;
-
-  /* Layout */
-  --sidebar-width:     260px;
-  --topbar-height:     64px;
-}
-
-html {
-  @include mat.theme((
-    color: (
-      primary: mat.$green-palette,
-      tertiary: mat.$orange-palette,
-    ),
-    typography: Roboto,
-    density: 0,
-  ));
-}
-
-html, body {
-  height: 100%;
-  margin: 0;
-}
-
-body {
-  color-scheme: light;
-  background-color: var(--brand-bg);
-  color: var(--brand-text-dark);
-  font-family: 'Outfit', sans-serif;
-}
+// Reusable components
+@use './styles/components/avatar';
+@use './styles/components/badge';
+@use './styles/components/brand';
+@use './styles/components/overlay';
+@use './styles/components/plan-card';
+@use './styles/components/icon-btn';
+@use './styles/components/form-field';
+@use './styles/components/info-banner';
