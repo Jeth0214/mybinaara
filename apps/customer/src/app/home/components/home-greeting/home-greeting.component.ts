@@ -1,15 +1,21 @@
-import { Component, input } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { IonIcon, IonBadge, IonButton } from '@ionic/angular/standalone';
-import { UserProfile } from '../../../core/models/profile.model';
+import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-home-greeting',
   templateUrl: './home-greeting.component.html',
   styleUrls: ['./home-greeting.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonIcon, IonBadge, IonButton]
+  imports: []
 })
 export class HomeGreetingComponent {
-  profile = input<UserProfile>();
+  get greeting(): string {
+    const hour = new Date().getHours();
+    if (hour < 12) {
+      return 'Good morning';
+    } else if (hour < 18) {
+      return 'Good Afternoon';
+    } else {
+      return 'Good Evening';
+    }
+  }
 }

@@ -1,0 +1,26 @@
+.search-content {
+  --background: #f4f5f8;
+}
+
+.search-header {
+  background: #ffffff;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid #efefef;
+
+  // Remove the default section padding from categories when used inside header
+  app-home-categories {
+    ::ng-deep .categories-section {
+      padding: 12px 16px 14px;
+    }
+
+    ::ng-deep .section-header {
+      display: none;
+    }
+  }
+}
+
+.search-body {
+  min-height: 100%;
+}

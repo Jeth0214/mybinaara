@@ -1,59 +1,33 @@
 <section class="recent-search-section">
 
-  <!-- Section Header -->
   <div class="section-header">
     <div class="section-title">
       <ion-icon name="time-outline" class="section-icon"></ion-icon>
       <h2 class="ion-no-margin">Recent Searches</h2>
     </div>
-    @if (!isLoggedIn()) {
-      <a routerLink="/search" class="see-all-btn">See all</a>
-    }
   </div>
 
-  <!-- Logged-in: Product Carousel -->
-  @if (!isLoggedIn()) {
-    @if (recentSearches().length > 0) {
-      <div class="product-carousel" #carousel>
-        @for (product of recentSearches(); track product.id) {
-          <div class="product-card">
-            <!-- Store Count Badge -->
-            <div class="card-image-wrapper">
-              <ion-icon name="hammer-outline" class="product-placeholder-icon"></ion-icon>
-              <ion-badge class="store-badge">{{ product.storeCount }} stores</ion-badge>
-            </div>
-            <div class="card-info">
-              <span class="product-category">{{ product.category }}</span>
-              <p class="product-title ion-no-margin">{{ product.title }}</p>
-              <span class="product-sku">{{ product.sku }}</span>
-            </div>
+  @if (recentSearches().length > 0) {
+    <div class="product-carousel" #carousel>
+      @for (product of recentSearches(); track product.id) {
+        <div class="product-card" (click)="navigateToProduct(product.id)">
+          <div class="card-image-wrapper" [style.background]="product.iconBg">
+            <ion-icon [src]="getCategoryIcon(product.category)" class="product-placeholder-icon"></ion-icon>
+            <ion-badge class="store-badge">{{ product.storeCount }} stores</ion-badge>
           </div>
-        }
-      </div>
-    } @else {
-      <div class="empty-state">
-        <ion-icon name="search-outline" class="empty-icon"></ion-icon>
-        <p>No recent searches yet.</p>
-        <span>Start searching for tools & hardware!</span>
-      </div>
-    }
-
-  <!-- Not logged-in: Auth Prompt -->
+          <div class="card-info">
+            <span class="product-category">{{ product.category }}</span>
+            <p class="product-title ion-no-margin">{{ product.name }}</p>
+            <span class="product-brand">{{ product.brand }}</span>
+          </div>
+        </div>
+      }
+    </div>
   } @else {
-    <div class="auth-prompt">
-      <ion-icon name="log-in-outline" class="auth-icon"></ion-icon>
-      <p class="auth-title">Log in to see your recent searches</p>
-      <span class="auth-subtitle">Your search history will appear here once you're signed in.</span>
-      <ion-button
-        fill="outline"
-        color="primary"
-        size="small"
-        routerLink="/profile"
-        class="auth-btn"
-      >
-        <ion-icon slot="start" name="person-outline"></ion-icon>
-        Go to Profile
-      </ion-button>
+    <div class="empty-state">
+      <ion-icon name="search-outline" class="empty-icon"></ion-icon>
+      <p>No recent searches yet.</p>
+      <span>Start searching for tools & hardware!</span>
     </div>
   }
 

@@ -7,11 +7,11 @@
 .search-bar {
   display: flex;
   align-items: center;
-  // Use global token -- adapts automatically in light and dark mode
   background-color: var(--app-search-bg);
   border-radius: 16px;
   padding: 0 16px;
   height: 52px;
+  cursor: pointer;
 
   .search-icon {
     font-size: 20px;
@@ -42,15 +42,42 @@
   border-radius: 20px;
   width: max-content;
   gap: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+
+  &:active {
+    opacity: 0.8;
+  }
 
   ion-icon {
     font-size: 16px;
   }
 
   span {
-    // always white since it's on the green header
     color: #ffffff;
     font-size: 14px;
     font-weight: 500;
+  }
+
+  &--loading span {
+    opacity: 0.7;
+  }
+
+  &--error {
+    background-color: rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+
+    ion-icon {
+      color: #ffffff;
+    }
+
+    &:active {
+      opacity: 0.8;
+    }
   }
 }

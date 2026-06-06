@@ -1,0 +1,36 @@
+<div class="results-container">
+  <p class="results-count ion-no-margin">
+    <strong>{{ products().length }}</strong> products found
+    @if (query().trim()) {
+      for <span class="results-query">"{{ query().trim() }}"</span>
+    }
+    @if (selectedCategory()) {
+      in <span class="results-query">{{ selectedCategory() }} category</span>
+    }
+  </p>
+
+  <div class="results-list">
+    @for (product of products(); track product.id) {
+      <div class="product-card" (click)="navigateToProduct(product)" role="button">
+        <div class="product-icon-wrapper" [style.background]="product.iconBg">
+          <ion-icon [src]="getCategoryIcon(product.category)" class="product-icon"></ion-icon>
+        </div>
+
+        <div class="product-info">
+          <p class="product-name ion-no-margin">{{ product.name }}</p>
+          <span class="product-meta">{{ product.category }} · {{ product.brand }}</span>
+          <p class="product-price ion-no-margin">
+            SAR {{ formatPrice(product.price) }}
+            <span class="product-unit">/ {{ product.unit }}</span>
+          </p>
+          <div class="store-badge">
+            <ion-icon name="storefront-outline" class="badge-icon"></ion-icon>
+            <span>{{ product.storeCount }} stores</span>
+          </div>
+        </div>
+
+        <ion-icon name="chevron-forward-outline" class="card-chevron"></ion-icon>
+      </div>
+    }
+  </div>
+</div>

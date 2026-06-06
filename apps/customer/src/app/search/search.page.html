@@ -1,0 +1,38 @@
+<ion-content class="search-content">
+
+  <div class="search-header">
+    <app-search-bar
+      [query]="query()"
+      (queryChange)="query.set($event)"
+    ></app-search-bar>
+
+    <app-home-categories
+      [categories]="categories"
+      [activeCategory]="selectedCategory()"
+      (categorySelected)="onCategorySelected($event)"
+    ></app-home-categories>
+  </div>
+
+  <div class="search-body">
+    @if (hasQuery()) {
+      <app-search-filters
+        [activeFilter]="activeFilter()"
+        [priceAsc]="priceAsc()"
+        (filterChange)="onFilterChange($event)"
+      ></app-search-filters>
+
+      @if (filteredResults().length > 0) {
+        <app-search-results
+          [products]="filteredResults()"
+          [query]="query()"
+          [selectedCategory]="selectedCategory()"
+        ></app-search-results>
+      } @else {
+        <app-search-empty-state [hasQuery]="true" [query]="query()"></app-search-empty-state>
+      }
+    } @else {
+      <app-search-empty-state [hasQuery]="false" [query]="''"></app-search-empty-state>
+    }
+  </div>
+
+</ion-content>

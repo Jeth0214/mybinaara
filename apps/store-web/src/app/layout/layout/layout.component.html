@@ -1,0 +1,48 @@
+<div class="app-layout" [class.sidebar-collapsed]="!sidebarExpanded()">
+
+  <!-- Mobile backdrop -->
+  @if (mobileOpen()) {
+    <div class="overlay" (click)="closeMobile()" aria-hidden="true"></div>
+  }
+
+  <!-- Sidebar panel -->
+  <div
+    class="sidebar-panel"
+    [class.collapsed]="!sidebarExpanded()"
+    [class.mobile-open]="mobileOpen()"
+  >
+    <app-sidebar
+      [expanded]="sidebarExpanded()"
+      [mobileOpen]="mobileOpen()"
+      (closeOverlay)="closeMobile()"
+    />
+  </div>
+
+  <!-- Edge toggle: tablet / desktop only -->
+  <button
+    class="sidebar-edge-toggle"
+    (click)="toggleSidebar()"
+    [title]="sidebarExpanded() ? 'Collapse sidebar' : 'Expand sidebar'"
+  >
+    @if (sidebarExpanded()) {
+      <i class="bi bi-chevron-left"></i>
+    } @else {
+      <i class="bi bi-chevron-right"></i>
+    }
+  </button>
+
+  <!-- Main area -->
+  <div class="main-area">
+    <app-topbar
+      [expanded]="sidebarExpanded()"
+      [mobileOpen]="mobileOpen()"
+      (toggleSidebar)="toggleSidebar()"
+      (openMobile)="openMobile()"
+      (closeMobile)="closeMobile()"
+    />
+    <main class="content">
+      <router-outlet />
+    </main>
+  </div>
+
+</div>
