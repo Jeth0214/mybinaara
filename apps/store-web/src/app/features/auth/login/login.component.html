@@ -1,0 +1,116 @@
+<div class="page">
+  <!-- LEFT: Brand Panel -->
+  <div class="brand-panel">
+    <div class="corner corner-tl"></div>
+    <div class="corner corner-br"></div>
+    <div class="brand-image-wrap">
+      <img
+        src="images/brand/brand-no-bg.png"
+        alt="MyBinaara — Find Materials. Connect. Build."
+      />
+    </div>
+  </div>
+
+  <!-- RIGHT: Login Form -->
+  <div class="form-panel">
+    <div class="form-inner">
+      <p class="eyebrow">Store Portal</p>
+      <h1>Welcome back</h1>
+      <p class="subtitle">Sign in with your store credentials to continue.</p>
+      <div class="divider"></div>
+
+      <form [formGroup]="form" (ngSubmit)="onLogin()" novalidate>
+        <!-- Email -->
+        <div
+          class="field"
+          [class.has-error]="form.get('email')?.invalid && form.get('email')?.touched"
+        >
+          <label for="email">Email address</label>
+          <div class="input-wrap">
+            <i class="bi bi-envelope"></i>
+            <input
+              type="email"
+              id="email"
+              formControlName="email"
+              placeholder="store@example.com"
+              autocomplete="email"
+            />
+          </div>
+          @if (form.get("email")?.hasError("required") && form.get("email")?.touched) {
+            <p class="field-error">Please enter a valid email address.</p>
+          } @else if (form.get("email")?.hasError("email") && form.get("email")?.touched) {
+            <p class="field-error">Please enter a valid email address.</p>
+          }
+        </div>
+
+        <!-- Password -->
+        <div
+          class="field"
+          [class.has-error]="form.get('password')?.invalid && form.get('password')?.touched"
+        >
+          <label for="password">Password</label>
+          <div class="input-wrap">
+            <i class="bi bi-lock"></i>
+            <input
+              [type]="passwordVisible() ? 'text' : 'password'"
+              id="password"
+              formControlName="password"
+              placeholder="Enter your password"
+              autocomplete="current-password"
+            />
+            <button
+              type="button"
+              class="toggle-pw"
+              (click)="togglePassword()"
+              aria-label="Toggle password visibility"
+            >
+              <i [class]="passwordVisible() ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+            </button>
+          </div>
+          @if (form.get("password")?.hasError("required") && form.get("password")?.touched) {
+            <p class="field-error">Password cannot be empty.</p>
+          }
+        </div>
+
+        <!-- Remember me + Forgot password -->
+        <div class="row-meta">
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="remember" />
+            Keep me signed in
+          </label>
+          <a href="#" class="forgot">Forgot password?</a>
+        </div>
+
+        <!-- Sign In button -->
+        <button
+          type="submit"
+          class="btn-signin"
+          [class.loading]="loading()"
+          [disabled]="loading()"
+        >
+          <span>{{ loading() ? "Signing in…" : "Sign In" }}</span>
+          @if (!loading()) {
+            <i class="bi bi-arrow-right"></i>
+          }
+        </button>
+      </form>
+
+      <!-- Info banner -->
+      <div class="info-banner">
+        <i class="bi bi-info-circle"></i>
+        <p>
+          <strong>First time signing in?</strong> Use the temporary credentials
+          sent to you by the MyBinaara team. Contact us to get started.
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <div class="form-footer">
+        <p>
+          Need help? Contact us at
+          <a href="mailto:mybinaaraapp@gmail.com">mybinaaraapp&#64;gmail.com</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,73 @@
+<aside class="sidebar" [class.expanded]="expanded" [class.mobile-open]="mobileOpen">
+
+  <!-- Header: clickable logo + brand text -->
+  <div class="sidebar-header">
+    <a class="brand-block" routerLink="/dashboard" (click)="closeOverlay.emit()">
+      <img
+        src="/images/logo/logo.png"
+        alt="myBinaara"
+        class="brand-logo"
+        [class.brand-logo--sm]="!expanded"
+      />
+      @if (expanded) {
+        <div class="brand-text">
+          <span class="brand-name">MyBinaara</span>
+          <span class="brand-tagline">Find Materials. Connect. Build</span>
+        </div>
+      }
+    </a>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="sidebar-nav">
+    @for (group of navGroups; track group.label) {
+      <div class="nav-group">
+        @if (expanded) {
+          <span class="nav-group-label">{{ group.label }}</span>
+        }
+        @for (item of group.items; track item.route) {
+          <a
+            class="nav-item"
+            [routerLink]="item.route"
+            routerLinkActive="active"
+            (click)="closeOverlay.emit()"
+            [title]="expanded ? '' : item.label"
+          >
+            <i class="bi {{ item.icon }} nav-icon"></i>
+            @if (expanded) {
+              <span class="nav-label">{{ item.label }}</span>
+              @if (item.badge) {
+                <span class="nav-badge">{{ item.badge }}</span>
+              }
+            }
+          </a>
+        }
+      </div>
+    }
+  </nav>
+
+  <!-- Footer -->
+  <div class="sidebar-footer">
+    @if (expanded) {
+      <div class="plan-card">
+        <span class="plan-label">CURRENT PLAN</span>
+        <span class="plan-name">Free</span>
+        <div class="plan-progress">
+          <div class="plan-progress-bar" style="width: 40%"></div>
+        </div>
+        <span class="plan-usage">2 / 5 products used</span>
+        <a class="plan-upgrade" href="#">Upgrade plan &rarr;</a>
+      </div>
+    }
+    <div class="user-row">
+      <div class="user-avatar">AA</div>
+      @if (expanded) {
+        <div class="user-info">
+          <span class="user-name">Al-Amal Store</span>
+          <span class="user-role">Store owner</span>
+        </div>
+      }
+    </div>
+  </div>
+
+</aside>
