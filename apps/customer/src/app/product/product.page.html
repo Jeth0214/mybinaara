@@ -13,7 +13,7 @@
   @if (productView(); as p) {
 
   <div class="hero" [style.background]="p.iconBg">
-    <ion-icon [name]="getCategoryIcon(p.category)" class="hero-icon"></ion-icon>
+    <ion-icon [src]="getCategoryIcon(p.category)" class="hero-icon"></ion-icon>
   </div>
 
   <div class="content-sheet">

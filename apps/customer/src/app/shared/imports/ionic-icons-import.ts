@@ -22,6 +22,19 @@ import {
   logoWhatsapp,
   navigateOutline,
   location,
+  businessOutline,
+  constructOutline,
+  exitOutline,
+  flashOutline,
+  waterOutline,
+  snowOutline,
+  homeOutline,
+  shieldCheckmarkOutline,
+  buildOutline,
+  settingsOutline,
+  shieldOutline,
+  flowerOutline,
+  archiveOutline,
 } from 'ionicons/icons';
 
 export const registerGlobalIcons = () => {
@@ -48,5 +61,18 @@ export const registerGlobalIcons = () => {
     'logo-whatsapp': logoWhatsapp,
     'navigate-outline': navigateOutline,
     'location': location,
+    'business-outline': businessOutline,
+    'construct-outline': constructOutline,
+    'exit-outline': exitOutline,
+    'flash-outline': flashOutline,
+    'water-outline': waterOutline,
+    'snow-outline': snowOutline,
+    'home-outline': homeOutline,
+    'shield-checkmark-outline': shieldCheckmarkOutline,
+    'build-outline': buildOutline,
+    'settings-outline': settingsOutline,
+    'shield-outline': shieldOutline,
+    'flower-outline': flowerOutline,
+    'archive-outline': archiveOutline,
   });
 };

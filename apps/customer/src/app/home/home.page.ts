@@ -45,7 +45,7 @@ export class HomePage {
   stores = signal<Store[]>(MOCK_STORES);
 
   retryLocation(): void {
-    this.locationService.initialize();
+    this.locationService.initialize(true);
   }
 
   onCategorySelected(category: Category) {

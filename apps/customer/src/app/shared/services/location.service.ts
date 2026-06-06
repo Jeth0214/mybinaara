@@ -15,12 +15,34 @@ export class LocationService {
 
   private initializing = false;
 
-  async initialize(): Promise<void> {
+  constructor() {
+    this.loadCachedLocation();
+  }
+
+  private loadCachedLocation(): void {
+    try {
+      const cachedCoords = localStorage.getItem('binaara_coords');
+      const cachedLabel = localStorage.getItem('binaara_location_label');
+      if (cachedCoords && cachedLabel) {
+        this.coords.set(JSON.parse(cachedCoords));
+        this.locationLabel.set(cachedLabel);
+        this.loading.set(false);
+      }
+    } catch (e) {
+      console.warn('Failed to load cached location', e);
+    }
+  }
+
+  async initialize(force = false): Promise<void> {
     if (this.initializing) return;
     this.initializing = true;
-    this.loading.set(true);
+
+    const hasCached = this.coords() !== null;
+    if (force || !hasCached) {
+      this.loading.set(true);
+      this.locationLabel.set('Locating...');
+    }
     this.permissionDenied.set(false);
-    this.locationLabel.set('Locating...');
 
     try {
       await Geolocation.requestPermissions();
@@ -30,14 +52,31 @@ export class LocationService {
 
     try {
       const pos = await Geolocation.getCurrentPosition({
-        enableHighAccuracy: true,
-        timeout: 8000,
+        enableHighAccuracy: false,
+        timeout: 5000,
+        maximumAge: force ? 0 : 300000, // Use cached browser location if fresh, unless forced
       });
       const lat = pos.coords.latitude;
       const lng = pos.coords.longitude;
-      console.log('Got location:', lat, lng);
+      const prevCoords = this.coords();
+      let shouldGeocode = true;
+      if (!force && prevCoords) {
+        const distanceMoved = this.calculateDistance(prevCoords.lat, prevCoords.lng, lat, lng);
+        if (distanceMoved < 0.5) {
+          shouldGeocode = false;
+          console.log(`Location change is negligible (${distanceMoved}km), skipping reverse geocoding`);
+        }
+      }
+
       this.coords.set({ lat, lng });
-      await this.reverseGeocode(lat, lng);
+      localStorage.setItem('binaara_coords', JSON.stringify({ lat, lng }));
+
+      if (shouldGeocode) {
+        await this.reverseGeocode(lat, lng);
+      } else {
+        localStorage.setItem('binaara_location_label', this.locationLabel());
+      }
+
       this.loading.set(false);
       this.initializing = false;
     } catch (err: unknown) {
@@ -48,7 +87,14 @@ export class LocationService {
         this.permissionDenied.set(true);
         this.locationLabel.set('Location access denied');
       } else {
-        this.locationLabel.set('Location unavailable');
+        if (hasCached) {
+          const cachedLabel = localStorage.getItem('binaara_location_label');
+          if (cachedLabel) {
+            this.locationLabel.set(cachedLabel);
+          }
+        } else {
+          this.locationLabel.set('Location unavailable');
+        }
       }
     }
   }
@@ -70,16 +116,17 @@ export class LocationService {
       );
       clearTimeout(timeoutId);
       const data = await res.json();
-      console.log(data);
       const addr = data.address ?? {};
       const city = addr.city ?? addr.town ?? addr.village ?? addr.county ?? '';
       const suburb = addr.suburb ?? addr.neighbourhood ?? addr.district ?? '';
-      this.locationLabel.set(
-        city && suburb ? `${suburb}, ${city}` : city || suburb || 'Nearest location'
-      );
+      const label = city && suburb ? `${suburb}, ${city}` : city || suburb || 'Nearest location';
+      this.locationLabel.set(label);
+      localStorage.setItem('binaara_location_label', label);
     } catch {
       clearTimeout(timeoutId);
-      this.locationLabel.set('Nearest location'); 
+      const fallbackLabel = 'Nearest location';
+      this.locationLabel.set(fallbackLabel);
+      localStorage.setItem('binaara_location_label', fallbackLabel);
     }
   }
 

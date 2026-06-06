@@ -12,7 +12,7 @@
       @for (product of recentSearches(); track product.id) {
         <div class="product-card" (click)="navigateToProduct(product.id)">
           <div class="card-image-wrapper" [style.background]="product.iconBg">
-            <ion-icon [name]="getCategoryIcon(product.category)" class="product-placeholder-icon"></ion-icon>
+            <ion-icon [src]="getCategoryIcon(product.category)" class="product-placeholder-icon"></ion-icon>
             <ion-badge class="store-badge">{{ product.storeCount }} stores</ion-badge>
           </div>
           <div class="card-info">

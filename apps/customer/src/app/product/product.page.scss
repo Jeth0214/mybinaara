@@ -6,9 +6,11 @@
 }
 
 ion-toolbar {
-  --background: var(--ion-color-primary, #1a3f22);;
+  --background: var(--ion-color-primary, #1a3f22);
+
   --border-color: var(--ion-color-tertiary, #d99201);
   --box-shadow: none;
+  border-bottom: 1px solid var(--ion-color-tertiary, #d99201);
 }
 
 .nav-btn {

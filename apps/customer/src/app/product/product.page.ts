@@ -79,16 +79,28 @@ export class ProductPage implements OnInit {
   }
 
   private readonly CATEGORY_ICONS: Record<string, string> = {
-    Cement: 'cube-outline',
-    Glass: 'apps-outline',
-    Steel: 'cut-outline',
-    Wood: 'leaf-outline',
-    Paint: 'color-palette-outline',
-    Tiles: 'grid-outline',
+    'Building Materials': '/assets/categories/building-materials.svg',
+    'Cement & Blocks': '/assets/categories/cement-and-blocks.svg',
+    'Steel & Metal': '/assets/categories/steel-and-metal.svg',
+    'Doors & Windows': '/assets/categories/doors-and-windows.svg',
+    'Paint & Finishes': '/assets/categories/paints-and-finishes.svg',
+    'Electrical': '/assets/categories/electrical.svg',
+    'Plumbing': '/assets/categories/plumbing.svg',
+    'HVAC & Air Conditioning': '/assets/categories/hvac-and-air-conditioning.svg',
+    'Wood & Carpentry': '/assets/categories/wood-and-carpentry.svg',
+    'Roofing': '/assets/categories/roofing.svg',
+    'Flooring & Tiles': '/assets/categories/flooring-and-tiles.svg',
+    'Glass & Aluminum': '/assets/categories/glass-and-aluminum.svg',
+    'Waterproofing': '/assets/categories/waterproofing.svg',
+    'Tools & Hardware': '/assets/categories/tools-and-hardware.svg',
+    'Equipment & Machinery': '/assets/categories/equipments-and-machinery.svg',
+    'Safety Supplies': '/assets/categories/safety-supplies.svg',
+    'Landscaping': '/assets/categories/landscaping.svg',
+    'Miscellaneous': '/assets/categories/miscellaneous.svg',
   };
 
   getCategoryIcon(category: string): string {
-    return this.CATEGORY_ICONS[category] ?? 'cube-outline';
+    return this.CATEGORY_ICONS[category] ?? '/assets/categories/miscellaneous.svg';
   }
 
   formatPrice(price: number): string {

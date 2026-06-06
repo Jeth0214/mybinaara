@@ -26,6 +26,6 @@ export class HomeSearchComponent {
   }
 
   retryLocation() {
-    this.locationService.initialize();
+    this.locationService.initialize(true);
   }
 }

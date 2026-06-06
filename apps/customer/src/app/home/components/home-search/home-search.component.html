@@ -10,7 +10,7 @@
       <span>{{ currentLocation() }}</span>
     </div>
   } @else {
-    <div class="location-chip" [class.location-chip--loading]="locationLoading()">
+    <div class="location-chip" [class.location-chip--loading]="locationLoading()" (click)="retryLocation()" role="button">
       <ion-icon name="location-outline" color="warning"></ion-icon>
       <span>{{ currentLocation() }}</span>
     </div>

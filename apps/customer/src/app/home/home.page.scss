@@ -7,6 +7,7 @@
   padding: 24px 20px 32px 20px;
   /* Adjust top padding for safe areas to avoid overlapping status bar */
   padding-top: calc(env(safe-area-inset-top) + 24px);
+  border-bottom: 2px solid var(--ion-color-tertiary);
 
 }
 
@@ -16,8 +17,13 @@
 
 // ── Shimmer ──────────────────────────────────────────────
 @keyframes shimmer {
-  0%   { background-position: -300px 0; }
-  100% { background-position:  300px 0; }
+  0% {
+    background-position: -300px 0;
+  }
+
+  100% {
+    background-position: 300px 0;
+  }
 }
 
 %skeleton-base {
@@ -41,14 +47,38 @@
   height: 12px;
 }
 
-.sk-title     { width: 40%; height: 14px; }
-.sk-cat-line  { width: 25%; }
-.sk-name-line { width: 65%; }
-.sk-brand-line { width: 45%; }
-.sk-s-name    { width: 60%; }
-.sk-s-loc     { width: 45%; }
-.sk-s-dist    { width: 30%; }
-.sk-cat-name  { width: 70%; }
+.sk-title {
+  width: 40%;
+  height: 14px;
+}
+
+.sk-cat-line {
+  width: 25%;
+}
+
+.sk-name-line {
+  width: 65%;
+}
+
+.sk-brand-line {
+  width: 45%;
+}
+
+.sk-s-name {
+  width: 60%;
+}
+
+.sk-s-loc {
+  width: 45%;
+}
+
+.sk-s-dist {
+  width: 30%;
+}
+
+.sk-cat-name {
+  width: 70%;
+}
 
 // Recent Search skeleton
 .sk-carousel {
@@ -58,7 +88,10 @@
   padding-bottom: 4px;
   -ms-overflow-style: none;
   scrollbar-width: none;
-  &::-webkit-scrollbar { display: none; }
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .sk-product-card {
@@ -90,7 +123,10 @@
   overflow-x: auto;
   -ms-overflow-style: none;
   scrollbar-width: none;
-  &::-webkit-scrollbar { display: none; }
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .sk-cat-item {
@@ -198,7 +234,11 @@
   cursor: pointer;
   transition: opacity 0.15s ease;
 
-  ion-icon { font-size: 16px; }
+  ion-icon {
+    font-size: 16px;
+  }
 
-  &:active { opacity: 0.85; }
+  &:active {
+    opacity: 0.85;
+  }
 }
