@@ -3,6 +3,7 @@ import { provideRouter } from '@angular/router';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideHttpClient } from '@angular/common/http';
 import { provideStore } from '@ngxs/store';
+import { AuthState } from './core/state/auth.state';
 
 import { routes } from './app.routes';
 
@@ -13,6 +14,6 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideAnimationsAsync(),
     provideHttpClient(),
-    provideStore([]),
+    provideStore([AuthState]),
   ]
 };

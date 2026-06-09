@@ -3,11 +3,27 @@
   <div class="brand-panel">
     <div class="corner corner-tl"></div>
     <div class="corner corner-br"></div>
-    <div class="brand-image-wrap">
+    <!-- Desktop Brand Content (Old splash screen logo image) -->
+    <div class="brand-desktop-content">
       <img
-        src="images/brand/brand-no-bg.png"
+        src="images/brand/splash_screen-logo.png"
         alt="MyBinaara — Find Materials. Connect. Build."
       />
+    </div>
+
+    <!-- Mobile Brand Content (Horizontal Logo & Text) -->
+    <div class="brand-mobile-content">
+      <div class="brand-block-content">
+        <img
+          src="/images/logo/logo.png"
+          alt="MyBinaara"
+          class="brand-logo-img"
+        />
+        <div class="brand-text-block">
+          <span class="brand-title">MyBinaara</span>
+          <span class="brand-tagline">Find Materials. Connect. Build</span>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -18,6 +34,13 @@
       <h1>Welcome back</h1>
       <p class="subtitle">Sign in with your store credentials to continue.</p>
       <div class="divider"></div>
+
+      @if (errorMsg()) {
+        <div class="error-banner">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <span>{{ errorMsg() }}</span>
+        </div>
+      }
 
       <form [formGroup]="form" (ngSubmit)="onLogin()" novalidate>
         <!-- Email -->
@@ -100,7 +123,7 @@
         <i class="bi bi-info-circle"></i>
         <p>
           <strong>First time signing in?</strong> Use the temporary credentials
-          sent to you by the MyBinaara team. Contact us to get started.
+          sent to you by the MyBinaara team. <a routerLink="/activate" class="login-link">Activate your credentials here</a>.
         </p>
       </div>
 

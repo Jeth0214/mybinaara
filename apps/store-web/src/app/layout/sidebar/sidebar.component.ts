@@ -4,8 +4,12 @@ import {
   Input,
   Output,
   EventEmitter,
+  inject,
 } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { Store } from '@ngxs/store';
+import { AuthState } from '../../core/state/auth.state';
+import { Logout } from '../../core/state/auth.actions';
 
 interface NavItem {
   label: string;
@@ -31,6 +35,11 @@ export class SidebarComponent {
   @Input() expanded = true;
   @Input() mobileOpen = false;
   @Output() closeOverlay = new EventEmitter<void>();
+
+  private store = inject(Store);
+  private router = inject(Router);
+
+  readonly currentUser = this.store.selectSignal(AuthState.user);
 
   readonly navGroups: NavGroup[] = [
     {
@@ -62,4 +71,18 @@ export class SidebarComponent {
       ],
     },
   ];
+
+  onLogout(): void {
+    this.store.dispatch(new Logout());
+    this.router.navigate(['/login']);
+  }
+
+  getInitials(name?: string): string {
+    if (!name) return 'ST';
+    const parts = name.split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  }
 }
