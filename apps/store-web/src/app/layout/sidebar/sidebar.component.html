@@ -59,13 +59,16 @@
         <a class="plan-upgrade" href="#">Upgrade plan &rarr;</a>
       </div>
     }
-    <div class="user-row">
-      <div class="user-avatar">AA</div>
+    <div class="user-row d-flex align-items-center">
+      <div class="user-avatar">{{ getInitials(currentUser()?.storeName) }}</div>
       @if (expanded) {
-        <div class="user-info">
-          <span class="user-name">Al-Amal Store</span>
-          <span class="user-role">Store owner</span>
+        <div class="user-info flex-grow-1">
+          <span class="user-name">{{ currentUser()?.storeName || 'Store Portal' }}</span>
+          <span class="user-role">Store Owner</span>
         </div>
+        <button class="btn border-0 p-1 text-danger bg-transparent d-flex align-items-center justify-content-center" (click)="onLogout()" title="Logout" aria-label="Logout">
+          <i class="bi bi-box-arrow-right fs-5"></i>
+        </button>
       }
     </div>
   </div>

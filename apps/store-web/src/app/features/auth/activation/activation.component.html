@@ -1,0 +1,258 @@
+<div class="page">
+  <!-- LEFT: Brand Panel -->
+  <div class="brand-panel">
+    <div class="corner corner-tl"></div>
+    <div class="corner corner-br"></div>
+    <!-- Desktop Brand Content (Old splash screen logo image) -->
+    <div class="brand-desktop-content">
+      <img
+        src="images/brand/splash_screen-logo.png"
+        alt="MyBinaara — Find Materials. Connect. Build."
+      />
+    </div>
+
+    <!-- Mobile Brand Content (Horizontal Logo & Text) -->
+    <div class="brand-mobile-content">
+      <div class="brand-block-content">
+        <img
+          src="/images/logo/logo.png"
+          alt="MyBinaara"
+          class="brand-logo-img"
+        />
+        <div class="brand-text-block">
+          <span class="brand-title">MyBinaara</span>
+          <span class="brand-tagline">Find Materials. Connect. Build</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Form Wizard Panel -->
+  <div class="form-panel">
+    <div class="form-inner">
+      <p class="eyebrow">Store Portal</p>
+      <h1>Activate Store Account</h1>
+      <p class="subtitle">Complete the steps below to set up your verified store.</p>
+      <div class="divider"></div>
+
+      <!-- Error Display using Bootstrap Alert -->
+      @if (errorMsg()) {
+        <div class="alert alert-danger d-flex align-items-center gap-2 mb-4 py-2 px-3 border-0 rounded-3 text-danger fs-7">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <span>{{ errorMsg() }}</span>
+        </div>
+      }
+
+      <!-- Angular Material Stepper -->
+      <mat-stepper linear #stepper class="brand-stepper">
+        <!-- Step 1: Credentials -->
+        <mat-step [stepControl]="step1Form">
+          <ng-template matStepLabel>Credentials</ng-template>
+          <form [formGroup]="step1Form" (ngSubmit)="onSubmitStep1(stepper)" novalidate class="mt-4">
+            <div class="field" [class.has-error]="step1Form.get('email')?.invalid && step1Form.get('email')?.touched">
+              <label for="email">Email Address or Phone Number</label>
+              <div class="input-wrap">
+                <i class="bi bi-envelope"></i>
+                <input
+                  type="text"
+                  id="email"
+                  formControlName="email"
+                  placeholder="store@example.com or +966..."
+                  autocomplete="email"
+                />
+              </div>
+              @if (step1Form.get('email')?.hasError('required') && step1Form.get('email')?.touched) {
+                <p class="field-error">Please enter your registered email or phone number.</p>
+              }
+            </div>
+
+            <div class="field" [class.has-error]="step1Form.get('tempPassword')?.invalid && step1Form.get('tempPassword')?.touched">
+              <label for="tempPassword">Temporary Password</label>
+              <div class="input-wrap">
+                <i class="bi bi-lock"></i>
+                <input
+                  [type]="tempPasswordVisible() ? 'text' : 'password'"
+                  id="tempPassword"
+                  formControlName="tempPassword"
+                  placeholder="Enter temporary password"
+                  autocomplete="current-password"
+                />
+                <button
+                  type="button"
+                  class="toggle-pw"
+                  (click)="toggleTempPassword()"
+                  aria-label="Toggle password visibility"
+                >
+                  <i [class]="tempPasswordVisible() ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                </button>
+              </div>
+              @if (step1Form.get('tempPassword')?.hasError('required') && step1Form.get('tempPassword')?.touched) {
+                <p class="field-error">Temporary password is required.</p>
+              }
+            </div>
+
+            <button type="submit" class="btn-signin mt-3" [class.loading]="loading()" [disabled]="loading()">
+              <span>{{ loading() ? "Verifying..." : "Verify Credentials" }}</span>
+              @if (!loading()) {
+                <i class="bi bi-arrow-right"></i>
+              }
+            </button>
+          </form>
+        </mat-step>
+
+        <!-- Step 2: Password -->
+        <mat-step [stepControl]="step2Form">
+          <ng-template matStepLabel>Password</ng-template>
+          <form [formGroup]="step2Form" (ngSubmit)="onSubmitStep2(stepper)" novalidate class="mt-4">
+            <div class="alert alert-success d-flex align-items-start gap-2 mb-4 py-2 px-3 border-0 rounded-3">
+              <i class="bi bi-patch-check-fill text-success fs-5"></i>
+              <div>
+                <strong class="text-success fs-7">Credentials Verified</strong>
+                <p class="mb-0 text-muted fs-7">Setup verified for <strong>{{ userEmail() }}</strong>. Please set a new permanent password.</p>
+              </div>
+            </div>
+
+            <div class="field" [class.has-error]="step2Form.get('newPassword')?.invalid && step2Form.get('newPassword')?.touched">
+              <label for="newPassword">New Password</label>
+              <div class="input-wrap">
+                <i class="bi bi-key"></i>
+                <input
+                  [type]="newPasswordVisible() ? 'text' : 'password'"
+                  id="newPassword"
+                  formControlName="newPassword"
+                  placeholder="Choose a strong password (min 8 chars)"
+                  autocomplete="new-password"
+                />
+                <button
+                  type="button"
+                  class="toggle-pw"
+                  (click)="toggleNewPassword()"
+                  aria-label="Toggle password visibility"
+                >
+                  <i [class]="newPasswordVisible() ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                </button>
+              </div>
+              @if (step2Form.get('newPassword')?.hasError('required') && step2Form.get('newPassword')?.touched) {
+                <p class="field-error">Password cannot be empty.</p>
+              } @else if (step2Form.get('newPassword')?.hasError('minlength') && step2Form.get('newPassword')?.touched) {
+                <p class="field-error">Password must be at least 8 characters long.</p>
+              }
+            </div>
+
+            <div class="field" [class.has-error]="(step2Form.get('confirmPassword')?.invalid || step2Form.hasError('passwordMismatch')) && step2Form.get('confirmPassword')?.touched">
+              <label for="confirmPassword">Confirm New Password</label>
+              <div class="input-wrap">
+                <i class="bi bi-shield-lock"></i>
+                <input
+                  [type]="confirmPasswordVisible() ? 'text' : 'password'"
+                  id="confirmPassword"
+                  formControlName="confirmPassword"
+                  placeholder="Confirm your password"
+                  autocomplete="new-password"
+                />
+                <button
+                  type="button"
+                  class="toggle-pw"
+                  (click)="toggleConfirmPassword()"
+                  aria-label="Toggle password visibility"
+                >
+                  <i [class]="confirmPasswordVisible() ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                </button>
+              </div>
+              @if (step2Form.get('confirmPassword')?.hasError('required') && step2Form.get('confirmPassword')?.touched) {
+                <p class="field-error">Please confirm your password.</p>
+              } @else if (step2Form.hasError('passwordMismatch') && step2Form.get('confirmPassword')?.touched) {
+                <p class="field-error">Passwords do not match.</p>
+              }
+            </div>
+
+            <div class="d-flex gap-3 mt-4">
+              <button type="button" class="btn-secondary" matStepperPrevious [disabled]="loading()">
+                <i class="bi bi-arrow-left"></i> Back
+              </button>
+              <button type="submit" class="btn-signin" [class.loading]="loading()" [disabled]="loading() || step2Form.invalid">
+                <span>{{ loading() ? "Updating..." : "Update Password" }}</span>
+                @if (!loading()) {
+                  <i class="bi bi-arrow-right"></i>
+                }
+              </button>
+            </div>
+          </form>
+        </mat-step>
+
+        <!-- Step 3: Verification -->
+        <mat-step [stepControl]="step3Form">
+          <ng-template matStepLabel>Verification</ng-template>
+          <form [formGroup]="step3Form" (ngSubmit)="onSubmitStep3()" novalidate class="mt-4">
+            <div class="alert alert-warning d-flex align-items-start gap-2 mb-4 py-2 px-3 border-0 rounded-3">
+              <i class="bi bi-shield-fill-exclamation text-warning fs-5"></i>
+              <div>
+                <strong class="text-warning fs-7">Security Verification</strong>
+                <p class="mb-0 text-muted fs-7">We've sent a 6-digit verification code to <strong>{{ userEmail() }}</strong>.</p>
+              </div>
+            </div>
+
+            <div class="field" [class.has-error]="step3Form.get('otp')?.invalid && step3Form.get('otp')?.touched">
+              <label for="otp">One-Time Verification Code (OTP)</label>
+              <div class="input-wrap">
+                <i class="bi bi-hash"></i>
+                <input
+                  type="text"
+                  id="otp"
+                  formControlName="otp"
+                  placeholder="Enter 6-digit code"
+                  autocomplete="one-time-code"
+                  maxlength="6"
+                />
+              </div>
+              @if (step3Form.get('otp')?.hasError('required') && step3Form.get('otp')?.touched) {
+                <p class="field-error">Please enter the 6-digit OTP code.</p>
+              } @else if (step3Form.get('otp')?.hasError('pattern') && step3Form.get('otp')?.touched) {
+                <p class="field-error">Code must be exactly 6 digits.</p>
+              }
+            </div>
+
+            <div class="d-flex justify-content-end mb-4">
+              @if (otpResendCountdown() > 0) {
+                <span class="text-muted fs-7">Resend code in <strong>{{ otpResendCountdown() }}s</strong></span>
+              } @else {
+                <button type="button" class="btn btn-link p-0 text-gold text-decoration-none fw-semibold fs-7" (click)="resendOtp()" [disabled]="otpResending()">
+                  {{ otpResending() ? "Resending..." : "Resend Verification Code" }}
+                </button>
+              }
+            </div>
+
+            <div class="d-flex gap-3">
+              <button type="button" class="btn-secondary" matStepperPrevious [disabled]="loading()">
+                <i class="bi bi-arrow-left"></i> Back
+              </button>
+              <button type="submit" class="btn-signin" [class.loading]="loading()" [disabled]="loading() || step3Form.invalid">
+                <span>{{ loading() ? "Activating..." : "Complete Activation" }}</span>
+                @if (!loading()) {
+                  <i class="bi bi-check-circle"></i>
+                }
+              </button>
+            </div>
+          </form>
+        </mat-step>
+      </mat-stepper>
+
+      <!-- Info Banner -->
+      <div class="info-banner mt-4">
+        <i class="bi bi-info-circle"></i>
+        <p>
+          <strong>Already activated?</strong>
+          <a href="/login" class="login-link"> Sign in to your store portal</a> instead.
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <div class="form-footer">
+        <p>
+          Need help? Contact us at
+          <a href="mailto:mybinaaraapp@gmail.com">mybinaaraapp&#64;gmail.com</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
