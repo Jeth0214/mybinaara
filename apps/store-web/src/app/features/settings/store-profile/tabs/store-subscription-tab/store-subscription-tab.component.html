@@ -1,0 +1,238 @@
+<div class="subscription-layout">
+
+  <!-- Current plan info -->
+  <div class="profile-card mb-4">
+    <div class="card-header-block mb-4">
+      <h2 class="section-title h5 mb-1">Subscription plan</h2>
+      <p class="section-subtitle text-muted mb-0">View your usage limits, details, and billing tiers.</p>
+    </div>
+
+    <!-- Active Plan Box -->
+    <div 
+      class="plan-detail-card p-4 rounded mb-4 d-flex flex-wrap align-items-center justify-content-between"
+      [class.plan-free]="currentUser()?.subscriptionPlan === 'Free' || !currentUser()?.subscriptionPlan"
+      [class.plan-pro]="currentUser()?.subscriptionPlan === 'Pro'"
+      [class.plan-enterprise]="currentUser()?.subscriptionPlan === 'Enterprise'"
+    >
+      <div class="mb-3 mb-md-0">
+        <span class="badge-plan-tier mb-1 d-inline-block">{{ currentUser()?.subscriptionPlan || 'Free' }} Plan</span>
+        <h3 class="mb-1 plan-title">
+          @if (currentUser()?.subscriptionPlan === 'Pro') {
+            Pro Monthly Tier
+          } @else if (currentUser()?.subscriptionPlan === 'Enterprise') {
+            Enterprise Tier
+          } @else {
+            Free Starter Tier
+          }
+        </h3>
+        <p class="plan-desc mb-0">
+          @if (currentUser()?.subscriptionPlan === 'Pro') {
+            SAR 99/month &middot; Billed monthly &middot; Next bill payment date: {{ getNextPaymentDate() }}
+          } @else if (currentUser()?.subscriptionPlan === 'Enterprise') {
+            SAR 199/month &middot; Billed monthly &middot; Next bill payment date: {{ getNextPaymentDate() }}
+          } @else {
+            SAR 0/month &middot; Forever Free plan with standard limits
+          }
+        </p>
+      </div>
+      <div class="plan-status-badge">
+        <i class="bi bi-patch-check-fill me-1"></i> Active
+      </div>
+    </div>
+
+    <!-- Progress Indicator -->
+    <div class="plan-limits-wrap p-3 border rounded mb-2">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="font-weight-bold text-dark d-flex align-items-center">
+          <i class="bi bi-box-seam me-2 text-success"></i> Store Products Limit
+        </span>
+        <span class="text-muted font-weight-bold">
+          @if (currentUser()?.subscriptionPlan === 'Enterprise') {
+            2 / 100 products used
+          } @else if (currentUser()?.subscriptionPlan === 'Pro') {
+            2 / 50 products used
+          } @else {
+            2 / 5 products used
+          }
+        </span>
+      </div>
+      <div class="progress progress-custom">
+        <div
+          class="progress-bar progress-bar-success"
+          role="progressbar"
+          [style.width]="
+            currentUser()?.subscriptionPlan === 'Enterprise' ? '2%' :
+            currentUser()?.subscriptionPlan === 'Pro' ? '4%' :
+            '40%'
+          "
+          aria-valuenow="40"
+          aria-valuemin="0"
+          aria-valuemax="100"
+        ></div>
+      </div>
+      <p class="small text-muted mt-2 mb-0">
+        @if (currentUser()?.subscriptionPlan === 'Enterprise') {
+          Excellent! You have 98 more slots available for products on this plan.
+        } @else if (currentUser()?.subscriptionPlan === 'Pro') {
+          Excellent! You have 48 more slots available for products on this plan.
+        } @else {
+          Warning: You are using 40% of your free slots. Upgrade to list more products.
+        }
+      </p>
+    </div>
+  </div>
+
+  <!-- Upgrade / Compare Plans Grid -->
+  <h2 class="h5 font-weight-bold mb-4 mt-5 text-dark text-center">Compare the plans</h2>
+  
+  <div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
+    
+    <!-- Free Plan Column -->
+    <div class="col">
+      <div 
+        class="card h-100 tier-card tier-free" 
+        [class.current]="currentUser()?.subscriptionPlan === 'Free' || !currentUser()?.subscriptionPlan"
+        [class.disabled-tier]="currentUser()?.subscriptionPlan === 'Pro' || currentUser()?.subscriptionPlan === 'Enterprise'"
+      >
+        <div class="card-body p-4 d-flex flex-column">
+          <h3 class="tier-name h5 mb-2">Free</h3>
+          <div class="tier-price mb-2">
+            <span class="currency font-weight-bold">SAR 0</span>
+            <span class="period">/mo</span>
+          </div>
+          <div class="tier-limit-subtitle mb-4">Up to 5 products</div>
+          
+          <ul class="tier-features list-unstyled mb-auto">
+            <li class="mb-3 d-flex align-items-center"><i class="bi bi-check-circle-fill me-2 icon-check"></i> Store listing on map</li>
+            <li class="mb-3 d-flex align-items-center"><i class="bi bi-check-circle-fill me-2 icon-check"></i> Basic search insights</li>
+            <li class="mb-3 d-flex align-items-center text-muted opacity-50"><i class="bi bi-x-lg me-2 icon-x"></i> WhatsApp contact</li>
+          </ul>
+          
+          <div class="mt-4">
+            @if (currentUser()?.subscriptionPlan === 'Free' || !currentUser()?.subscriptionPlan) {
+              <button type="button" class="btn btn-current w-100 py-2 font-weight-bold" disabled>Current plan</button>
+            } @else {
+              <button 
+                type="button" 
+                class="btn btn-upgrade w-100 py-2 font-weight-bold"
+                [disabled]="currentUser()?.subscriptionPlan === 'Pro' || currentUser()?.subscriptionPlan === 'Enterprise'"
+                (click)="confirmUpgrade('Free', confirmModal)"
+              >
+                Downgrade to Free
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pro Plan Column -->
+    <div class="col">
+      <div 
+        class="card h-100 tier-card tier-pro position-relative" 
+        [class.current]="currentUser()?.subscriptionPlan === 'Pro'"
+        [class.disabled-tier]="currentUser()?.subscriptionPlan === 'Enterprise'"
+      >
+        <!-- Centered badge -->
+        <div class="badge-most-popular">Most popular</div>
+        <div class="card-body p-4 d-flex flex-column">
+          <h3 class="tier-name h5 mb-2">Pro</h3>
+          <div class="tier-price mb-2">
+            <span class="currency font-weight-bold">SAR 99</span>
+            <span class="period">/mo</span>
+          </div>
+          <div class="tier-limit-subtitle mb-4">Up to 50 products</div>
+          
+          <ul class="tier-features list-unstyled mb-auto">
+            <li class="mb-3 d-flex align-items-center"><i class="bi bi-check-circle-fill me-2 icon-check"></i> Everything in Free</li>
+            <li class="mb-3 d-flex align-items-center"><i class="bi bi-check-circle-fill me-2 icon-check"></i> Full search insights</li>
+            <li class="mb-3 d-flex align-items-center"><i class="bi bi-check-circle-fill me-2 icon-check"></i> WhatsApp button</li>
+            <li class="mb-3 d-flex align-items-center"><i class="bi bi-check-circle-fill me-2 icon-check"></i> Bulk CSV import</li>
+          </ul>
+          
+          <div class="mt-4">
+            @if (currentUser()?.subscriptionPlan === 'Pro') {
+              <button type="button" class="btn btn-current w-100 py-2 font-weight-bold" disabled>Current plan</button>
+            } @else {
+              <button 
+                type="button" 
+                class="btn btn-upgrade w-100 py-2 font-weight-bold" 
+                [disabled]="currentUser()?.subscriptionPlan === 'Enterprise'"
+                (click)="confirmUpgrade('Pro', confirmModal)"
+              >
+                Upgrade to Pro
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Enterprise Plan Column -->
+    <div class="col">
+      <div class="card h-100 tier-card tier-enterprise" [class.current]="currentUser()?.subscriptionPlan === 'Enterprise'">
+        <div class="card-body p-4 d-flex flex-column">
+          <h3 class="tier-name h5 mb-2">Enterprise</h3>
+          <div class="tier-price mb-2">
+            <span class="currency font-weight-bold">SAR 199</span>
+            <span class="period">/mo</span>
+          </div>
+          <div class="tier-limit-subtitle mb-4">Up to 100 products</div>
+          
+          <ul class="tier-features list-unstyled mb-auto">
+            <li class="mb-3 d-flex align-items-center"><i class="bi bi-check-circle-fill me-2 icon-check"></i> Everything in Pro</li>
+            <li class="mb-3 d-flex align-items-center"><i class="bi bi-check-circle-fill me-2 icon-check"></i> Featured in search results</li>
+            <li class="mb-3 d-flex align-items-center"><i class="bi bi-check-circle-fill me-2 icon-check"></i> Priority support</li>
+            <li class="mb-3 d-flex align-items-center"><i class="bi bi-check-circle-fill me-2 icon-check"></i> Advanced analytics</li>
+          </ul>
+          
+          <div class="mt-4">
+            @if (currentUser()?.subscriptionPlan === 'Enterprise') {
+              <button type="button" class="btn btn-current w-100 py-2 font-weight-bold" disabled>Current plan</button>
+            } @else {
+              <button type="button" class="btn btn-upgrade w-100 py-2 font-weight-bold" (click)="confirmUpgrade('Enterprise', confirmModal)">Upgrade to Enterprise</button>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Billing info banner -->
+  <div class="billing-info-banner-wrapper text-center mt-5 mb-4">
+    <p class="billing-handled-text mb-2">
+      Billing is handled via <strong class="brand-text-green">Tamara</strong> or <strong class="brand-text-green">Tabby</strong> — buy now, pay later options available for Saudi stores.
+    </p>
+    <p class="vat-info-text mb-0">
+      All prices include VAT. Cancel anytime.
+    </p>
+  </div>
+
+  <!-- Subscription Change Modal Template -->
+  <ng-template #confirmModal let-modal>
+    <div class="modal-header border-0 pb-0">
+      <h5 class="modal-title font-weight-bold text-dark" id="modal-basic-title">Confirm Subscription Change</h5>
+      <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+    </div>
+    <div class="modal-body py-3">
+      <p class="text-muted mb-0">
+        Are you sure you want to change your store subscription plan to <strong class="text-dark">{{ selectedPlan() }}</strong>? 
+        Your limits and features will be adjusted immediately.
+      </p>
+    </div>
+    <div class="modal-footer border-0 pt-0">
+      <button type="button" class="btn btn-modal-cancel px-4 py-2 font-weight-bold" (click)="modal.dismiss()">Cancel</button>
+      <button 
+        type="button" 
+        class="btn btn-modal-confirm px-4 py-2 font-weight-bold" 
+        [class.btn-confirm-gold]="selectedPlan() === 'Enterprise'"
+        [class.btn-confirm-green]="selectedPlan() === 'Pro' || selectedPlan() === 'Free'"
+        (click)="modal.close('confirm')"
+      >
+        Confirm Change
+      </button>
+    </div>
+  </ng-template>
+
+</div>

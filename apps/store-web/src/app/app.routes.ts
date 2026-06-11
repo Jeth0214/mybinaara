@@ -89,11 +89,8 @@ export const routes: Routes = [
           },
           {
             path: 'subscription',
-            loadComponent: () =>
-              import(
-                './features/settings/subscription/subscription.component'
-              ).then((m) => m.SubscriptionComponent),
-            data: { title: 'Subscription', icon: 'bi-credit-card' },
+            redirectTo: 'profile',
+            pathMatch: 'full',
           },
         ],
       },

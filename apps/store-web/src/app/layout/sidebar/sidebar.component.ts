@@ -16,6 +16,7 @@ interface NavItem {
   icon: string;
   route: string;
   badge?: number;
+  queryParams?: Record<string, string>;
 }
 
 interface NavGroup {
@@ -66,8 +67,8 @@ export class SidebarComponent {
     {
       label: 'SETTINGS',
       items: [
-        { label: 'Store profile', icon: 'bi-shop',        route: '/settings/profile' },
-        { label: 'Subscription',  icon: 'bi-credit-card', route: '/settings/subscription' },
+        { label: 'Store profile', icon: 'bi-shop',        route: '/settings/profile', queryParams: { tab: 'info' } },
+        { label: 'Subscription',  icon: 'bi-credit-card', route: '/settings/profile', queryParams: { tab: 'subscription' } },
       ],
     },
   ];

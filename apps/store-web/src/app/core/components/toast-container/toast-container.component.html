@@ -1,0 +1,26 @@
+<div class="toast-container-wrapper">
+  @for (toast of toastService.toasts(); track toast.id) {
+    <div 
+      class="custom-toast" 
+      [class.toast-success]="toast.type === 'success'"
+      [class.toast-error]="toast.type === 'error'"
+      [class.toast-info]="toast.type === 'info'"
+    >
+      <div class="toast-icon">
+        @if (toast.type === 'success') {
+          <i class="bi bi-check-circle-fill"></i>
+        } @else if (toast.type === 'error') {
+          <i class="bi bi-exclamation-circle-fill"></i>
+        } @else {
+          <i class="bi bi-info-circle-fill"></i>
+        }
+      </div>
+      <div class="toast-content">
+        {{ toast.message }}
+      </div>
+      <button class="btn-close-toast" (click)="toastService.remove(toast.id)" aria-label="Close">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+  }
+</div>

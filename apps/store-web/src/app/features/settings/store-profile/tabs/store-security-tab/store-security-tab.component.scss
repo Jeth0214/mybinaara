@@ -1,0 +1,131 @@
+.profile-card {
+  background-color: #ffffff;
+  border: 1px solid var(--brand-border);
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.section-title {
+  color: var(--brand-green-dark);
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+}
+
+.section-subtitle {
+  font-size: 13px;
+  color: var(--brand-text-light);
+}
+
+.form-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--brand-text-mid);
+  margin-bottom: 8px;
+  display: block;
+}
+
+.form-control-custom {
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  border: 1.5px solid var(--brand-border);
+  border-radius: 8px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  color: var(--brand-text-dark);
+  background-color: var(--brand-surface);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+
+  &:focus {
+    border-color: var(--brand-green);
+    box-shadow: 0 0 0 3px rgba(45, 122, 79, 0.10);
+  }
+
+  &:disabled {
+    background-color: var(--brand-bg);
+    color: var(--brand-text-light);
+    cursor: not-allowed;
+  }
+}
+
+.password-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .pw-icon-left {
+    position: absolute;
+    left: 16px;
+    color: var(--brand-text-light);
+    font-size: 16px;
+    pointer-events: none;
+  }
+
+  .form-control-custom {
+    padding-left: 44px;
+    padding-right: 48px;
+  }
+
+  .btn-toggle-pw {
+    position: absolute;
+    right: 16px;
+    background: none;
+    border: none;
+    color: var(--brand-text-light);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+
+    &:hover {
+      color: var(--brand-text-dark);
+    }
+  }
+}
+
+.font-pw {
+  font-family: system-ui, -apple-system, sans-serif !important;
+}
+
+.invalid-feedback-custom {
+  font-size: 12px;
+  color: var(--brand-error);
+  margin-top: 5px;
+}
+
+.form-control-custom.is-invalid {
+  border-color: var(--brand-error);
+  &:focus {
+    box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.10);
+  }
+}
+
+.btn-custom-success {
+  height: 44px;
+  padding: 0 24px;
+  background-color: var(--brand-green-dark);
+  border: none;
+  border-radius: 8px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: var(--brand-green);
+  }
+
+  &:disabled {
+    background-color: var(--brand-border);
+    color: var(--brand-text-light);
+    cursor: not-allowed;
+  }
+}
