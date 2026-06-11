@@ -1,0 +1,42 @@
+.store-profile-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 12px 12px 40px;
+}
+
+// 1. Premium Tab Pills Switcher
+.profile-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  background-color: transparent;
+}
+
+.tab-pill {
+  background: transparent;
+  border: none;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--brand-text-mid);
+  padding: 8px 18px;
+  border-radius: 20px;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  outline: none;
+
+  &:hover {
+    color: var(--brand-green);
+    background-color: rgba(45, 122, 79, 0.04);
+  }
+
+  &.active {
+    background-color: #e2f0e6; // very light green
+    color: var(--brand-green);
+    font-weight: 600;
+  }
+}
+
+// 2. Tab contents are styled within their respective components (SRP)
+
+

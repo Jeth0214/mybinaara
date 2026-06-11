@@ -1,3 +1,19 @@
+export interface DaySchedule {
+  openTime: string;
+  closeTime: string;
+  isOff: boolean;
+}
+
+export interface StoreSchedule {
+  sat: DaySchedule;
+  sun: DaySchedule;
+  mon: DaySchedule;
+  tue: DaySchedule;
+  wed: DaySchedule;
+  thu: DaySchedule;
+  fri: DaySchedule;
+}
+
 export interface StoreUser {
   id: string;
   email: string;
@@ -5,6 +21,11 @@ export interface StoreUser {
   storeName: string;
   isActivated: boolean; // Distinguishes if they completed setup / password update
   logoUrl?: string;
+  city?: string;
+  whatsapp?: string;
+  workingHours?: StoreSchedule;
+  subscriptionPlan?: 'Free' | 'Pro' | 'Enterprise';
+  subscriptionDate?: string;
 }
 
 export interface AuthStateModel {

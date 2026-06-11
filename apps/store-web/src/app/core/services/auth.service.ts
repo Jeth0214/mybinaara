@@ -1,7 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { Observable, of, throwError } from 'rxjs';
 import { delay } from 'rxjs/operators';
-import { StoreUser } from '../models/auth.model';
+import { StoreUser, StoreSchedule } from '../models/auth.model';
 
 interface MockAccount {
   id: string;
@@ -11,6 +11,11 @@ interface MockAccount {
   isActivated: boolean;
   passwordHash: string; // Plain password for mocking
   logoUrl?: string;
+  city?: string;
+  whatsapp?: string;
+  workingHours?: StoreSchedule;
+  subscriptionPlan?: 'Free' | 'Pro' | 'Enterprise';
+  subscriptionDate?: string;
 }
 
 const STORAGE_ACCOUNTS_KEY = 'mybinaara_mock_store_accounts';
@@ -37,16 +42,30 @@ export class AuthService {
       }
     }
 
+    const defaultWorkingHours: StoreSchedule = {
+      sat: { openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
+      sun: { openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
+      mon: { openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
+      tue: { openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
+      wed: { openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
+      thu: { openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
+      fri: { openTime: '', closeTime: '', isOff: true }
+    };
+
     // Default mock accounts
     this.accounts = [
       {
         id: 'store-1',
         email: 'active@example.com',
-        phone: '+966501234567',
-        storeName: 'Jeddah Hardware & Tools',
+        phone: '+966 12 345 6789',
+        storeName: 'Al-Amal Building Materials',
         isActivated: true,
         passwordHash: 'ActivePass123!',
         logoUrl: 'images/brand/store-logo.png',
+        city: 'Jeddah',
+        whatsapp: '+966 55 123 4567',
+        workingHours: defaultWorkingHours,
+        subscriptionPlan: 'Free',
       },
       {
         id: 'store-2',
@@ -56,6 +75,10 @@ export class AuthService {
         isActivated: false,
         passwordHash: 'TempPass123!',
         logoUrl: 'images/brand/store-logo.png',
+        city: 'Riyadh',
+        whatsapp: '+966559876543',
+        workingHours: defaultWorkingHours,
+        subscriptionPlan: 'Free',
       },
     ];
     this.saveAccounts();
@@ -86,6 +109,11 @@ export class AuthService {
       storeName: account.storeName,
       isActivated: account.isActivated,
       logoUrl: account.logoUrl,
+      city: account.city,
+      whatsapp: account.whatsapp,
+      workingHours: account.workingHours,
+      subscriptionPlan: account.subscriptionPlan,
+      subscriptionDate: account.subscriptionDate,
     };
 
     localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(user));
@@ -154,10 +182,101 @@ export class AuthService {
       storeName: account.storeName,
       isActivated: true,
       logoUrl: account.logoUrl,
+      city: account.city,
+      whatsapp: account.whatsapp,
+      workingHours: account.workingHours,
+      subscriptionPlan: account.subscriptionPlan,
+      subscriptionDate: account.subscriptionDate,
     };
 
     localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(user));
     return of(user).pipe(delay(1000));
+  }
+
+  updateProfile(userId: string, payload: {
+    storeName: string;
+    logoUrl?: string;
+    city?: string;
+    phone: string;
+    whatsapp?: string;
+    workingHours?: StoreSchedule;
+  }): Observable<StoreUser> {
+    const accountIndex = this.accounts.findIndex(a => a.id === userId);
+    if (accountIndex === -1) {
+      return throwError(() => new Error('Account not found.'));
+    }
+
+    const account = this.accounts[accountIndex];
+    account.storeName = payload.storeName;
+    if (payload.logoUrl !== undefined) account.logoUrl = payload.logoUrl;
+    if (payload.city !== undefined) account.city = payload.city;
+    account.phone = payload.phone;
+    if (payload.whatsapp !== undefined) account.whatsapp = payload.whatsapp;
+    if (payload.workingHours !== undefined) account.workingHours = payload.workingHours;
+
+    this.saveAccounts();
+
+    const updatedUser: StoreUser = {
+      id: account.id,
+      email: account.email,
+      phone: account.phone,
+      storeName: account.storeName,
+      isActivated: account.isActivated,
+      logoUrl: account.logoUrl,
+      city: account.city,
+      whatsapp: account.whatsapp,
+      workingHours: account.workingHours,
+      subscriptionPlan: account.subscriptionPlan || 'Free',
+      subscriptionDate: account.subscriptionDate,
+    };
+
+    localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(updatedUser));
+    return of(updatedUser).pipe(delay(800));
+  }
+
+  changePassword(userId: string, currentPass: string, newPass: string): Observable<boolean> {
+    const accountIndex = this.accounts.findIndex(a => a.id === userId);
+    if (accountIndex === -1) {
+      return throwError(() => new Error('Account not found.'));
+    }
+
+    const account = this.accounts[accountIndex];
+    if (account.passwordHash !== currentPass) {
+      return throwError(() => new Error('Incorrect current password.'));
+    }
+
+    account.passwordHash = newPass;
+    this.saveAccounts();
+    return of(true).pipe(delay(800));
+  }
+
+  upgradeSubscription(userId: string, plan: 'Free' | 'Pro' | 'Enterprise'): Observable<StoreUser> {
+    const accountIndex = this.accounts.findIndex(a => a.id === userId);
+    if (accountIndex === -1) {
+      return throwError(() => new Error('Account not found.'));
+    }
+
+    const account = this.accounts[accountIndex];
+    account.subscriptionPlan = plan;
+    account.subscriptionDate = new Date().toISOString();
+    this.saveAccounts();
+
+    const updatedUser: StoreUser = {
+      id: account.id,
+      email: account.email,
+      phone: account.phone,
+      storeName: account.storeName,
+      isActivated: account.isActivated,
+      logoUrl: account.logoUrl,
+      city: account.city,
+      whatsapp: account.whatsapp,
+      workingHours: account.workingHours,
+      subscriptionPlan: account.subscriptionPlan,
+      subscriptionDate: account.subscriptionDate,
+    };
+
+    localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(updatedUser));
+    return of(updatedUser).pipe(delay(800));
   }
 
   getCurrentUser(): StoreUser | null {

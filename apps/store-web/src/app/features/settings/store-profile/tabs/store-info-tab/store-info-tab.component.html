@@ -1,0 +1,180 @@
+<form [formGroup]="infoForm" (ngSubmit)="onSaveInfo()" class="info-form-layout">
+
+  <!-- 1. Store Identity Section -->
+  <div class="profile-card mb-4">
+    <div class="card-header-block mb-3">
+      <h2 class="section-title h5 mb-1">Store identity</h2>
+      <p class="section-subtitle text-muted mb-0">This information is shown to customers on the MyBinaara app</p>
+    </div>
+
+    <!-- Store Logo Display -->
+    <div class="mb-4">
+      <label class="form-label">Store logo</label>
+      <div class="logo-display-card d-flex align-items-center p-3">
+        <div class="logo-display-box me-3 d-flex align-items-center justify-content-center">
+          @if (logoPreview() && !logoPreview()?.includes('store-logo.png')) {
+            <img [src]="logoPreview()" alt="Store Logo" class="logo-display-img" />
+          } @else {
+            <i class="bi bi-shop fs-3" style="color: var(--brand-green);"></i>
+          }
+        </div>
+        <div class="logo-display-info">
+          <span class="logo-status-text d-block font-weight-bold">Store logo display</span>
+          <span class="logo-specs text-muted">To request updates to your logo, contact system administration.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Identity Fields Row -->
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label for="storeName" class="form-label">Store name</label>
+        <input
+          type="text"
+          id="storeName"
+          formControlName="storeName"
+          placeholder="e.g. Al-Amal Building Materials"
+          class="form-control-custom"
+          [class.is-invalid]="infoForm.get('storeName')?.invalid && infoForm.get('storeName')?.touched"
+        />
+        @if (infoForm.get('storeName')?.invalid && infoForm.get('storeName')?.touched) {
+          <div class="invalid-feedback-custom">Store name is required.</div>
+        }
+      </div>
+      
+      <div class="col-md-6 mb-3">
+        <label for="city" class="form-label">City</label>
+        <div class="select-wrap">
+          <select id="city" formControlName="city" class="form-select-custom">
+            @for (c of cities; track c) {
+              <option [value]="c">{{ c }}</option>
+            }
+          </select>
+          <i class="bi bi-chevron-down select-arrow"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Contact Details Section -->
+  <div class="profile-card mb-4">
+    <div class="card-header-block mb-3">
+      <h2 class="section-title h5 mb-1">Contact details</h2>
+      <p class="section-subtitle text-muted mb-0">How customers can reach you directly</p>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label for="whatsapp" class="form-label">WhatsApp number</label>
+        <input
+          type="text"
+          id="whatsapp"
+          formControlName="whatsapp"
+          placeholder="+966 55 123 4567"
+          class="form-control-custom"
+          [class.is-invalid]="infoForm.get('whatsapp')?.invalid && infoForm.get('whatsapp')?.touched"
+        />
+        @if (infoForm.get('whatsapp')?.invalid && infoForm.get('whatsapp')?.touched) {
+          <div class="invalid-feedback-custom">WhatsApp number is required.</div>
+        }
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <label for="phone" class="form-label">Phone number</label>
+        <input
+          type="text"
+          id="phone"
+          formControlName="phone"
+          placeholder="+966 12 345 6789"
+          class="form-control-custom"
+          [class.is-invalid]="infoForm.get('phone')?.invalid && infoForm.get('phone')?.touched"
+        />
+        @if (infoForm.get('phone')?.invalid && infoForm.get('phone')?.touched) {
+          <div class="invalid-feedback-custom">Phone number is required.</div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Working Hours Section -->
+  <div class="profile-card mb-4">
+    <div class="card-header-block mb-3">
+      <h2 class="section-title h5 mb-1">Working hours</h2>
+      <p class="section-subtitle text-muted mb-0">Friday is pre-set as the weekly day off per Saudi working week</p>
+    </div>
+
+    <div formGroupName="workingHours" class="working-hours-grid">
+      @for (day of days; track day.key) {
+        <div [formGroupName]="day.key" class="day-schedule-row d-flex align-items-center py-2 border-bottom">
+          
+          <!-- Day Label -->
+          <div class="day-label font-weight-bold" [class.text-warning]="day.key === 'fri'">
+            {{ day.label }}
+          </div>
+          
+          <!-- Start Time -->
+          <div class="time-input-cell flex-grow-1 mx-2">
+            <div class="time-input-wrap select-wrap-hours">
+              <select
+                formControlName="openTime"
+                class="time-select-control"
+              >
+                <option value="">Closed / Off</option>
+                @for (time of timeSlots; track time) {
+                  <option [value]="time">{{ time }}</option>
+                }
+              </select>
+              <i class="bi bi-chevron-down select-arrow-hours"></i>
+            </div>
+          </div>
+          
+          <!-- End Time -->
+          <div class="time-input-cell flex-grow-1 mx-2">
+            <div class="time-input-wrap select-wrap-hours">
+              <select
+                formControlName="closeTime"
+                class="time-select-control"
+              >
+                <option value="">Closed / Off</option>
+                @for (time of timeSlots; track time) {
+                  <option [value]="time">{{ time }}</option>
+                }
+              </select>
+              <i class="bi bi-chevron-down select-arrow-hours"></i>
+            </div>
+          </div>
+          
+          <!-- Off Checkbox -->
+          <div class="off-checkbox-cell ms-3 d-flex align-items-center">
+            <label class="checkbox-container-custom">
+              <input type="checkbox" formControlName="isOff" />
+              <span class="checkmark"></span>
+              <span class="checkbox-label-text">Off</span>
+            </label>
+          </div>
+
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Bottom Actions -->
+  <div class="d-flex align-items-center justify-content-end gap-3 pt-3 mb-5">
+    <!-- <button
+      type="button"
+      class="btn-custom-outline"
+      (click)="onDiscardInfo()"
+      [disabled]="loading()"
+    >
+      Discard changes
+    </button> -->
+    <button
+      type="submit"
+      class="btn-custom-success"
+      [disabled]="loading() || infoForm.invalid"
+    >
+      {{ loading() ? 'Saving...' : 'Save changes' }}
+    </button>
+  </div>
+
+</form>
