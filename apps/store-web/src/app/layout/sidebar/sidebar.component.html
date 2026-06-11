@@ -29,6 +29,7 @@
           <a
             class="nav-item"
             [routerLink]="item.route"
+            [queryParams]="item.queryParams || null"
             routerLinkActive="active"
             (click)="closeOverlay.emit()"
             [title]="expanded ? '' : item.label"
@@ -51,12 +52,29 @@
     @if (expanded) {
       <div class="plan-card">
         <span class="plan-label">CURRENT PLAN</span>
-        <span class="plan-name">Free</span>
+        <span class="plan-name">{{ currentUser()?.subscriptionPlan || 'Free' }}</span>
         <div class="plan-progress">
-          <div class="plan-progress-bar" style="width: 40%"></div>
+          <div 
+            class="plan-progress-bar" 
+            [style.width]="
+              currentUser()?.subscriptionPlan === 'Enterprise' ? '2%' :
+              currentUser()?.subscriptionPlan === 'Pro' ? '4%' :
+              '40%'
+            "
+          ></div>
         </div>
-        <span class="plan-usage">2 / 5 products used</span>
-        <a class="plan-upgrade" href="#">Upgrade plan &rarr;</a>
+        <span class="plan-usage">
+          @if (currentUser()?.subscriptionPlan === 'Enterprise') {
+            2 / 100 products used
+          } @else if (currentUser()?.subscriptionPlan === 'Pro') {
+            2 / 50 products used
+          } @else {
+            2 / 5 products used
+          }
+        </span>
+        <a class="plan-upgrade" [routerLink]="['/settings/profile']" [queryParams]="{ tab: 'subscription' }">
+          {{ currentUser()?.subscriptionPlan === 'Enterprise' ? 'Manage plan &rarr;' : 'Upgrade plan &rarr;' }}
+        </a>
       </div>
     }
     <div class="user-row d-flex align-items-center">

@@ -1,3 +1,5 @@
+import { StoreSchedule } from '../models/auth.model';
+
 export class VerifyTemporaryCredentials {
   static readonly type = '[Auth] Verify Temporary Credentials';
   constructor(public email: string, public tempPass: string) {}
@@ -24,4 +26,33 @@ export class Logout {
 
 export class ClearAuthError {
   static readonly type = '[Auth] Clear Error';
+}
+
+export class UpdateProfile {
+  static readonly type = '[Auth] Update Profile';
+  constructor(
+    public payload: {
+      storeName: string;
+      logoUrl?: string;
+      city?: string;
+      phone: string;
+      whatsapp?: string;
+      workingHours?: StoreSchedule;
+    }
+  ) {}
+}
+
+export class ChangePassword {
+  static readonly type = '[Auth] Change Password';
+  constructor(
+    public payload: {
+      currentPass: string;
+      newPass: string;
+    }
+  ) {}
+}
+
+export class UpgradeSubscription {
+  static readonly type = '[Auth] Upgrade Subscription';
+  constructor(public plan: 'Free' | 'Pro' | 'Enterprise') {}
 }

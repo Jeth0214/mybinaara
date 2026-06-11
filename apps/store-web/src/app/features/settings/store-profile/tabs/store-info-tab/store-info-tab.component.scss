@@ -1,0 +1,307 @@
+.profile-card {
+  background-color: #ffffff;
+  border: 1px solid var(--brand-border);
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.section-title {
+  color: var(--brand-green-dark);
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+}
+
+.section-subtitle {
+  font-size: 13px;
+  color: var(--brand-text-light);
+}
+
+.form-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--brand-text-mid);
+  margin-bottom: 8px;
+  display: block;
+}
+
+.form-control-custom,
+.form-select-custom {
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  border: 1.5px solid var(--brand-border);
+  border-radius: 8px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  color: var(--brand-text-dark);
+  background-color: var(--brand-surface);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+
+  &:focus {
+    border-color: var(--brand-green);
+    box-shadow: 0 0 0 3px rgba(45, 122, 79, 0.10);
+  }
+
+  &:disabled {
+    background-color: #f1f5f9;
+    color: #64748b;
+    border-color: #e2e8f0;
+    cursor: not-allowed;
+    opacity: 0.85;
+  }
+}
+
+.select-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .form-select-custom {
+    padding-right: 40px;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  .select-arrow {
+    position: absolute;
+    right: 16px;
+    color: var(--brand-text-mid);
+    font-size: 14px;
+    pointer-events: none;
+  }
+}
+
+.invalid-feedback-custom {
+  font-size: 12px;
+  color: var(--brand-error);
+  margin-top: 5px;
+}
+
+.form-control-custom.is-invalid {
+  border-color: var(--brand-error);
+  &:focus {
+    box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.10);
+  }
+}
+
+.logo-display-card {
+  border: 1.5px solid var(--brand-border);
+  border-radius: 8px;
+  background-color: var(--brand-surface);
+}
+
+.logo-display-box {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  background-color: #e2f0e6;
+  overflow: hidden;
+  border: 1px solid var(--brand-border);
+
+  .logo-display-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.logo-display-info {
+  font-family: 'Outfit', sans-serif;
+  
+  .logo-status-text {
+    font-size: 13.5px;
+    color: var(--brand-text-dark);
+  }
+  .logo-specs {
+    font-size: 12px;
+    color: var(--brand-text-light);
+  }
+}
+
+.day-schedule-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px solid rgba(226, 230, 223, 0.6);
+  padding: 10px 0;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.day-label {
+  width: 50px;
+  font-size: 14px;
+  color: var(--brand-text-dark);
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.time-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.select-wrap-hours {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+
+  .time-select-control {
+    width: 100%;
+    height: 40px;
+    padding: 0 36px 0 14px;
+    border: 1.5px solid var(--brand-border);
+    border-radius: 6px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 13.5px;
+    color: var(--brand-text-dark);
+    background-color: var(--brand-surface);
+    transition: all 0.2s;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+
+    &:focus {
+      border-color: var(--brand-green);
+      box-shadow: 0 0 0 3px rgba(45, 122, 79, 0.08);
+    }
+
+    &:disabled {
+      background-color: #f1f5f9;
+      border: 1.5px dashed var(--brand-border);
+      color: var(--brand-text-light);
+      cursor: not-allowed;
+      opacity: 0.75;
+    }
+  }
+
+  .select-arrow-hours {
+    position: absolute;
+    right: 12px;
+    color: var(--brand-text-light);
+    font-size: 13px;
+    pointer-events: none;
+  }
+}
+
+.checkbox-container-custom {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding-left: 26px;
+  cursor: pointer;
+  font-size: 13.5px;
+  color: var(--brand-text-mid);
+  user-select: none;
+  margin-bottom: 0;
+
+  input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+  }
+
+  .checkmark {
+    position: absolute;
+    left: 0;
+    height: 18px;
+    width: 18px;
+    background-color: var(--brand-surface);
+    border: 1.5px solid var(--brand-border);
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+
+  &:hover input ~ .checkmark {
+    border-color: var(--brand-green);
+  }
+
+  input:checked ~ .checkmark {
+    background-color: var(--brand-gold);
+    border-color: var(--brand-gold);
+  }
+
+  .checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+  }
+
+  input:checked ~ .checkmark:after {
+    display: block;
+  }
+
+  .checkmark:after {
+    left: 5px;
+    top: 2px;
+    width: 5px;
+    height: 9px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  .checkbox-label-text {
+    font-size: 13.5px;
+    font-weight: 500;
+  }
+}
+
+.btn-custom-outline {
+  height: 44px;
+  padding: 0 24px;
+  background-color: transparent;
+  border: 1.5px solid var(--brand-border);
+  border-radius: 8px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--brand-text-mid);
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: var(--brand-text-mid);
+    color: var(--brand-text-dark);
+    background-color: var(--brand-surface);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.btn-custom-success {
+  height: 44px;
+  padding: 0 24px;
+  background-color: var(--brand-green-dark);
+  border: none;
+  border-radius: 8px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: var(--brand-green);
+  }
+
+  &:disabled {
+    background-color: var(--brand-border);
+    color: var(--brand-text-light);
+    cursor: not-allowed;
+  }
+}

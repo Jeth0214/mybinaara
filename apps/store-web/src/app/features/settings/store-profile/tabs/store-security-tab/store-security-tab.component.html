@@ -1,0 +1,101 @@
+<form [formGroup]="securityForm" (ngSubmit)="onSaveSecurity()" class="security-form-layout">
+  
+  <div class="profile-card mb-4">
+    <div class="card-header-block mb-3">
+      <h2 class="section-title h5 mb-1">Account & security</h2>
+      <p class="section-subtitle text-muted mb-0">Update your account password settings</p>
+    </div>
+
+    <!-- Current Password -->
+    <div class="mb-4">
+      <label class="form-label">Current password</label>
+      <div class="password-input-wrap">
+        <i class="bi bi-lock pw-icon-left"></i>
+        <input
+          [type]="currentPassVisible() ? 'text' : 'password'"
+          formControlName="currentPass"
+          placeholder="Enter current password"
+          class="form-control-custom font-pw"
+          [class.is-invalid]="securityForm.get('currentPass')?.invalid && securityForm.get('currentPass')?.touched"
+        />
+        <button
+          type="button"
+          class="btn-toggle-pw"
+          (click)="toggleCurrentPass()"
+          aria-label="Toggle password visibility"
+        >
+          <i class="bi" [class.bi-eye]="!currentPassVisible()" [class.bi-eye-slash]="currentPassVisible()"></i>
+        </button>
+      </div>
+      @if (securityForm.get('currentPass')?.invalid && securityForm.get('currentPass')?.touched) {
+        <div class="invalid-feedback-custom">Current password is required.</div>
+      }
+    </div>
+
+    <!-- New Password -->
+    <div class="mb-4">
+      <label class="form-label">New password</label>
+      <div class="password-input-wrap">
+        <i class="bi bi-lock pw-icon-left"></i>
+        <input
+          [type]="newPassVisible() ? 'text' : 'password'"
+          formControlName="newPass"
+          placeholder="Enter at least 6 characters"
+          class="form-control-custom font-pw"
+          [class.is-invalid]="securityForm.get('newPass')?.invalid && securityForm.get('newPass')?.touched"
+        />
+        <button
+          type="button"
+          class="btn-toggle-pw"
+          (click)="toggleNewPass()"
+          aria-label="Toggle password visibility"
+        >
+          <i class="bi" [class.bi-eye]="!newPassVisible()" [class.bi-eye-slash]="newPassVisible()"></i>
+        </button>
+      </div>
+      @if (securityForm.get('newPass')?.invalid && securityForm.get('newPass')?.touched) {
+        <div class="invalid-feedback-custom">Password must be at least 6 characters.</div>
+      }
+    </div>
+
+    <!-- Confirm Password -->
+    <div class="mb-4">
+      <label class="form-label">Confirm new password</label>
+      <div class="password-input-wrap">
+        <i class="bi bi-lock pw-icon-left"></i>
+        <input
+          [type]="confirmPassVisible() ? 'text' : 'password'"
+          formControlName="confirmPass"
+          placeholder="Repeat your new password"
+          class="form-control-custom font-pw"
+          [class.is-invalid]="(securityForm.get('confirmPass')?.invalid && securityForm.get('confirmPass')?.touched) || securityForm.hasError('mismatch')"
+        />
+        <button
+          type="button"
+          class="btn-toggle-pw"
+          (click)="toggleConfirmPass()"
+          aria-label="Toggle password visibility"
+        >
+          <i class="bi" [class.bi-eye]="!confirmPassVisible()" [class.bi-eye-slash]="confirmPassVisible()"></i>
+        </button>
+      </div>
+      @if (securityForm.get('confirmPass')?.touched && securityForm.hasError('mismatch')) {
+        <div class="invalid-feedback-custom">Passwords do not match.</div>
+      } @else if (securityForm.get('confirmPass')?.invalid && securityForm.get('confirmPass')?.touched) {
+        <div class="invalid-feedback-custom">Confirm password is required.</div>
+      }
+    </div>
+  </div>
+
+  <!-- Submit button -->
+  <div class="d-flex align-items-center justify-content-end pt-2">
+    <button
+      type="submit"
+      class="btn-custom-success px-4"
+      [disabled]="loading() || securityForm.invalid"
+    >
+      {{ loading() ? 'Updating...' : 'Update password' }}
+    </button>
+  </div>
+
+</form>
