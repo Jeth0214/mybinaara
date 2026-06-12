@@ -1,21 +1,21 @@
-<div class="bulk-import-layout">
+<div class="container py-4" style="max-width: 1200px;">
 
   <!-- CASE 1: LOCKED (Free Plan) -->
   @if (currentUser()?.subscriptionPlan === 'Free' || !currentUser()?.subscriptionPlan) {
-    <div class="lock-screen-wrapper animate__animated animate__fadeIn">
-      <div class="lock-badge">
+    <div class="card p-5 border shadow-sm text-center mx-auto animate__animated animate__fadeIn" style="max-width: 800px; margin-top: 2rem;">
+      <div class="lock-badge mb-4">
         <i class="bi bi-lock-fill"></i>
       </div>
-      <h2 class="lock-title">Bulk Import is a Premium Feature</h2>
-      <p class="lock-text">
+      <h2 class="h4 font-weight-bold text-dark mb-2">Bulk Import is a Premium Feature</h2>
+      <p class="text-muted mx-auto mb-4" style="max-width: 550px; line-height: 1.6;">
         Upgrade to a premium tier to instantly list dozens of building materials using standard CSV formatting. Save hours of manual entry and keep your warehouse catalog synchronized.
       </p>
 
-      <!-- Plan Features Grid -->
-      <div class="plan-feature-comparison">
-        <table>
+      <!-- Plan Features Comparison Table -->
+      <div class="table-responsive border rounded overflow-hidden mb-4 mx-auto" style="max-width: 600px;">
+        <table class="table mb-0 align-middle text-start">
           <thead>
-            <tr>
+            <tr class="table-light">
               <th>Feature comparison</th>
               <th class="text-center">Free</th>
               <th class="text-center text-success">Pro</th>
@@ -64,10 +64,10 @@
 
     <!-- CASE 2: ACTIVE CSV IMPORT (Pro & Enterprise) -->
     <!-- Page Header -->
-    <div class="page-header-row mb-4">
+    <div class="d-md-flex justify-content-between align-items-center mb-4 pb-2">
       <div>
-        <h1 class="header-title">Bulk Import Products</h1>
-        <p class="header-subtitle text-muted">Synchronize your store catalog by uploading spreadsheet lists.</p>
+        <h1 class="h3 font-weight-bold text-dark mb-1">Bulk Import Products</h1>
+        <p class="text-muted small mb-0">Synchronize your store catalog by uploading spreadsheet lists.</p>
       </div>
       <div>
         <a 

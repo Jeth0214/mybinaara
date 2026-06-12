@@ -1,27 +1,4 @@
-.profile-card {
-  background-color: #ffffff;
-  border: 1px solid var(--brand-border);
-  border-radius: 12px;
-  padding: 28px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
-
-  @media (max-width: 767px) {
-    padding: 16px;
-  }
-}
-
-.section-title {
-  color: var(--brand-green-dark);
-  font-family: 'Outfit', sans-serif;
-  font-weight: 600;
-}
-
-.section-subtitle {
-  font-size: 13px;
-  color: var(--brand-text-light);
-}
-
-// Subscription Panel Custom Styles
+/* Subscription Panel Custom Styles */
 .plan-detail-card {
   border: 1.5px solid var(--brand-border);
   transition: all 0.3s ease-in-out;
@@ -121,17 +98,6 @@
   }
 }
 
-.progress-custom {
-  height: 8px;
-  background-color: var(--brand-border);
-  border-radius: 4px;
-  overflow: hidden;
-
-  .progress-bar-success {
-    background-color: var(--brand-green);
-  }
-}
-
 .tier-card {
   border-radius: 16px;
   background-color: #ffffff;
@@ -140,31 +106,7 @@
 
   &:hover {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
-    /* Avoid scaling layout shifts, use subtle translateY if approved */
     transform: translateY(-4px);
-  }
-
-  .tier-name {
-    font-family: 'Outfit', sans-serif;
-    font-weight: 600;
-  }
-
-  .tier-price {
-    .currency {
-      font-size: 32px;
-      font-family: 'Outfit', sans-serif;
-    }
-
-    .period {
-      font-size: 14px;
-      color: var(--brand-text-light);
-    }
-  }
-
-  .tier-limit-subtitle {
-    font-family: 'Outfit', sans-serif;
-    font-size: 14.5px;
-    font-weight: 600;
   }
 
   .tier-features {
@@ -173,113 +115,26 @@
 
     li {
       margin-bottom: 12px;
-
-      .icon-check {
-        font-size: 16px;
-      }
-
-      .icon-x {
-        font-size: 14px;
-      }
     }
-  }
-
-  // Buttons
-  .btn-current,
-  .btn-upgrade {
-    height: 46px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    transition: all 0.2s ease-in-out;
-    cursor: pointer;
   }
 }
 
-// Tier-specific styles
-
-// 1. Free (Plain)
+// Tier-specific borders
 .tier-free {
   border: 1.5px solid var(--brand-border);
 
-  .tier-name {
-    color: var(--brand-text-dark);
-  }
-
-  .tier-limit-subtitle {
-    color: var(--brand-text-mid);
-  }
-
-  .icon-check {
-    color: var(--brand-text-mid);
-  }
-
-  .btn-upgrade {
-    background-color: #ffffff;
-    border: 1.5px solid var(--brand-border);
-    color: var(--brand-text-mid);
-
-    &:hover {
-      background-color: var(--brand-bg);
-      border-color: var(--brand-text-light);
-      color: var(--brand-text-dark);
-    }
-  }
-
-  .btn-current {
-    background-color: var(--brand-text-dark);
-    color: #ffffff;
-    border: none;
-    cursor: default;
-
-    &:hover {
-      opacity: 0.95;
-    }
-  }
-
   &.current {
     border: 2px solid var(--brand-text-dark);
-    background-color: #f7f8f5; // clean light gray background
+    background-color: #f7f8f5;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
   }
 }
 
-// 2. Pro (Green)
 .tier-pro {
   border: 2px solid var(--brand-green);
 
-  .tier-name {
-    color: var(--brand-green);
-  }
-
-  .tier-limit-subtitle {
-    color: var(--brand-green);
-  }
-
-  .icon-check {
-    color: var(--brand-green);
-  }
-
-  .btn-upgrade {
-    background-color: var(--brand-green);
-    color: #ffffff;
-    border: none;
-
-    &:hover {
-      background-color: var(--brand-green-dark);
-    }
-  }
-
-  .btn-current {
-    background-color: var(--brand-green-dark);
-    color: #ffffff;
-    border: none;
-    cursor: default;
-  }
-
   &.current {
-    background-color: #eef6ee; // light green background
+    background-color: #eef6ee;
     box-shadow: 0 4px 16px rgba(45, 122, 79, 0.08);
   }
 
@@ -301,66 +156,12 @@
   }
 }
 
-// 3. Enterprise (Gold)
 .tier-enterprise {
   border: 2px solid var(--brand-gold);
 
-  .tier-name {
-    color: var(--brand-gold);
-  }
-
-  .tier-limit-subtitle {
-    color: var(--brand-gold);
-  }
-
-  .icon-check {
-    color: var(--brand-gold);
-  }
-
-  .btn-upgrade {
-    background-color: var(--brand-gold);
-    color: #ffffff;
-    border: none;
-
-    &:hover {
-      background-color: var(--brand-gold-light);
-    }
-  }
-
-  .btn-current {
-    background-color: #b57a00;
-    color: #ffffff;
-    border: none;
-    cursor: default;
-  }
-
   &.current {
-    background-color: #fffdf5; // light gold background
+    background-color: #fffdf5;
     box-shadow: 0 4px 16px rgba(217, 146, 1, 0.08);
-  }
-}
-
-// Billing info banner styling
-.billing-info-banner-wrapper {
-  background-color: #ffffff;
-  border: 1.5px solid var(--brand-border);
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.01);
-
-  .billing-handled-text {
-    font-size: 14.5px;
-    color: var(--brand-text-mid);
-
-    .brand-text-green {
-      color: var(--brand-green-dark);
-      font-weight: 700;
-    }
-  }
-
-  .vat-info-text {
-    font-size: 13px;
-    color: var(--brand-text-light);
   }
 }
 
@@ -373,52 +174,4 @@
   border-color: var(--brand-border) !important;
   box-shadow: none !important;
   transform: none !important;
-
-  .btn-upgrade {
-    background-color: var(--brand-border) !important;
-    color: var(--brand-text-light) !important;
-    border: 1.5px solid var(--brand-border) !important;
-    cursor: not-allowed !important;
-  }
-}
-
-// ngBootstrap Modal Custom confirmation buttons styling
-.btn-modal-cancel {
-  background-color: #f1f5f9;
-  color: #475569;
-  border: 1.5px solid var(--brand-border);
-  border-radius: 30px;
-  padding: 8px 20px;
-  font-size: 14px;
-  transition: all 0.2s;
-
-  &:hover {
-    background-color: #e2e8f0;
-    color: #1e293b;
-  }
-}
-
-.btn-modal-confirm {
-  color: #ffffff;
-  border: none;
-  border-radius: 30px;
-  padding: 8px 24px;
-  font-size: 14px;
-  transition: all 0.2s;
-
-  &.btn-confirm-green {
-    background-color: var(--brand-green);
-
-    &:hover {
-      background-color: var(--brand-green-dark);
-    }
-  }
-
-  &.btn-confirm-gold {
-    background-color: var(--brand-gold);
-
-    &:hover {
-      background-color: var(--brand-gold-light);
-    }
-  }
 }

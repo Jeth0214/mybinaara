@@ -1,13 +1,13 @@
-<div class="add-product-layout">
+<div class="container py-4" style="max-width: 1200px;">
 
   <!-- CASE 1: BLOCKED (Subscription limit reached - only for ADD mode) -->
   @if (isLimitReached() && !isEditMode()) {
-    <div class="blocker-overlay-card animate__animated animate__fadeIn">
-      <div class="blocker-icon-circle">
+    <div class="card border border-light-subtle shadow-sm p-5 text-center mx-auto animate__animated animate__fadeIn" style="max-width: 600px; margin-top: 4rem;">
+      <div class="blocker-icon-circle mb-4">
         <i class="bi bi-lock-fill"></i>
       </div>
-      <h2 class="blocker-title">Product Limit Reached</h2>
-      <p class="blocker-text">
+      <h2 class="h4 font-weight-bold text-dark mb-2">Product Limit Reached</h2>
+      <p class="text-muted mb-4 fs-6">
         You are currently on the <strong>{{ currentUser()?.subscriptionPlan || 'Free' }} Plan</strong> and have listed the maximum of <strong>{{ productsLimit() }}</strong> products.<br>
         To add more items and boost your visibility, please upgrade your subscription plan.
       </p>
@@ -23,10 +23,10 @@
   } @else {
 
     <!-- Page Header -->
-    <div class="page-header-row d-md-flex  justify-content-between align-items-center mb-4">
+    <div class="d-md-flex justify-content-between align-items-center mb-4 pb-2">
       <div>
-        <h1 class="header-title">{{ isEditMode() ? 'Edit Product Details' : 'Add New Product' }}</h1>
-        <p class="header-subtitle text-muted">
+        <h1 class="h3 font-weight-bold text-dark mb-1">{{ isEditMode() ? 'Edit Product Details' : 'Add New Product' }}</h1>
+        <p class="text-muted small mb-0">
           {{ isEditMode() ? 'Update the details and stock metrics of your product listing.' : 'Create a new building material listing for your store.' }}
         </p>
       </div>
@@ -49,13 +49,13 @@
       </div>
     } @else {
       <!-- Form & Media Container -->
-      <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="form-grid">
+      <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="row g-4">
         
         <!-- Left: Details Form -->
-        <div class="d-flex flex-column gap-4">
+        <div class="col-lg-7 d-flex flex-column gap-4">
           
           <!-- Card 1: Product info -->
-          <div class="form-card">
+          <div class="card p-4 border shadow-sm">
             <!-- Product Name -->
             <div class="mb-3">
               <label class="form-label font-weight-bold">Product name *</label>
@@ -105,8 +105,8 @@
           </div>
 
           <!-- Card 2: Pricing & Stock -->
-          <div class="form-card">
-            <h3 class="section-card-title border-bottom pb-2 mb-3">Pricing & stock</h3>
+          <div class="card p-4 border shadow-sm">
+            <h3 class="h6 font-weight-bold text-dark border-bottom pb-2 mb-3">Pricing & stock</h3>
 
             <!-- Price and Unit -->
             <div class="row">
@@ -187,11 +187,11 @@
         </div>
 
         <!-- Right: Media & Description Section -->
-        <div class="d-flex flex-column gap-3">
+        <div class="col-lg-5 d-flex flex-column gap-4">
           
           <!-- Product Image Card -->
-          <div class="form-card text-center">
-            <h3 class="section-card-title text-start mb-3">Product image</h3>
+          <div class="card p-4 border shadow-sm text-center">
+            <h3 class="h6 font-weight-bold text-dark text-start mb-3">Product image</h3>
 
             @if (selectedImage()) {
               <!-- Preview of Selected Image -->
@@ -219,8 +219,8 @@
           </div>
 
           <!-- Description Card -->
-          <div class="form-card">
-            <h3 class="section-card-title mb-3">Description</h3>
+          <div class="card p-4 border shadow-sm">
+            <h3 class="h6 font-weight-bold text-dark mb-3">Description</h3>
             <div class="mb-3">
               <textarea 
                 class="form-control" 
