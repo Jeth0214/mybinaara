@@ -26,6 +26,8 @@ export interface StoreUser {
   workingHours?: StoreSchedule;
   subscriptionPlan?: 'Free' | 'Pro' | 'Enterprise';
   subscriptionDate?: string;
+  businessId?: string;
+  certificateId?: string;
 }
 
 export interface AuthStateModel {

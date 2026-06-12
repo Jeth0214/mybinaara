@@ -36,7 +36,7 @@
   font-family: 'Outfit', sans-serif;
   font-size: 14px;
   color: var(--brand-text-dark);
-  background-color: var(--brand-surface);
+  background-color: #ffffff;
   transition: border-color 0.2s, box-shadow 0.2s;
   outline: none;
 
@@ -162,7 +162,7 @@
     font-family: 'Outfit', sans-serif;
     font-size: 13.5px;
     color: var(--brand-text-dark);
-    background-color: var(--brand-surface);
+    background-color: #ffffff;
     transition: all 0.2s;
     outline: none;
     appearance: none;
@@ -305,3 +305,47 @@
     cursor: not-allowed;
   }
 }
+
+/* Map Location and Support Card Styles */
+.map-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1.5px solid var(--brand-border);
+  height: 280px;
+
+  iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    filter: grayscale(10%) contrast(90%);
+  }
+}
+
+.support-card {
+  background: linear-gradient(135deg, #fbfcfb 0%, #f5f8f6 100%);
+  border-color: rgba(45, 122, 79, 0.12) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.015);
+
+  .support-icon-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: rgba(45, 122, 79, 0.08);
+    color: var(--brand-green);
+    font-size: 1.25rem;
+    flex-shrink: 0;
+  }
+
+  .btn-support {
+    font-size: 0.85rem;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+      background-color: var(--brand-green);
+      border-color: var(--brand-green);
+      color: #ffffff;
+    }
+  }
+}
+

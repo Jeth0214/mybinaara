@@ -5,11 +5,13 @@ import {
   Output,
   EventEmitter,
   inject,
+  computed,
 } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { Store } from '@ngxs/store';
 import { AuthState } from '../../core/state/auth.state';
 import { Logout } from '../../core/state/auth.actions';
+import { ProductService } from '../../core/services/product.service';
 
 interface NavItem {
   label: string;
@@ -39,10 +41,14 @@ export class SidebarComponent {
 
   private store = inject(Store);
   private router = inject(Router);
+  private productService = inject(ProductService);
 
   readonly currentUser = this.store.selectSignal(AuthState.user);
+  readonly productsCount = this.productService.productsCount;
+  readonly productsLimit = this.productService.productsLimit;
+  readonly progressPercent = this.productService.progressPercent;
 
-  readonly navGroups: NavGroup[] = [
+  readonly navGroups = computed<NavGroup[]>(() => [
     {
       label: 'MAIN',
       items: [
@@ -52,10 +58,7 @@ export class SidebarComponent {
     {
       label: 'PRODUCTS',
       items: [
-        { label: 'My products',  icon: 'bi-box-seam',        route: '/products',              badge: 2 },
-        { label: 'Add product',  icon: 'bi-plus-circle',     route: '/products/add' },
-        { label: 'Update stock', icon: 'bi-arrow-up-circle', route: '/products/update-stock' },
-        { label: 'Bulk import',  icon: 'bi-upload',          route: '/products/bulk-import' },
+        { label: 'My products', icon: 'bi-box-seam', route: '/products' },
       ],
     },
     {
@@ -67,11 +70,11 @@ export class SidebarComponent {
     {
       label: 'SETTINGS',
       items: [
-        { label: 'Store profile', icon: 'bi-shop',        route: '/settings/profile', queryParams: { tab: 'info' } },
-        { label: 'Subscription',  icon: 'bi-credit-card', route: '/settings/profile', queryParams: { tab: 'subscription' } },
+        { label: 'Store profile', icon: 'bi-shop', route: '/settings/profile', queryParams: { tab: 'info' } },
+        { label: 'Subscription', icon: 'bi-credit-card', route: '/settings/profile', queryParams: { tab: 'subscription' } },
       ],
     },
-  ];
+  ]);
 
   onLogout(): void {
     this.store.dispatch(new Logout());

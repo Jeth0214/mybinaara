@@ -1,0 +1,77 @@
+<div class="card subscription-card p-4 rounded-3 border-0 bg-white shadow-sm h-100 d-flex flex-column">
+  <div class="mb-3">
+    <h3 class="subscription-card-title font-weight-bold mb-1">Subscription & Tier</h3>
+    <p class="subscription-card-subtitle text-muted small mb-0">
+      Manage your plan limits, billing preferences, and platform capabilities.
+    </p>
+  </div>
+
+  <!-- Active Plan Box -->
+  <div 
+    class="plan-detail-card p-4 rounded mb-4 d-flex flex-wrap align-items-center justify-content-between"
+    [class.plan-free]="user()?.subscriptionPlan === 'Free' || !user()?.subscriptionPlan"
+    [class.plan-pro]="user()?.subscriptionPlan === 'Pro'"
+    [class.plan-enterprise]="user()?.subscriptionPlan === 'Enterprise'"
+  >
+    <div class="mb-3 mb-md-0">
+      <span class="badge-plan-tier mb-1 d-inline-block">{{ user()?.subscriptionPlan || 'Free' }} Plan</span>
+      <h3 class="mb-1 plan-title">
+        @if (user()?.subscriptionPlan === 'Pro') {
+          Pro Monthly Tier
+        } @else if (user()?.subscriptionPlan === 'Enterprise') {
+          Enterprise Tier
+        } @else {
+          Free Starter Tier
+        }
+      </h3>
+      <p class="plan-desc mb-0">
+        @if (user()?.subscriptionPlan === 'Pro') {
+          SAR 99/month &middot; Billed monthly &middot; Next bill payment date: {{ getNextPaymentDate() }}
+        } @else if (user()?.subscriptionPlan === 'Enterprise') {
+          SAR 199/month &middot; Billed monthly &middot; Next bill payment date: {{ getNextPaymentDate() }}
+        } @else {
+          SAR 0/month &middot; Forever Free plan with standard limits
+        }
+      </p>
+    </div>
+    <div class="plan-status-badge">
+      <i class="bi bi-patch-check-fill me-1"></i> Active
+    </div>
+  </div>
+
+  <!-- Plan Benefits Checkboxes / Tier Prompts -->
+  <div class="plan-details mb-4 flex-grow-1">
+    @if (user()?.subscriptionPlan === 'Free') {
+      <div class="upgrade-callout p-3 rounded border border-warning-subtle bg-warning-subtle-light">
+        <h5 class="small font-weight-bold text-warning-dark mb-1">
+          <i class="bi bi-rocket-takeoff-fill me-1"></i>Upgrade to Pro Tier
+        </h5>
+        <p class="small mb-0 text-muted">
+          Unlock premium tools: CSV Bulk Imports, detailed analytics dashboards, and expand your catalog to 50 products.
+        </p>
+      </div>
+    } @else {
+      <div class="premium-callout p-3 rounded border border-success-subtle bg-success-subtle-light">
+        <h5 class="small font-weight-bold text-success-dark mb-1">
+          <i class="bi bi-patch-check-fill me-1"></i>Premium Tier Activated
+        </h5>
+        <p class="small mb-0 text-muted">
+          Your account has unlocked bulk importing and full local search insight tools. Thank you for partnering with Binaara!
+        </p>
+      </div>
+    }
+  </div>
+
+  <!-- Manage Button -->
+  <div class="mt-auto">
+    <a 
+      [routerLink]="['/settings/profile']" 
+      [queryParams]="{ tab: 'subscription' }" 
+      class="btn w-100"
+      [ngClass]="user()?.subscriptionPlan === 'Free' ? 'btn-gold-custom' : 'btn-outline-success-custom'"
+    >
+      <i class="bi me-1" [ngClass]="user()?.subscriptionPlan === 'Free' ? 'bi-lightning-charge-fill' : 'bi-credit-card'"></i>
+      {{ user()?.subscriptionPlan === 'Free' ? 'Upgrade Plan' : 'Manage Subscription' }}
+    </a>
+  </div>
+</div>

@@ -51,12 +51,12 @@ export const routes: Routes = [
             data: { title: 'Add Product', icon: 'bi-plus-circle' },
           },
           {
-            path: 'update-stock',
+            path: 'edit/:id',
             loadComponent: () =>
               import(
-                './features/products/update-stock/update-stock.component'
-              ).then((m) => m.UpdateStockComponent),
-            data: { title: 'Update Stock', icon: 'bi-arrow-up-circle' },
+                './features/products/add-product/add-product.component'
+              ).then((m) => m.AddProductComponent),
+            data: { title: 'Edit Product', icon: 'bi-pencil' },
           },
           {
             path: 'bulk-import',

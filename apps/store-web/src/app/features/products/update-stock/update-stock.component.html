@@ -1,0 +1,133 @@
+<div class="update-stock-layout">
+
+  <!-- Sticky Changes Alert Bar -->
+  @if (hasChanges()) {
+    <div class="changes-indicator-bar animate__animated animate__slideInDown">
+      <div class="bar-text">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span>You have unsaved stock levels for {{ modifiedCount() }} products. Save to publish.</span>
+      </div>
+      <div class="bar-actions">
+        <button class="btn btn-outline-light btn-sm font-weight-bold px-3 py-2" (click)="discardChanges()">
+          Discard Changes
+        </button>
+        <button class="btn btn-success btn-sm font-weight-bold px-4 py-2 text-white rounded-pill" (click)="saveAllChanges()">
+          Save All Changes
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Page Header -->
+  <div class="page-header-row">
+    <div>
+      <h1 class="header-title">Update Stock Levels</h1>
+      <p class="header-subtitle text-muted">Quickly manage and update inventory quantities for your products in real-time.</p>
+    </div>
+    @if (!hasChanges()) {
+      <a class="btn btn-outline-success font-weight-bold px-4 py-2 rounded-pill" [routerLink]="['/products']">
+        <i class="bi bi-box-seam me-1"></i> View Catalog
+      </a>
+    }
+  </div>
+
+  <!-- Table Card -->
+  <div class="inventory-table-card">
+    @if (products().length > 0) {
+      <div class="table-responsive">
+        <table class="table inventory-table">
+          <thead>
+            <tr>
+              <th class="product-img-col">Image</th>
+              <th>Product Name & SKU</th>
+              <th class="text-center" style="width: 120px;">Current Stock</th>
+              <th style="width: 340px;">Adjust Inventory</th>
+              <th>Live Preview</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of products(); track p.id) {
+              <tr [class.row-modified]="isModified(p.id)">
+                <!-- Image -->
+                <td>
+                  <div class="product-img-wrapper">
+                    <img 
+                      [src]="p.imageUrl || getCategoryIcon(p.category)" 
+                      [alt]="p.name"
+                      onerror="this.src='images/category-icons/miscellaneous.svg'"
+                    />
+                  </div>
+                </td>
+
+                <!-- Info -->
+                <td>
+                  <div class="product-info">
+                    <div class="font-weight-bold text-dark mb-0" style="font-size: 0.95rem;">{{ p.name }}</div>
+                    <div class="small text-muted" style="font-family: monospace;">SKU: {{ p.sku }}</div>
+                    <span class="status-modified-tag">Modified</span>
+                  </div>
+                </td>
+
+                <!-- Current Stock -->
+                <td class="text-center">
+                  <span class="font-weight-bold text-dark" style="font-size: 1.1rem;">{{ p.stock }}</span>
+                </td>
+
+                <!-- Adjuster controls -->
+                <td>
+                  <div class="stock-adjuster">
+                    <button type="button" class="btn-adjust" (click)="adjustStock(p.id, -10)" title="Decrease by 10">-10</button>
+                    <button type="button" class="btn-adjust" (click)="adjustStock(p.id, -1)" title="Decrease by 1">-1</button>
+                    <input 
+                      type="number" 
+                      class="stock-input" 
+                      [value]="getCurrentStockValue(p)"
+                      (input)="onStockInputChange(p.id, $event)"
+                      min="0"
+                    />
+                    <button type="button" class="btn-adjust" (click)="adjustStock(p.id, 1)" title="Increase by 1">+1</button>
+                    <button type="button" class="btn-adjust" (click)="adjustStock(p.id, 10)" title="Increase by 10">+10</button>
+                  </div>
+                </td>
+
+                <!-- Preview status -->
+                <td>
+                  <div class="stock-preview-status">
+                    <!-- Dynamic preview label -->
+                    @if (getCurrentStockValue(p) > 10) {
+                      <span class="status-label in-stock">
+                        <i class="bi bi-check-circle-fill me-1"></i> In Stock
+                      </span>
+                    } @else if (getCurrentStockValue(p) > 0) {
+                      <span class="status-label low-stock">
+                        <i class="bi bi-exclamation-circle-fill me-1"></i> Low Stock
+                      </span>
+                    } @else {
+                      <span class="status-label out-of-stock">
+                        <i class="bi bi-x-circle-fill me-1"></i> Out of Stock
+                      </span>
+                    }
+                    <span class="qty-label font-weight-bold">
+                      New stock: {{ getCurrentStockValue(p) }} units
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <!-- Empty State -->
+      <div class="empty-state-card">
+        <i class="bi bi-box-seam empty-icon"></i>
+        <h3 class="empty-title">No products found</h3>
+        <p class="empty-text">You haven't listed any products in your catalog yet. Please add a product first to adjust its inventory.</p>
+        <a class="btn btn-success font-weight-bold px-4 py-2 rounded-pill" [routerLink]="['/products/add']">
+          List Product
+        </a>
+      </div>
+    }
+  </div>
+
+</div>

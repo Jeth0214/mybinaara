@@ -1,0 +1,32 @@
+.insights-card {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.015);
+}
+
+.insights-card-title {
+  font-size: 1.15rem;
+  color: var(--brand-green-dark) !important;
+}
+
+.performance-row {
+  border-bottom-color: var(--brand-border) !important;
+}
+
+.product-name {
+  font-size: 0.95rem;
+}
+
+.trend-up {
+  color: #27ae60;
+  
+  i {
+    line-height: 1;
+  }
+}
+
+.trend-down {
+  color: var(--brand-error);
+  
+  i {
+    line-height: 1;
+  }
+}
