@@ -27,6 +27,9 @@ export class ActivationComponent implements OnInit, OnDestroy {
   confirmPasswordVisible = signal<boolean>(false);
   otpResendCountdown = signal<number>(0);
   otpResending = signal<boolean>(false);
+  showIntroOverlay = signal<boolean>(false);
+  
+  private fallbackTimeoutId: any = null;
   
   // Exposing store state
   errorMsg = signal<string | null>(null);
@@ -77,6 +80,9 @@ export class ActivationComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.sub.unsubscribe();
     this.store.dispatch(new AuthActions.ClearAuthError());
+    if (this.fallbackTimeoutId) {
+      clearTimeout(this.fallbackTimeoutId);
+    }
   }
 
   toggleTempPassword(): void {
@@ -154,12 +160,37 @@ export class ActivationComponent implements OnInit, OnDestroy {
     this.store.dispatch(new AuthActions.VerifyActivationOtp(email, otp!)).subscribe({
       next: () => {
         this.loading.set(false);
-        this.router.navigate(['/settings/profile']);
+        this.playIntroVideo();
       },
       error: () => {
         this.loading.set(false);
       }
     });
+  }
+
+  private playIntroVideo(): void {
+    this.showIntroOverlay.set(true);
+    // Safety fallback: if video is blocked or hangs, redirect after 10 seconds
+    this.fallbackTimeoutId = setTimeout(() => {
+      this.completeActivationRedirect();
+    }, 10000);
+  }
+
+  onIntroEnded(): void {
+    this.completeActivationRedirect();
+  }
+
+  onSkipIntro(): void {
+    this.completeActivationRedirect();
+  }
+
+  private completeActivationRedirect(): void {
+    if (this.fallbackTimeoutId) {
+      clearTimeout(this.fallbackTimeoutId);
+      this.fallbackTimeoutId = null;
+    }
+    this.showIntroOverlay.set(false);
+    this.router.navigate(['/settings/profile']);
   }
 
   // --- OTP Helper Functions ---

@@ -5,16 +5,8 @@
     <img src="/images/logo/logo.png" alt="myBinaara" />
   </a>
 
-  <!-- Mobile: page title, absolutely centered -->
-  <h1 class="topbar-title mobile-title d-md-none mb-0">{{ pageTitle() }}</h1>
-
-  <!-- Desktop / tablet: page icon + title -->
-  <div class="d-none d-md-flex align-items-center gap-2 flex-grow-1">
-    @if (pageIcon()) {
-      <i class="bi {{ pageIcon() }} page-icon"></i>
-    }
-    <h1 class="topbar-title mb-0">{{ pageTitle() }}</h1>
-  </div>
+  <!-- Spacer to push items to the right -->
+  <div class="flex-grow-1"></div>
 
   <!-- Desktop / tablet: date + bell -->
   <span class="topbar-date d-none d-md-block me-3">{{ currentDate() }}</span>

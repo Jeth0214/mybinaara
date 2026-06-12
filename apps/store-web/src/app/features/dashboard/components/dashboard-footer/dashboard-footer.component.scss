@@ -1,0 +1,79 @@
+.support-card {
+  border: 1px solid var(--brand-border) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.015) !important;
+}
+
+.support-title {
+  font-size: 1.15rem;
+  color: var(--brand-green-dark);
+}
+
+.support-subtitle {
+  font-size: 0.85rem;
+  color: var(--brand-text-light) !important;
+}
+
+.text-gold {
+  color: var(--brand-gold) !important;
+}
+
+/* Custom Buttons */
+.btn-whatsapp {
+  background-color: #25D366;
+  border-color: #25D366;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.85rem;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  transition: all 0.15s ease-in-out;
+
+  &:hover {
+    background-color: #128C7E;
+    border-color: #128C7E;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.15);
+  }
+}
+
+.btn-email {
+  background-color: #ffffff;
+  border-color: var(--brand-border);
+  color: var(--brand-text-dark);
+  font-weight: 600;
+  font-size: 0.85rem;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--brand-border);
+  transition: all 0.15s ease-in-out;
+
+  &:hover {
+    background-color: #f7f8f5;
+    border-color: var(--brand-text-light);
+    color: var(--brand-text-dark);
+  }
+}
+
+/* Footer layout */
+footer {
+  border-color: var(--brand-border) !important;
+}
+
+.copyright-text {
+  color: var(--brand-text-light) !important;
+  font-size: 0.8rem;
+}
+
+.footer-links {
+  font-size: 0.8rem;
+  
+  a {
+    color: var(--brand-text-light) !important;
+    transition: color 0.15s ease-in-out;
+
+    &:hover {
+      color: var(--brand-green) !important;
+      text-decoration: underline !important;
+    }
+  }
+}

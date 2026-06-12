@@ -87,6 +87,8 @@ export class StoreInfoTabComponent implements OnInit {
       city: [{ value: user?.city || 'Jeddah', disabled: true }, [Validators.required]],
       whatsapp: [{ value: user?.whatsapp || '', disabled: true }, [Validators.required]],
       phone: [{ value: user?.phone || '', disabled: true }, [Validators.required]],
+      businessId: [{ value: user?.businessId || '', disabled: true }],
+      certificateId: [{ value: user?.certificateId || '', disabled: true }],
       workingHours: this.fb.group(
         this.days.reduce((acc, day) => {
           const sched = defaultHours[day.key] || { openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false };

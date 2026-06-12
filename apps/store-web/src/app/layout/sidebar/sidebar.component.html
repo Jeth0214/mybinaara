@@ -20,7 +20,7 @@
 
   <!-- Navigation -->
   <nav class="sidebar-nav">
-    @for (group of navGroups; track group.label) {
+    @for (group of navGroups(); track group.label) {
       <div class="nav-group">
         @if (expanded) {
           <span class="nav-group-label">{{ group.label }}</span>
@@ -37,7 +37,7 @@
             <i class="bi {{ item.icon }} nav-icon"></i>
             @if (expanded) {
               <span class="nav-label">{{ item.label }}</span>
-              @if (item.badge) {
+              @if (item.badge !== undefined) {
                 <span class="nav-badge">{{ item.badge }}</span>
               }
             }
@@ -56,21 +56,11 @@
         <div class="plan-progress">
           <div 
             class="plan-progress-bar" 
-            [style.width]="
-              currentUser()?.subscriptionPlan === 'Enterprise' ? '2%' :
-              currentUser()?.subscriptionPlan === 'Pro' ? '4%' :
-              '40%'
-            "
+            [style.width.%]="progressPercent()"
           ></div>
         </div>
         <span class="plan-usage">
-          @if (currentUser()?.subscriptionPlan === 'Enterprise') {
-            2 / 100 products used
-          } @else if (currentUser()?.subscriptionPlan === 'Pro') {
-            2 / 50 products used
-          } @else {
-            2 / 5 products used
-          }
+          {{ productsCount() }} / {{ productsLimit() }} products used
         </span>
         <a class="plan-upgrade" [routerLink]="['/settings/profile']" [queryParams]="{ tab: 'subscription' }">
           {{ currentUser()?.subscriptionPlan === 'Enterprise' ? 'Manage plan &rarr;' : 'Upgrade plan &rarr;' }}

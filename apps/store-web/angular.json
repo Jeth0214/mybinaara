@@ -28,6 +28,11 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "**/*",
+                "input": "../../lib/shared-assets/images/category-icons",
+                "output": "/images/category-icons"
               }
             ],
             "styles": [
