@@ -1,12 +1,12 @@
-<div class="products-layout">
+<div class="container py-4" style="max-width: 1600px;">
 
   <!-- Limit Warning Banner -->
   @if (isLimitReached()) {
-    <div class="limit-banner animate__animated animate__fadeIn">
-      <div class="banner-content">
-        <i class="bi bi-exclamation-triangle-fill"></i>
+    <div class="alert alert-warning border-warning border-opacity-25 d-flex justify-content-between align-items-center flex-wrap gap-3 p-3 mb-4 animate__animated animate__fadeIn" style="background: linear-gradient(135deg, #fffcf6 0%, #fff9e6 100%); border-radius: 12px;">
+      <div class="d-flex align-items-center gap-3">
+        <i class="bi bi-exclamation-triangle-fill text-warning fs-4"></i>
         <div>
-          <h6 class="mb-0 font-weight-bold">Product Limit Reached ({{ productsCount() }} / {{ productsLimit() }})</h6>
+          <h6 class="mb-0 font-weight-bold text-dark">Product Limit Reached ({{ productsCount() }} / {{ productsLimit() }})</h6>
           <p class="small text-muted mb-0">Your store has listed the maximum allowable products for your current subscription plan.</p>
         </div>
       </div>
@@ -17,12 +17,12 @@
   }
 
   <!-- Page Header -->
-  <div class="page-header-row">
+  <div class="d-md-flex justify-content-between align-items-center mb-4 pb-2">
     <div>
-      <h1 class="header-title">My Products</h1>
-      <p class="header-subtitle text-muted">Browse, manage, and monitor your listed inventory items.</p>
+      <h1 class="h3 font-weight-bold text-dark mb-1">My Products</h1>
+      <p class="text-muted small mb-0">Browse, manage, and monitor your listed inventory items.</p>
     </div>
-    <div class="d-flex align-items-center gap-2">
+    <div class="d-flex align-items-center gap-2 mt-3 mt-md-0">
       <a class="btn btn-outline-success font-weight-bold px-3 py-2 d-flex align-items-center gap-2" [routerLink]="['/products/bulk-import']">
         <i class="bi bi-upload"></i> Bulk Import
       </a>
@@ -39,12 +39,12 @@
 
 
   <!-- Search and Filter Toolbar -->
-  <div class="toolbar-card">
+  <div class="card p-4 border shadow-sm mb-4">
     <div class="row g-3">
       <!-- Search -->
       <div class="col-lg-6 col-md-5">
-        <div class="search-input-group">
-          <i class="bi bi-search search-icon"></i>
+        <div class="input-wrap">
+          <i class="bi bi-search"></i>
           <input 
             type="text" 
             class="form-control" 
@@ -58,7 +58,7 @@
       <!-- Category Filter -->
       <div class="col-lg-3 col-md-4 col-sm-6">
         <select 
-          class="form-select filter-select" 
+          class="form-select" 
           [value]="selectedCategory()"
           (change)="onCategoryChange($event)"
         >
@@ -72,7 +72,7 @@
       <!-- Stock Filter -->
       <div class="col-lg-3 col-md-3 col-sm-6">
         <select 
-          class="form-select filter-select" 
+          class="form-select" 
           [value]="selectedStockStatus()"
           (change)="onStockStatusChange($event)"
         >
@@ -86,10 +86,10 @@
   </div>
 
   <!-- Products List Card -->
-  <div class="table-card">
+  <div class="card border shadow-sm overflow-hidden mb-4">
     @if (filteredProducts().length > 0) {
-      <div class="table-responsive ">
-        <table class="table products-table table-hover">
+      <div class="table-responsive">
+        <table class="table products-table table-hover align-middle mb-0">
           <thead>
             <tr>
               <th>Product</th>
@@ -195,10 +195,10 @@
       </div>
     } @else {
       <!-- Empty State -->
-      <div class="empty-state-card">
-        <i class="bi bi-box-seam empty-icon"></i>
-        <h3 class="empty-title">No products found</h3>
-        <p class="empty-text">
+      <div class="p-5 text-center my-4">
+        <i class="bi bi-box-seam text-muted opacity-50 mb-3" style="font-size: 3.5rem; display: block;"></i>
+        <h3 class="h5 font-weight-bold text-dark mb-2">No products found</h3>
+        <p class="text-muted mx-auto mb-4" style="max-width: 450px; font-size: 0.95rem;">
           @if (productService.productsCount() === 0) {
             You haven't listed any products yet. List your first building material item and make your store discoverable!
           } @else {

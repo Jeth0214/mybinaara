@@ -19,7 +19,6 @@ import { DashboardFooterComponent } from './components/dashboard-footer/dashboar
     DashboardFooterComponent,
   ],
   templateUrl: './dashboard.component.html',
-  styleUrl: './dashboard.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 // Standalone Parent Dashboard Component
