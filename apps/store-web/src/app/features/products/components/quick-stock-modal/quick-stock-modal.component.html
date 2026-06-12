@@ -24,7 +24,7 @@
 </div>
 <div class="modal-footer border-0 pt-0 d-flex gap-2">
   <button type="button" class="btn btn-light border px-4 py-2 font-weight-bold flex-grow-1" (click)="activeModal.dismiss()" [disabled]="updating()">Cancel</button>
-  <button type="button" class="btn btn-success px-4 py-2 font-weight-bold text-white rounded-pill flex-grow-1 text-center d-flex align-items-center justify-content-center gap-2" (click)="saveQuickStock()" [disabled]="updating()">
+  <button type="button" class="btn btn-success px-4 py-2 font-weight-bold text-white flex-grow-1 text-center d-flex align-items-center justify-content-center gap-2" (click)="saveQuickStock()" [disabled]="updating()">
     @if (updating()) {
       <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...
     } @else {

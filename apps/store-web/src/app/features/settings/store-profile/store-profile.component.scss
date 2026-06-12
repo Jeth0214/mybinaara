@@ -2,6 +2,10 @@
   max-width: 1000px;
   margin: 0 auto;
   padding: 12px 12px 40px;
+
+  @media (max-width: 767px) {
+    padding: 12px 0 40px;
+  }
 }
 
 // 1. Premium Tab Pills Switcher
@@ -24,6 +28,7 @@
   transition: all 0.2s ease-in-out;
   cursor: pointer;
   outline: none;
+  background-color: var(--brand-border);
 
   &:hover {
     color: var(--brand-green);
@@ -38,5 +43,3 @@
 }
 
 // 2. Tab contents are styled within their respective components (SRP)
-
-

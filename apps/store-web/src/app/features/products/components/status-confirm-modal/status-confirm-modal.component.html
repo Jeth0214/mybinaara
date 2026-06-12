@@ -15,7 +15,7 @@
   </p>
   <div class="d-flex justify-content-center gap-3">
     <button type="button" class="btn btn-light px-4 py-2 font-weight-bold border" (click)="activeModal.dismiss()" [disabled]="updating()">Cancel</button>
-    <button type="button" class="btn btn-success px-4 py-2 font-weight-bold rounded-pill text-white d-flex align-items-center gap-2" (click)="confirmStatusChange()" [disabled]="updating()">
+    <button type="button" class="btn btn-success px-4 py-2 font-weight-bold text-white d-flex align-items-center gap-2" (click)="confirmStatusChange()" [disabled]="updating()">
       @if (updating()) {
         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Updating...
       } @else {

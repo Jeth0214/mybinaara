@@ -4,6 +4,10 @@
   border-radius: 12px;
   padding: 28px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+
+  @media (max-width: 767px) {
+    padding: 16px;
+  }
 }
 
 .section-title {
@@ -21,7 +25,7 @@
 .plan-detail-card {
   border: 1.5px solid var(--brand-border);
   transition: all 0.3s ease-in-out;
-  
+
   .badge-plan-tier {
     font-size: 12px;
     font-weight: 600;
@@ -37,27 +41,27 @@
     border-radius: 20px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
   }
-  
+
   // Free (Plain)
   &.plan-free {
     background-color: var(--brand-surface);
     color: var(--brand-text-dark);
     border-color: var(--brand-border);
-    
+
     .plan-title {
       color: var(--brand-text-dark);
       font-weight: 600;
     }
-    
+
     .plan-desc {
       color: var(--brand-text-mid);
     }
-    
+
     .badge-plan-tier {
       background-color: var(--brand-border);
       color: var(--brand-text-mid);
     }
-    
+
     .plan-status-badge {
       background-color: var(--brand-text-dark);
       color: #ffffff;
@@ -69,21 +73,21 @@
     background: linear-gradient(135deg, var(--brand-green-dark) 0%, var(--brand-green) 100%);
     color: #ffffff;
     border: none;
-    
+
     .plan-title {
       color: #ffffff;
       font-weight: 600;
     }
-    
+
     .plan-desc {
       color: rgba(255, 255, 255, 0.85);
     }
-    
+
     .badge-plan-tier {
       background-color: rgba(255, 255, 255, 0.25);
       color: #ffffff;
     }
-    
+
     .plan-status-badge {
       background-color: #ffffff;
       color: var(--brand-green-dark);
@@ -95,21 +99,21 @@
     background: linear-gradient(135deg, var(--brand-gold) 0%, var(--brand-gold-light) 100%);
     color: #ffffff;
     border: none;
-    
+
     .plan-title {
       color: #ffffff;
       font-weight: 600;
     }
-    
+
     .plan-desc {
       color: rgba(255, 255, 255, 0.85);
     }
-    
+
     .badge-plan-tier {
       background-color: rgba(255, 255, 255, 0.25);
       color: #ffffff;
     }
-    
+
     .plan-status-badge {
       background-color: #ffffff;
       color: var(--brand-gold);
@@ -133,7 +137,7 @@
   background-color: #ffffff;
   transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
   position: relative;
-  
+
   &:hover {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
     /* Avoid scaling layout shifts, use subtle translateY if approved */
@@ -150,6 +154,7 @@
       font-size: 32px;
       font-family: 'Outfit', sans-serif;
     }
+
     .period {
       font-size: 14px;
       color: var(--brand-text-light);
@@ -165,11 +170,14 @@
   .tier-features {
     font-size: 14px;
     color: var(--brand-text-mid);
+
     li {
       margin-bottom: 12px;
+
       .icon-check {
         font-size: 16px;
       }
+
       .icon-x {
         font-size: 14px;
       }
@@ -179,7 +187,6 @@
   // Buttons
   .btn-current,
   .btn-upgrade {
-    border-radius: 30px;
     height: 46px;
     display: flex;
     align-items: center;
@@ -195,36 +202,42 @@
 // 1. Free (Plain)
 .tier-free {
   border: 1.5px solid var(--brand-border);
-  
+
   .tier-name {
     color: var(--brand-text-dark);
   }
+
   .tier-limit-subtitle {
     color: var(--brand-text-mid);
   }
+
   .icon-check {
     color: var(--brand-text-mid);
   }
+
   .btn-upgrade {
     background-color: #ffffff;
     border: 1.5px solid var(--brand-border);
     color: var(--brand-text-mid);
+
     &:hover {
       background-color: var(--brand-bg);
       border-color: var(--brand-text-light);
       color: var(--brand-text-dark);
     }
   }
+
   .btn-current {
     background-color: var(--brand-text-dark);
     color: #ffffff;
     border: none;
     cursor: default;
+
     &:hover {
       opacity: 0.95;
     }
   }
-  
+
   &.current {
     border: 2px solid var(--brand-text-dark);
     background-color: #f7f8f5; // clean light gray background
@@ -235,31 +248,36 @@
 // 2. Pro (Green)
 .tier-pro {
   border: 2px solid var(--brand-green);
-  
+
   .tier-name {
     color: var(--brand-green);
   }
+
   .tier-limit-subtitle {
     color: var(--brand-green);
   }
+
   .icon-check {
     color: var(--brand-green);
   }
+
   .btn-upgrade {
     background-color: var(--brand-green);
     color: #ffffff;
     border: none;
+
     &:hover {
       background-color: var(--brand-green-dark);
     }
   }
+
   .btn-current {
     background-color: var(--brand-green-dark);
     color: #ffffff;
     border: none;
     cursor: default;
   }
-  
+
   &.current {
     background-color: #eef6ee; // light green background
     box-shadow: 0 4px 16px rgba(45, 122, 79, 0.08);
@@ -286,31 +304,36 @@
 // 3. Enterprise (Gold)
 .tier-enterprise {
   border: 2px solid var(--brand-gold);
-  
+
   .tier-name {
     color: var(--brand-gold);
   }
+
   .tier-limit-subtitle {
     color: var(--brand-gold);
   }
+
   .icon-check {
     color: var(--brand-gold);
   }
+
   .btn-upgrade {
     background-color: var(--brand-gold);
     color: #ffffff;
     border: none;
+
     &:hover {
       background-color: var(--brand-gold-light);
     }
   }
+
   .btn-current {
     background-color: #b57a00;
     color: #ffffff;
     border: none;
     cursor: default;
   }
-  
+
   &.current {
     background-color: #fffdf5; // light gold background
     box-shadow: 0 4px 16px rgba(217, 146, 1, 0.08);
@@ -324,17 +347,17 @@
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.01);
-  
+
   .billing-handled-text {
     font-size: 14.5px;
     color: var(--brand-text-mid);
-    
+
     .brand-text-green {
       color: var(--brand-green-dark);
       font-weight: 700;
     }
   }
-  
+
   .vat-info-text {
     font-size: 13px;
     color: var(--brand-text-light);
@@ -368,6 +391,7 @@
   padding: 8px 20px;
   font-size: 14px;
   transition: all 0.2s;
+
   &:hover {
     background-color: #e2e8f0;
     color: #1e293b;
@@ -381,16 +405,18 @@
   padding: 8px 24px;
   font-size: 14px;
   transition: all 0.2s;
-  
+
   &.btn-confirm-green {
     background-color: var(--brand-green);
+
     &:hover {
       background-color: var(--brand-green-dark);
     }
   }
-  
+
   &.btn-confirm-gold {
     background-color: var(--brand-gold);
+
     &:hover {
       background-color: var(--brand-gold-light);
     }

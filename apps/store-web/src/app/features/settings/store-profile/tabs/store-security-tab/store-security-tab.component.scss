@@ -4,6 +4,10 @@
   border-radius: 12px;
   padding: 28px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+
+  @media (max-width: 767px) {
+    padding: 16px;
+  }
 }
 
 .section-title {

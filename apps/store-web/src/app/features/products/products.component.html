@@ -10,7 +10,7 @@
           <p class="small text-muted mb-0">Your store has listed the maximum allowable products for your current subscription plan.</p>
         </div>
       </div>
-      <a class="btn btn-warning btn-sm font-weight-bold px-3 py-2 text-dark rounded-pill" [routerLink]="['/settings/profile']" [queryParams]="{ tab: 'subscription' }">
+      <a class="btn btn-warning btn-sm font-weight-bold px-3 py-2 text-dark" [routerLink]="['/settings/profile']" [queryParams]="{ tab: 'subscription' }">
         Upgrade Plan
       </a>
     </div>
@@ -23,11 +23,11 @@
       <p class="header-subtitle text-muted">Browse, manage, and monitor your listed inventory items.</p>
     </div>
     <div class="d-flex align-items-center gap-2">
-      <a class="btn btn-outline-success font-weight-bold px-3 py-2 rounded-pill d-flex align-items-center gap-2" [routerLink]="['/products/bulk-import']">
+      <a class="btn btn-outline-success font-weight-bold px-3 py-2 d-flex align-items-center gap-2" [routerLink]="['/products/bulk-import']">
         <i class="bi bi-upload"></i> Bulk Import
       </a>
       <a 
-        class="btn btn-success font-weight-bold px-4 py-2 rounded-pill d-flex align-items-center gap-2" 
+        class="btn btn-success font-weight-bold px-4 py-2 d-flex align-items-center gap-2" 
         [routerLink]="['/products/add']"
         [class.disabled]="isLimitReached()"
         [title]="isLimitReached() ? 'Upgrade your subscription to list more products.' : 'Add new product'"
@@ -88,8 +88,8 @@
   <!-- Products List Card -->
   <div class="table-card">
     @if (filteredProducts().length > 0) {
-      <div class="table-responsive">
-        <table class="table products-table">
+      <div class="table-responsive ">
+        <table class="table products-table table-hover">
           <thead>
             <tr>
               <th>Product</th>
@@ -207,14 +207,14 @@
         </p>
         <div class="d-flex justify-content-center gap-2">
           @if (productService.productsCount() === 0) {
-            <a class="btn btn-outline-success font-weight-bold px-3 py-2 rounded-pill" [routerLink]="['/products/bulk-import']">
+            <a class="btn btn-outline-success font-weight-bold px-3 py-2" [routerLink]="['/products/bulk-import']">
               Bulk CSV Import
             </a>
-            <a class="btn btn-success font-weight-bold px-4 py-2 rounded-pill" [routerLink]="['/products/add']">
+            <a class="btn btn-success font-weight-bold px-4 py-2" [routerLink]="['/products/add']">
               List First Product
-          </a>
+            </a>
           } @else {
-            <button class="btn btn-outline-success font-weight-bold px-4 py-2 rounded-pill" (click)="resetFilters()">
+            <button class="btn btn-outline-success font-weight-bold px-4 py-2" (click)="resetFilters()">
               Clear Filters
             </button>
           }
@@ -234,7 +234,7 @@
       </span>
     </div>
     @if (subscriptionPlan() !== 'Enterprise') {
-      <a class="btn btn-upgrade-alert font-weight-bold px-4 py-2" [routerLink]="['/settings/profile']" [queryParams]="{ tab: 'subscription' }">
+      <a class="btn btn-upgrade-alert rounded font-weight-bold px-4 py-2" [routerLink]="['/settings/profile']" [queryParams]="{ tab: 'subscription' }">
         Upgrade plan
       </a>
     }

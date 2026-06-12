@@ -24,6 +24,17 @@ label {
     pointer-events: none;
     font-size: 15px;
   }
+
+  &>i ~ input[type="email"],
+  &>i ~ input[type="password"],
+  &>i ~ input[type="text"],
+  &>i ~ input[type="number"] {
+    padding-left: 40px;
+  }
+
+  &>input[type="password"] {
+    padding-right: 42px;
+  }
 }
 
 input[type="email"],
@@ -32,7 +43,7 @@ input[type="text"],
 input[type="number"] {
   width: 100%;
   height: 46px;
-  padding: 0 42px 0 40px;
+  padding: 0 15px;
   border: 1.5px solid var(--brand-border);
   border-radius: 8px;
   font-family: 'Outfit', sans-serif;
