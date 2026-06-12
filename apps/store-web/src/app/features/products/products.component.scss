@@ -2,6 +2,10 @@
   padding: 1.5rem;
   max-width: 1600px;
   margin: 0 auto;
+
+  @media (max-width: 767px) {
+    padding: 0.5rem 0;
+  }
 }
 
 /* Page Header */
@@ -232,11 +236,20 @@
     border-bottom: 1px solid var(--brand-border);
   }
 
+  tr {
+    transition: background-color 0.15s ease-in-out;
+    
+    &:hover td {
+      background-color: var(--brand-bg);
+    }
+  }
+
   td {
     padding: 1.25rem;
     vertical-align: middle;
     border-bottom: 1px solid var(--brand-border);
     color: var(--brand-text-dark);
+    transition: background-color 0.15s ease-in-out;
   }
 
   tr:last-child td {

@@ -33,7 +33,9 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
   transition: left 0.25s ease, box-shadow 0.15s, background 0.15s;
 
-  i { font-weight: 900; }
+  i {
+    font-weight: 900;
+  }
 
   &:hover {
     background: var(--brand-gold-light);
@@ -90,4 +92,8 @@
   flex: 1;
   overflow-y: auto;
   padding: 1.5rem;
+
+  @media (max-width: 767px) {
+    padding: 1rem 0.5rem;
+  }
 }

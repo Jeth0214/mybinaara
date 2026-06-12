@@ -1,4 +1,4 @@
-<div class="upload-container-card bg-white p-4 rounded border">
+<div class="upload-container-card bg-white p-4 rounded border mt-4">
   <h3 class="container-card-title mb-3 font-weight-bold text-dark">Upload your product file</h3>
   
   <!-- Drag & Drop Box -->
@@ -27,14 +27,13 @@
   </div>
 
   <!-- CSV template banner -->
-  <div class="template-banner mt-4 d-flex align-items-center justify-content-between p-3 bg-light rounded border">
-    <div class="d-flex align-items-center gap-2">
-      <span class="badge-template px-2 py-1 small rounded font-weight-bold">Template</span>
-      <span class="text-muted small">Download our CSV template with required column headers</span>
-    </div>
+  <div class="template-banner mt-4 d-flex flex-column flex-md-row gap-2  align-items-center justify-content-between p-3 bg-light rounded border">
+   
+    <p class="text-muted small mb-2 mb-md-0 text-center">Download our CSV template with required column headers</p>
+
     <button 
       type="button" 
-      class="btn btn-outline-primary btn-sm px-3 py-2 font-weight-bold bg-white" 
+      class="btn btn-outline-success rounded btn-sm px-3 py-2 font-weight-bold bg-white" 
       (click)="triggerDownload()"
       [disabled]="loading"
     >
