@@ -1,0 +1,40 @@
+.insights-card {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.015);
+}
+
+.insights-card-title {
+  font-size: 1.15rem;
+  color: var(--brand-green-dark) !important;
+}
+
+.opportunity-row {
+  height: 52px;
+}
+
+.opp-icon-wrapper {
+  width: 42px;
+  height: 42px;
+  background-color: #f7f6f2; // Warm light gray bg
+  color: #8c8879; // Muted metallic color
+  font-size: 1.2rem;
+  border: 1px solid var(--brand-border);
+}
+
+.product-name {
+  font-size: 0.9rem;
+}
+
+.product-description {
+  font-size: 0.75rem;
+  line-height: 1.2;
+}
+
+.btn-add-now {
+  color: var(--brand-gold) !important;
+  transition: all 0.15s ease-in-out;
+
+  &:hover {
+    color: var(--brand-gold-light) !important;
+    text-decoration: underline !important;
+  }
+}

@@ -16,6 +16,8 @@ interface MockAccount {
   workingHours?: StoreSchedule;
   subscriptionPlan?: 'Free' | 'Pro' | 'Enterprise';
   subscriptionDate?: string;
+  businessId?: string;
+  certificateId?: string;
 }
 
 const STORAGE_ACCOUNTS_KEY = 'mybinaara_mock_store_accounts';
@@ -36,6 +38,22 @@ export class AuthService {
     if (saved) {
       try {
         this.accounts = JSON.parse(saved);
+        let updated = false;
+        this.accounts = this.accounts.map((acc) => {
+          if (!acc.businessId) {
+            acc.businessId = acc.id === 'store-1' ? '1010098765' : '1010065432';
+            acc.certificateId = acc.id === 'store-1' ? 'CRT-2026-8890' : 'CRT-2026-1122';
+            updated = true;
+          }
+          if (!acc.logoUrl || acc.logoUrl.includes('store-logo.png')) {
+            acc.logoUrl = 'images/logo/logo.png';
+            updated = true;
+          }
+          return acc;
+        });
+        if (updated) {
+          this.saveAccounts();
+        }
         return;
       } catch {
         // Parse error, reset to defaults
@@ -61,11 +79,13 @@ export class AuthService {
         storeName: 'Al-Amal Building Materials',
         isActivated: true,
         passwordHash: 'ActivePass123!',
-        logoUrl: 'images/brand/store-logo.png',
+        logoUrl: 'images/logo/logo.png',
         city: 'Jeddah',
         whatsapp: '+966 55 123 4567',
         workingHours: defaultWorkingHours,
         subscriptionPlan: 'Free',
+        businessId: '1010098765',
+        certificateId: 'CRT-2026-8890',
       },
       {
         id: 'store-2',
@@ -74,11 +94,13 @@ export class AuthService {
         storeName: 'Riyadh Construction Materials',
         isActivated: false,
         passwordHash: 'TempPass123!',
-        logoUrl: 'images/brand/store-logo.png',
+        logoUrl: 'images/logo/logo.png',
         city: 'Riyadh',
         whatsapp: '+966559876543',
         workingHours: defaultWorkingHours,
         subscriptionPlan: 'Free',
+        businessId: '1010065432',
+        certificateId: 'CRT-2026-1122',
       },
     ];
     this.saveAccounts();
@@ -114,6 +136,8 @@ export class AuthService {
       workingHours: account.workingHours,
       subscriptionPlan: account.subscriptionPlan,
       subscriptionDate: account.subscriptionDate,
+      businessId: account.businessId,
+      certificateId: account.certificateId,
     };
 
     localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(user));
@@ -187,6 +211,8 @@ export class AuthService {
       workingHours: account.workingHours,
       subscriptionPlan: account.subscriptionPlan,
       subscriptionDate: account.subscriptionDate,
+      businessId: account.businessId,
+      certificateId: account.certificateId,
     };
 
     localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(user));
@@ -228,6 +254,8 @@ export class AuthService {
       workingHours: account.workingHours,
       subscriptionPlan: account.subscriptionPlan || 'Free',
       subscriptionDate: account.subscriptionDate,
+      businessId: account.businessId,
+      certificateId: account.certificateId,
     };
 
     localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(updatedUser));
@@ -273,6 +301,8 @@ export class AuthService {
       workingHours: account.workingHours,
       subscriptionPlan: account.subscriptionPlan,
       subscriptionDate: account.subscriptionDate,
+      businessId: account.businessId,
+      certificateId: account.certificateId,
     };
 
     localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(updatedUser));
@@ -283,7 +313,27 @@ export class AuthService {
     const saved = localStorage.getItem(STORAGE_SESSION_KEY);
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const user = JSON.parse(saved) as StoreUser;
+        const account = this.accounts.find((a) => a.id === user.id);
+        if (account) {
+          let updated = false;
+          if (!user.businessId && account.businessId) {
+            user.businessId = account.businessId;
+            updated = true;
+          }
+          if (!user.certificateId && account.certificateId) {
+            user.certificateId = account.certificateId;
+            updated = true;
+          }
+          if (!user.logoUrl || user.logoUrl.includes('store-logo.png')) {
+            user.logoUrl = account.logoUrl;
+            updated = true;
+          }
+          if (updated) {
+            localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(user));
+          }
+        }
+        return user;
       } catch {
         return null;
       }

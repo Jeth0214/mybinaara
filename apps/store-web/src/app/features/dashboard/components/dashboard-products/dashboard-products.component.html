@@ -1,0 +1,70 @@
+<div class="card overview-card p-4 rounded-3 border-0 bg-white shadow-sm h-100 d-flex flex-column">
+  <div class="mb-3">
+    <h3 class="overview-card-title font-weight-bold mb-1">Products & Catalog</h3>
+    <p class="overview-card-subtitle text-muted small mb-0">
+      Track listed items, catalog utilization, and real-time inventory levels.
+    </p>
+  </div>
+
+  <!-- Catalog Utilization Section -->
+  <div class="catalog-utilization mb-4 p-3 rounded-3 bg-light-subtle">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <span class="small font-weight-bold text-dark">Catalog Capacity</span>
+      <span class="small font-weight-bold text-dark">{{ productsCount() }} / {{ productsLimit() }} products</span>
+    </div>
+    
+    <div class="progress-bar-container rounded-pill overflow-hidden bg-light" style="height: 8px;">
+      <div 
+        class="progress-bar rounded-pill" 
+        [ngClass]="progressBarColorClass()"
+        [style.width.%]="progressPercent()"
+        style="height: 100%; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);"
+      ></div>
+    </div>
+    
+    @if (isLimitReached()) {
+      <p class="limit-warning-text small mt-2 mb-0 text-danger d-flex align-items-center gap-1">
+        <i class="bi bi-exclamation-triangle-fill"></i> Catalog limit reached. Upgrade plan to add more.
+      </p>
+    }
+  </div>
+
+  <!-- Stock Status Grid -->
+  <div class="row g-3 mb-4 flex-grow-1">
+    <!-- In Stock -->
+    <div class="col-4">
+      <div class="stock-box text-center p-2 rounded border border-light-subtle h-100 d-flex flex-column justify-content-center">
+        <span class="stock-count text-success font-weight-bold">{{ inStockCount() }}</span>
+        <span class="stock-label text-muted small mt-1">In Stock</span>
+      </div>
+    </div>
+    <!-- Low Stock -->
+    <div class="col-4">
+      <div class="stock-box text-center p-2 rounded border border-light-subtle h-100 d-flex flex-column justify-content-center">
+        <span class="stock-count text-warning-custom font-weight-bold">{{ lowStockCount() }}</span>
+        <span class="stock-label text-muted small mt-1">Low Stock</span>
+      </div>
+    </div>
+    <!-- Out of Stock -->
+    <div class="col-4">
+      <div class="stock-box text-center p-2 rounded border border-light-subtle h-100 d-flex flex-column justify-content-center">
+        <span class="stock-count text-danger font-weight-bold">{{ outOfStockCount() }}</span>
+        <span class="stock-label text-muted small mt-1">Out of Stock</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Action Buttons -->
+  <div class="d-flex gap-2 mt-auto">
+    <a [routerLink]="['/products']" class="btn btn-outline-success-custom flex-grow-1">
+      <i class="bi bi-box-seam me-1"></i>View Catalog
+    </a>
+    <button 
+      [routerLink]="['/products/add']" 
+      [disabled]="isLimitReached()"
+      class="btn btn-success-custom flex-grow-1"
+    >
+      <i class="bi bi-plus-circle me-1"></i>Add Product
+    </button>
+  </div>
+</div>

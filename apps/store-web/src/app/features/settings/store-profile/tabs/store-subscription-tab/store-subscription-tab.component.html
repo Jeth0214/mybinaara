@@ -47,36 +47,28 @@
           <i class="bi bi-box-seam me-2 text-success"></i> Store Products Limit
         </span>
         <span class="text-muted font-weight-bold">
-          @if (currentUser()?.subscriptionPlan === 'Enterprise') {
-            2 / 100 products used
-          } @else if (currentUser()?.subscriptionPlan === 'Pro') {
-            2 / 50 products used
-          } @else {
-            2 / 5 products used
-          }
+          {{ productsCount() }} / {{ productsLimit() }} products used
         </span>
       </div>
       <div class="progress progress-custom">
         <div
           class="progress-bar progress-bar-success"
           role="progressbar"
-          [style.width]="
-            currentUser()?.subscriptionPlan === 'Enterprise' ? '2%' :
-            currentUser()?.subscriptionPlan === 'Pro' ? '4%' :
-            '40%'
-          "
-          aria-valuenow="40"
+          [style.width.%]="progressPercent()"
+          [aria-valuenow]="progressPercent()"
           aria-valuemin="0"
           aria-valuemax="100"
         ></div>
       </div>
       <p class="small text-muted mt-2 mb-0">
-        @if (currentUser()?.subscriptionPlan === 'Enterprise') {
-          Excellent! You have 98 more slots available for products on this plan.
-        } @else if (currentUser()?.subscriptionPlan === 'Pro') {
-          Excellent! You have 48 more slots available for products on this plan.
+        @if (currentUser()?.subscriptionPlan === 'Enterprise' || currentUser()?.subscriptionPlan === 'Pro') {
+          Excellent! You have {{ slotsRemaining() }} more slots available for products on this plan.
         } @else {
-          Warning: You are using 40% of your free slots. Upgrade to list more products.
+          @if (slotsRemaining() === 0) {
+            Limit Reached: You are using all {{ productsLimit() }} free slots. Upgrade your subscription to list more products.
+          } @else {
+            Warning: You are using {{ progressPercent().toFixed(0) }}% of your free slots. Upgrade to list more products.
+          }
         }
       </p>
     </div>

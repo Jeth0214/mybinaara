@@ -1,0 +1,113 @@
+.overview-card {
+  border: 1px solid var(--brand-border) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.015) !important;
+}
+
+.overview-card-title {
+  font-size: 1.15rem;
+  color: var(--brand-green-dark);
+}
+
+.overview-card-subtitle {
+  font-size: 0.85rem;
+  color: var(--brand-text-light) !important;
+}
+
+.bg-light-subtle {
+  background-color: #f8faf7 !important;
+  border: 1px solid var(--brand-border);
+}
+
+.progress-bar-container {
+  background-color: #f1f3ef !important;
+}
+
+.bg-success-custom {
+  background-color: var(--brand-green) !important;
+}
+
+.bg-warning-custom {
+  background-color: var(--brand-gold) !important;
+}
+
+.limit-warning-text {
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.stock-box {
+  background-color: #ffffff;
+  border-radius: 8px;
+  min-height: 76px;
+  transition: all 0.15s ease-in-out;
+
+  &:hover {
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+    transform: translateY(-1px);
+  }
+}
+
+.stock-count {
+  font-size: 1.35rem;
+  line-height: 1.2;
+
+  &.text-success {
+    color: #27ae60 !important;
+  }
+  
+  &.text-warning-custom {
+    color: var(--brand-gold) !important;
+  }
+
+  &.text-danger {
+    color: var(--brand-error) !important;
+  }
+}
+
+.stock-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--brand-text-light) !important;
+}
+
+/* Premium Buttons */
+.btn-success-custom {
+  background-color: var(--brand-green);
+  border-color: var(--brand-green);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: all 0.15s ease-in-out;
+
+  &:hover:not(:disabled) {
+    background-color: var(--brand-green-dark);
+    border-color: var(--brand-green-dark);
+    color: #ffffff;
+  }
+
+  &:disabled {
+    background-color: var(--brand-border);
+    border-color: var(--brand-border);
+    color: var(--brand-text-light);
+    cursor: not-allowed;
+  }
+}
+
+.btn-outline-success-custom {
+  background-color: transparent;
+  border-color: var(--brand-green);
+  color: var(--brand-green);
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: all 0.15s ease-in-out;
+
+  &:hover {
+    background-color: rgba(45, 122, 79, 0.05);
+    border-color: var(--brand-green-dark);
+    color: var(--brand-green-dark);
+  }
+}

@@ -255,4 +255,22 @@
       </div>
     </div>
   </div>
+  
+  <!-- Fullscreen Video Splash / Intro Overlay -->
+  @if (showIntroOverlay()) {
+    <div class="video-overlay-container d-flex align-items-center justify-content-center">
+      <button type="button" class="btn skip-btn d-flex align-items-center gap-1" (click)="onSkipIntro()">
+        Skip <i class="bi bi-skip-forward-fill"></i>
+      </button>
+      <div class="video-wrapper">
+        <video
+          src="intro/myBinaara-intro.mp4"
+          autoplay
+          muted
+          playsinline
+          (ended)="onIntroEnded()"
+        ></video>
+      </div>
+    </div>
+  }
 </div>

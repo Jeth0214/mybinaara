@@ -1,0 +1,28 @@
+<div class="d-flex align-items-center gap-2">
+  <!-- Distance dropdown select -->
+  <div class="select-wrapper">
+    <select 
+      class="form-select filter-select font-weight-bold" 
+      [value]="selectedDistance"
+      (change)="onDistanceChange($event)"
+    >
+      @for (dist of distances; track dist) {
+        <option [value]="dist">Within {{ dist }}</option>
+      }
+    </select>
+  </div>
+
+  <!-- Period toggles segmented button control -->
+  <div class="btn-group-toggle border rounded-pill overflow-hidden bg-white d-flex align-items-center">
+    @for (p of periods; track p) {
+      <button 
+        type="button" 
+        class="btn-period font-weight-bold"
+        [class.btn-period-active]="selectedPeriod === p"
+        (click)="setPeriod(p)"
+      >
+        {{ p }}
+      </button>
+    }
+  </div>
+</div>

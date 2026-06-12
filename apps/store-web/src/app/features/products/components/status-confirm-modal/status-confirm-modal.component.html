@@ -1,0 +1,26 @@
+<div class="modal-confirm-status p-4 text-center">
+  <div class="status-icon-circle mb-3 mx-auto" style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+    @if (product.status === 'Unavailable') {
+      <i class="bi bi-exclamation-circle text-success" style="font-size: 2.5rem;"></i>
+    } @else {
+      <i class="bi bi-exclamation-circle text-warning" style="font-size: 2.5rem;"></i>
+    }
+  </div>
+  <h5 class="font-weight-bold text-dark mb-2">Confirm Status Change</h5>
+  <p class="text-muted mb-4">
+    Are you sure you want to change the status of <strong>{{ product.name }}</strong> to 
+    <strong [class.text-success]="product.status === 'Unavailable'" [class.text-danger]="product.status !== 'Unavailable'">
+      {{ product.status === 'Unavailable' ? 'Available' : 'Unavailable' }}
+    </strong>?
+  </p>
+  <div class="d-flex justify-content-center gap-3">
+    <button type="button" class="btn btn-light px-4 py-2 font-weight-bold border" (click)="activeModal.dismiss()" [disabled]="updating()">Cancel</button>
+    <button type="button" class="btn btn-success px-4 py-2 font-weight-bold rounded-pill text-white d-flex align-items-center gap-2" (click)="confirmStatusChange()" [disabled]="updating()">
+      @if (updating()) {
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Updating...
+      } @else {
+        Yes, Update
+      }
+    </button>
+  </div>
+</div>

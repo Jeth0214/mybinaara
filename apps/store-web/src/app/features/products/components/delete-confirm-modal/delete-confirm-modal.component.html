@@ -1,0 +1,20 @@
+<div class="modal-confirm-delete p-4 text-center">
+  <div class="warning-icon-circle mb-3 mx-auto" style="width: 64px; height: 64px; border-radius: 50%; background-color: rgba(192, 57, 43, 0.1); color: var(--brand-error); display: flex; align-items: center; justify-content: center; font-size: 2rem;">
+    <i class="bi bi-trash-fill"></i>
+  </div>
+  <h5 class="font-weight-bold text-dark mb-2">Delete Product?</h5>
+  <p class="text-muted mb-4">
+    Are you sure you want to delete <strong>{{ product.name }}</strong>?<br>
+    This action cannot be undone and the product will immediately disappear from maps and searches.
+  </p>
+  <div class="d-flex justify-content-center gap-3">
+    <button type="button" class="btn btn-light px-4 py-2 font-weight-bold border" (click)="activeModal.dismiss()" [disabled]="updating()">Cancel</button>
+    <button type="button" class="btn btn-danger px-4 py-2 font-weight-bold rounded-pill d-flex align-items-center gap-2" (click)="confirmDeleteProduct()" [disabled]="updating()">
+      @if (updating()) {
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deleting...
+      } @else {
+        Delete Product
+      }
+    </button>
+  </div>
+</div>

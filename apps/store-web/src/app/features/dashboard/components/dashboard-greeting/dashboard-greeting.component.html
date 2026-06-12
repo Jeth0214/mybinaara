@@ -1,0 +1,35 @@
+<div class="card greeting-card p-4 rounded-3 border-0 bg-white shadow-sm mb-4">
+  <div class="d-flex align-items-center gap-3">
+    <div class="greeting-icon-wrapper d-flex align-items-center justify-content-center rounded-circle">
+      <i class="bi" [ngClass]="greetingIcon()"></i>
+    </div>
+    <div class="flex-grow-1">
+      <h2 class="greeting-title mb-1">
+        {{ greetingText() }}, <span class="store-name">{{ user()?.storeName || 'Partner' }}</span>!
+      </h2>
+      <p class="greeting-subtitle mb-0 text-muted">
+        Welcome to your store console dashboard. Here's a quick look at your business today.
+      </p>
+    </div>
+  </div>
+
+  <hr class="my-3 border-light-subtle">
+
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-clock-history text-muted"></i>
+      <span class="small-title text-muted">Today's Schedule:</span>
+      <span class="schedule-status-badge" [ngClass]="'status-' + todaySchedule().status">
+        {{ todaySchedule().text }}
+      </span>
+    </div>
+    
+    <a 
+      class="edit-schedule-link text-decoration-none small" 
+      [routerLink]="['/settings/profile']" 
+      [queryParams]="{ tab: 'info' }"
+    >
+      <i class="bi bi-gear-fill me-1"></i>Edit working hours
+    </a>
+  </div>
+</div>
