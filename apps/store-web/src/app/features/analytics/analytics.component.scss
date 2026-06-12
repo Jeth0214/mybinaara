@@ -2,6 +2,10 @@
   padding: 1.5rem;
   max-width: 1200px;
   margin: 0 auto;
+
+  @media (max-width: 767px) {
+    padding: 0.5rem 0;
+  }
 }
 
 /* Page Header Row */

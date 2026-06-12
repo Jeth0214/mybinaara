@@ -11,7 +11,7 @@
         <button class="btn btn-outline-light btn-sm font-weight-bold px-3 py-2" (click)="discardChanges()">
           Discard Changes
         </button>
-        <button class="btn btn-success btn-sm font-weight-bold px-4 py-2 text-white rounded-pill" (click)="saveAllChanges()">
+        <button class="btn btn-success btn-sm font-weight-bold px-4 py-2 text-white" (click)="saveAllChanges()">
           Save All Changes
         </button>
       </div>
@@ -25,7 +25,7 @@
       <p class="header-subtitle text-muted">Quickly manage and update inventory quantities for your products in real-time.</p>
     </div>
     @if (!hasChanges()) {
-      <a class="btn btn-outline-success font-weight-bold px-4 py-2 rounded-pill" [routerLink]="['/products']">
+      <a class="btn btn-outline-success font-weight-bold px-4 py-2" [routerLink]="['/products']">
         <i class="bi bi-box-seam me-1"></i> View Catalog
       </a>
     }
@@ -123,7 +123,7 @@
         <i class="bi bi-box-seam empty-icon"></i>
         <h3 class="empty-title">No products found</h3>
         <p class="empty-text">You haven't listed any products in your catalog yet. Please add a product first to adjust its inventory.</p>
-        <a class="btn btn-success font-weight-bold px-4 py-2 rounded-pill" [routerLink]="['/products/add']">
+        <a class="btn btn-success font-weight-bold px-4 py-2" [routerLink]="['/products/add']">
           List Product
         </a>
       </div>
