@@ -1,7 +1,7 @@
-<div class="subscription-layout">
+<div>
 
   <!-- Current plan info -->
-  <div class="profile-card mb-4">
+  <div class="card p-4 border shadow-sm mb-4">
     <div class="card-header-block mb-4">
       <h2 class="section-title h5 mb-1">Subscription plan</h2>
       <p class="section-subtitle text-muted mb-0">View your usage limits, details, and billing tiers.</p>
@@ -50,9 +50,9 @@
           {{ productsCount() }} / {{ productsLimit() }} products used
         </span>
       </div>
-      <div class="progress progress-custom">
+      <div class="progress" style="height: 8px;">
         <div
-          class="progress-bar progress-bar-success"
+          class="progress-bar bg-success"
           role="progressbar"
           [style.width.%]="progressPercent()"
           [aria-valuenow]="progressPercent()"
@@ -87,26 +87,26 @@
         [class.disabled-tier]="currentUser()?.subscriptionPlan === 'Pro' || currentUser()?.subscriptionPlan === 'Enterprise'"
       >
         <div class="card-body p-4 d-flex flex-column">
-          <h3 class="tier-name h5 mb-2">Free</h3>
+          <h3 class="tier-name h5 mb-2 text-dark">Free</h3>
           <div class="tier-price mb-2">
-            <span class="currency font-weight-bold">SAR 0</span>
-            <span class="period">/mo</span>
+            <span class="currency font-weight-bold text-dark" style="font-size: 32px;">SAR 0</span>
+            <span class="period text-muted small">/mo</span>
           </div>
-          <div class="tier-limit-subtitle mb-4">Up to 5 products</div>
+          <div class="tier-limit-subtitle mb-4 text-muted font-weight-bold">Up to 5 products</div>
           
           <ul class="tier-features list-unstyled mb-auto">
-            <li class="mb-3 d-flex align-items-center"><i class="bi bi-check-circle-fill me-2 icon-check"></i> Store listing on map</li>
-            <li class="mb-3 d-flex align-items-center"><i class="bi bi-check-circle-fill me-2 icon-check"></i> Basic search insights</li>
-            <li class="mb-3 d-flex align-items-center text-muted opacity-50"><i class="bi bi-x-lg me-2 icon-x"></i> WhatsApp contact</li>
+            <li class="mb-3 d-flex align-items-center"><i class="bi bi-check-circle-fill me-2 text-success"></i> Store listing on map</li>
+            <li class="mb-3 d-flex align-items-center"><i class="bi bi-check-circle-fill me-2 text-success"></i> Basic search insights</li>
+            <li class="mb-3 d-flex align-items-center text-muted opacity-50"><i class="bi bi-x-lg me-2 text-danger"></i> WhatsApp contact</li>
           </ul>
           
           <div class="mt-4">
             @if (currentUser()?.subscriptionPlan === 'Free' || !currentUser()?.subscriptionPlan) {
-              <button type="button" class="btn btn-current w-100 py-2 font-weight-bold" disabled>Current plan</button>
+              <button type="button" class="btn btn-dark w-100 py-2 font-weight-bold" disabled>Current plan</button>
             } @else {
               <button 
                 type="button" 
-                class="btn btn-upgrade w-100 py-2 font-weight-bold"
+                class="btn btn-outline-success w-100 py-2 font-weight-bold"
                 [disabled]="currentUser()?.subscriptionPlan === 'Pro' || currentUser()?.subscriptionPlan === 'Enterprise'"
                 (click)="confirmUpgrade('Free', confirmModal)"
               >
@@ -128,27 +128,27 @@
         <!-- Centered badge -->
         <div class="badge-most-popular">Most popular</div>
         <div class="card-body p-4 d-flex flex-column">
-          <h3 class="tier-name h5 mb-2">Pro</h3>
+          <h3 class="tier-name h5 mb-2 text-success">Pro</h3>
           <div class="tier-price mb-2">
-            <span class="currency font-weight-bold">SAR 99</span>
-            <span class="period">/mo</span>
+            <span class="currency font-weight-bold text-success" style="font-size: 32px;">SAR 99</span>
+            <span class="period text-muted small">/mo</span>
           </div>
-          <div class="tier-limit-subtitle mb-4">Up to 50 products</div>
+          <div class="tier-limit-subtitle mb-4 text-success font-weight-bold">Up to 50 products</div>
           
           <ul class="tier-features list-unstyled mb-auto">
-            <li class="mb-3 d-flex align-items-center"><i class="bi bi-check-circle-fill me-2 icon-check"></i> Everything in Free</li>
-            <li class="mb-3 d-flex align-items-center"><i class="bi bi-check-circle-fill me-2 icon-check"></i> Full search insights</li>
-            <li class="mb-3 d-flex align-items-center"><i class="bi bi-check-circle-fill me-2 icon-check"></i> WhatsApp button</li>
-            <li class="mb-3 d-flex align-items-center"><i class="bi bi-check-circle-fill me-2 icon-check"></i> Bulk CSV import</li>
+            <li class="mb-3 d-flex align-items-center"><i class="bi bi-check-circle-fill me-2 text-success"></i> Everything in Free</li>
+            <li class="mb-3 d-flex align-items-center"><i class="bi bi-check-circle-fill me-2 text-success"></i> Full search insights</li>
+            <li class="mb-3 d-flex align-items-center"><i class="bi bi-check-circle-fill me-2 text-success"></i> WhatsApp button</li>
+            <li class="mb-3 d-flex align-items-center"><i class="bi bi-check-circle-fill me-2 text-success"></i> Bulk CSV import</li>
           </ul>
           
           <div class="mt-4">
             @if (currentUser()?.subscriptionPlan === 'Pro') {
-              <button type="button" class="btn btn-current w-100 py-2 font-weight-bold" disabled>Current plan</button>
+              <button type="button" class="btn btn-dark w-100 py-2 font-weight-bold" disabled>Current plan</button>
             } @else {
               <button 
                 type="button" 
-                class="btn btn-upgrade w-100 py-2 font-weight-bold" 
+                class="btn btn-success w-100 py-2 font-weight-bold text-white" 
                 [disabled]="currentUser()?.subscriptionPlan === 'Enterprise'"
                 (click)="confirmUpgrade('Pro', confirmModal)"
               >
@@ -164,25 +164,25 @@
     <div class="col">
       <div class="card h-100 tier-card tier-enterprise" [class.current]="currentUser()?.subscriptionPlan === 'Enterprise'">
         <div class="card-body p-4 d-flex flex-column">
-          <h3 class="tier-name h5 mb-2">Enterprise</h3>
+          <h3 class="tier-name h5 mb-2 text-warning">Enterprise</h3>
           <div class="tier-price mb-2">
-            <span class="currency font-weight-bold">SAR 199</span>
-            <span class="period">/mo</span>
+            <span class="currency font-weight-bold text-warning" style="font-size: 32px;">SAR 199</span>
+            <span class="period text-muted small">/mo</span>
           </div>
-          <div class="tier-limit-subtitle mb-4">Up to 100 products</div>
+          <div class="tier-limit-subtitle mb-4 text-warning font-weight-bold">Up to 100 products</div>
           
           <ul class="tier-features list-unstyled mb-auto">
-            <li class="mb-3 d-flex align-items-center"><i class="bi bi-check-circle-fill me-2 icon-check"></i> Everything in Pro</li>
-            <li class="mb-3 d-flex align-items-center"><i class="bi bi-check-circle-fill me-2 icon-check"></i> Featured in search results</li>
-            <li class="mb-3 d-flex align-items-center"><i class="bi bi-check-circle-fill me-2 icon-check"></i> Priority support</li>
-            <li class="mb-3 d-flex align-items-center"><i class="bi bi-check-circle-fill me-2 icon-check"></i> Advanced analytics</li>
+            <li class="mb-3 d-flex align-items-center"><i class="bi bi-check-circle-fill me-2 text-warning"></i> Everything in Pro</li>
+            <li class="mb-3 d-flex align-items-center"><i class="bi bi-check-circle-fill me-2 text-warning"></i> Featured in search results</li>
+            <li class="mb-3 d-flex align-items-center"><i class="bi bi-check-circle-fill me-2 text-warning"></i> Priority support</li>
+            <li class="mb-3 d-flex align-items-center"><i class="bi bi-check-circle-fill me-2 text-warning"></i> Advanced analytics</li>
           </ul>
           
           <div class="mt-4">
             @if (currentUser()?.subscriptionPlan === 'Enterprise') {
-              <button type="button" class="btn btn-current w-100 py-2 font-weight-bold" disabled>Current plan</button>
+              <button type="button" class="btn btn-dark w-100 py-2 font-weight-bold" disabled>Current plan</button>
             } @else {
-              <button type="button" class="btn btn-upgrade w-100 py-2 font-weight-bold" (click)="confirmUpgrade('Enterprise', confirmModal)">Upgrade to Enterprise</button>
+              <button type="button" class="btn btn-warning w-100 py-2 font-weight-bold text-dark" (click)="confirmUpgrade('Enterprise', confirmModal)">Upgrade to Enterprise</button>
             }
           </div>
         </div>
@@ -192,11 +192,11 @@
   </div>
 
   <!-- Billing info banner -->
-  <div class="billing-info-banner-wrapper text-center mt-5 mb-4">
-    <p class="billing-handled-text mb-2">
-      Billing is handled via <strong class="brand-text-green">Tamara</strong> or <strong class="brand-text-green">Tabby</strong> — buy now, pay later options available for Saudi stores.
+  <div class="card p-4 border shadow-sm text-center mt-5 mb-4">
+    <p class="mb-2 text-muted" style="font-size: 14.5px;">
+      Billing is handled via <strong class="text-success font-weight-bold">Tamara</strong> or <strong class="text-success font-weight-bold">Tabby</strong> — buy now, pay later options available for Saudi stores.
     </p>
-    <p class="vat-info-text mb-0">
+    <p class="text-muted small mb-0">
       All prices include VAT. Cancel anytime.
     </p>
   </div>
@@ -214,12 +214,14 @@
       </p>
     </div>
     <div class="modal-footer border-0 pt-0">
-      <button type="button" class="btn btn-modal-cancel px-4 py-2 font-weight-bold" (click)="modal.dismiss()">Cancel</button>
+      <button type="button" class="btn btn-light border px-4 py-2 font-weight-bold" (click)="modal.dismiss()">Cancel</button>
       <button 
         type="button" 
-        class="btn btn-modal-confirm px-4 py-2 font-weight-bold" 
-        [class.btn-confirm-gold]="selectedPlan() === 'Enterprise'"
-        [class.btn-confirm-green]="selectedPlan() === 'Pro' || selectedPlan() === 'Free'"
+        class="btn px-4 py-2 font-weight-bold" 
+        [class.btn-warning]="selectedPlan() === 'Enterprise'"
+        [class.text-dark]="selectedPlan() === 'Enterprise'"
+        [class.btn-success]="selectedPlan() === 'Pro' || selectedPlan() === 'Free'"
+        [class.text-white]="selectedPlan() === 'Pro' || selectedPlan() === 'Free'"
         (click)="modal.close('confirm')"
       >
         Confirm Change

@@ -36,16 +36,6 @@
   }
 }
 
-.table-header-row th {
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--brand-text-mid);
-  letter-spacing: 0.5px;
-  padding: 0.9rem 1rem;
-  border-bottom: 1px solid var(--brand-border);
-}
-
 tr.tr-error {
   background-color: rgba(192, 57, 43, 0.015);
   

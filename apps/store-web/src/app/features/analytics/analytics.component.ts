@@ -16,7 +16,6 @@ import { PerformanceComponent } from './components/performance/performance.compo
     PerformanceComponent
   ],
   templateUrl: './analytics.component.html',
-  styleUrl: './analytics.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AnalyticsComponent implements OnInit {

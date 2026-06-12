@@ -1,10 +1,1 @@
-.dashboard-layout {
-  padding: 1.5rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  min-height: calc(100vh - var(--topbar-height) - 2rem);
-
-  @media (max-width: 767px) {
-    padding: 0.5rem 0;
-  }
-}
+/* Styles offloaded to standard Bootstrap container and utilities */

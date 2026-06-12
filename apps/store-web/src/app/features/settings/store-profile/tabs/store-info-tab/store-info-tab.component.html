@@ -1,7 +1,7 @@
 <form [formGroup]="infoForm" (ngSubmit)="onSaveInfo()" class="info-form-layout">
 
   <!-- 1. Store Identity Section -->
-  <div class="profile-card mb-4">
+  <div class="card p-4 border shadow-sm mb-4">
     <div class="card-header-block mb-3">
       <h2 class="section-title h5 mb-1">Store identity</h2>
       <p class="section-subtitle text-muted mb-0">This information is shown to customers on the MyBinaara app</p>
@@ -10,7 +10,7 @@
     <!-- Store Logo Display -->
     <div class="mb-4">
       <label class="form-label">Store logo</label>
-      <div class="logo-display-card d-flex align-items-center p-3">
+      <div class="d-flex align-items-center p-3 border rounded bg-light-subtle">
         <div class="logo-display-box me-3 d-flex align-items-center justify-content-center">
           @if (logoPreview() && !logoPreview()?.includes('store-logo.png')) {
             <img [src]="logoPreview()" alt="Store Logo" class="logo-display-img" />
@@ -34,24 +34,21 @@
           id="storeName"
           formControlName="storeName"
           placeholder="e.g. Al-Amal Building Materials"
-          class="form-control-custom"
+          class="form-control"
           [class.is-invalid]="infoForm.get('storeName')?.invalid && infoForm.get('storeName')?.touched"
         />
         @if (infoForm.get('storeName')?.invalid && infoForm.get('storeName')?.touched) {
-          <div class="invalid-feedback-custom">Store name is required.</div>
+          <div class="invalid-feedback">Store name is required.</div>
         }
       </div>
       
       <div class="col-md-6 mb-3">
         <label for="city" class="form-label">City</label>
-        <div class="select-wrap">
-          <select id="city" formControlName="city" class="form-select-custom">
-            @for (c of cities; track c) {
-              <option [value]="c">{{ c }}</option>
-            }
-          </select>
-          <i class="bi bi-chevron-down select-arrow"></i>
-        </div>
+        <select id="city" formControlName="city" class="form-select">
+          @for (c of cities; track c) {
+            <option [value]="c">{{ c }}</option>
+          }
+        </select>
       </div>
     </div>
 
@@ -64,7 +61,7 @@
           id="businessId"
           formControlName="businessId"
           placeholder="e.g. 1010098765"
-          class="form-control-custom"
+          class="form-control"
         />
       </div>
       
@@ -75,14 +72,14 @@
           id="certificateId"
           formControlName="certificateId"
           placeholder="e.g. CRT-2026-8890"
-          class="form-control-custom"
+          class="form-control"
         />
       </div>
     </div>
   </div>
 
   <!-- 2. Contact Details Section -->
-  <div class="profile-card mb-4">
+  <div class="card p-4 border shadow-sm mb-4">
     <div class="card-header-block mb-3">
       <h2 class="section-title h5 mb-1">Contact details</h2>
       <p class="section-subtitle text-muted mb-0">How customers can reach you directly</p>
@@ -96,11 +93,11 @@
           id="whatsapp"
           formControlName="whatsapp"
           placeholder="+966 55 123 4567"
-          class="form-control-custom"
+          class="form-control"
           [class.is-invalid]="infoForm.get('whatsapp')?.invalid && infoForm.get('whatsapp')?.touched"
         />
         @if (infoForm.get('whatsapp')?.invalid && infoForm.get('whatsapp')?.touched) {
-          <div class="invalid-feedback-custom">WhatsApp number is required.</div>
+          <div class="invalid-feedback">WhatsApp number is required.</div>
         }
       </div>
 
@@ -111,18 +108,18 @@
           id="phone"
           formControlName="phone"
           placeholder="+966 12 345 6789"
-          class="form-control-custom"
+          class="form-control"
           [class.is-invalid]="infoForm.get('phone')?.invalid && infoForm.get('phone')?.touched"
         />
         @if (infoForm.get('phone')?.invalid && infoForm.get('phone')?.touched) {
-          <div class="invalid-feedback-custom">Phone number is required.</div>
+          <div class="invalid-feedback">Phone number is required.</div>
         }
       </div>
     </div>
   </div>
 
   <!-- 3. Working Hours Section -->
-  <div class="profile-card mb-4">
+  <div class="card p-4 border shadow-sm mb-4">
     <div class="card-header-block mb-3">
       <h2 class="section-title h5 mb-1">Working hours</h2>
       <p class="section-subtitle text-muted mb-0">Friday is pre-set as the weekly day off per Saudi working week</p>
@@ -139,42 +136,43 @@
           
           <!-- Start Time -->
           <div class="time-input-cell flex-grow-1 mx-2">
-            <div class="time-input-wrap select-wrap-hours">
-              <select
-                formControlName="openTime"
-                class="time-select-control"
-              >
-                <option value="">Closed / Off</option>
-                @for (time of timeSlots; track time) {
-                  <option [value]="time">{{ time }}</option>
-                }
-              </select>
-              <i class="bi bi-chevron-down select-arrow-hours"></i>
-            </div>
+            <select
+              formControlName="openTime"
+              class="form-select"
+              style="height: 40px;"
+            >
+              <option value="">Closed / Off</option>
+              @for (time of timeSlots; track time) {
+                <option [value]="time">{{ time }}</option>
+              }
+            </select>
           </div>
           
           <!-- End Time -->
           <div class="time-input-cell flex-grow-1 mx-2">
-            <div class="time-input-wrap select-wrap-hours">
-              <select
-                formControlName="closeTime"
-                class="time-select-control"
-              >
-                <option value="">Closed / Off</option>
-                @for (time of timeSlots; track time) {
-                  <option [value]="time">{{ time }}</option>
-                }
-              </select>
-              <i class="bi bi-chevron-down select-arrow-hours"></i>
-            </div>
+            <select
+              formControlName="closeTime"
+              class="form-select"
+              style="height: 40px;"
+            >
+              <option value="">Closed / Off</option>
+              @for (time of timeSlots; track time) {
+                <option [value]="time">{{ time }}</option>
+              }
+            </select>
           </div>
           
           <!-- Off Checkbox -->
-          <div class="off-checkbox-cell ms-3 d-flex align-items-center">
-            <label class="checkbox-container-custom">
-              <input type="checkbox" formControlName="isOff" />
-              <span class="checkmark"></span>
-              <span class="checkbox-label-text d-none d-md-block">Off</span>
+          <div class="form-check ms-3 mb-0 d-flex align-items-center">
+            <input 
+              class="form-check-input" 
+              type="checkbox" 
+              formControlName="isOff" 
+              [id]="'isOff-' + day.key"
+              style="cursor: pointer; width: 1.15rem; height: 1.15rem;"
+            />
+            <label class="form-check-label small font-weight-bold text-muted ms-2 d-none d-md-block mb-0" [for]="'isOff-' + day.key" style="cursor: pointer;">
+              Off
             </label>
           </div>
 
@@ -184,7 +182,7 @@
   </div>
 
   <!-- 4. Store Location Section -->
-  <div class="profile-card mb-4 animate__animated animate__fadeIn">
+  <div class="card p-4 border shadow-sm mb-4 animate__animated animate__fadeIn">
     <div class="card-header-block mb-3">
       <h2 class="section-title h5 mb-1">Store location</h2>
       <p class="section-subtitle text-muted mb-0">Drag and zoom the map to pinpoint your exact warehouse entrance</p>
@@ -207,19 +205,19 @@
     <div class="row">
       <div class="col-md-6 mb-2">
         <label class="form-label font-weight-bold" style="font-size: 0.75rem; color: var(--brand-text-mid);">LATITUDE</label>
-        <input type="text" class="form-control-custom" value="24.7136" readonly style="background-color: var(--brand-bg); cursor: not-allowed;" />
+        <input type="text" class="form-control" value="24.7136" readonly style="background-color: var(--brand-bg); cursor: not-allowed;" />
       </div>
       <div class="col-md-6 mb-2">
         <label class="form-label font-weight-bold" style="font-size: 0.75rem; color: var(--brand-text-mid);">LONGITUDE</label>
-        <input type="text" class="form-control-custom" value="46.6753" readonly style="background-color: var(--brand-bg); cursor: not-allowed;" />
+        <input type="text" class="form-control" value="46.6753" readonly style="background-color: var(--brand-bg); cursor: not-allowed;" />
       </div>
     </div>
   </div>
 
   <!-- 5. Support & Issues Contact Section -->
-  <div class="support-card p-4 rounded-3 border mb-4 d-flex align-items-center justify-content-between flex-wrap gap-3 animate__animated animate__fadeIn">
+  <div class="card p-4 border shadow-sm mb-4 d-flex align-items-center justify-content-between flex-wrap gap-3 animate__animated animate__fadeIn bg-light-subtle border-light-subtle">
     <div class="d-flex align-items-center gap-3">
-      <div class="support-icon-circle d-flex align-items-center justify-content-center">
+      <div class="support-icon-circle d-flex align-items-center justify-content-center rounded-circle" style="width: 48px; height: 48px; background-color: rgba(45, 122, 79, 0.08); color: var(--brand-green); font-size: 1.25rem;">
         <i class="bi bi-headset"></i>
       </div>
       <div>
@@ -229,7 +227,7 @@
         </p>
       </div>
     </div>
-    <a href="mailto:support@mybinaara.com" class="btn btn-outline-success btn-support font-weight-bold px-4 py-2 border d-flex align-items-center gap-2">
+    <a href="mailto:support@mybinaara.com" class="btn btn-outline-success font-weight-bold px-4 py-2 d-flex align-items-center gap-2">
       <i class="bi bi-chat-right-text"></i> Contact Support
     </a>
   </div>
@@ -238,7 +236,7 @@
   <div class="d-flex align-items-center justify-content-end gap-3 pt-3 mb-5">
     <button
       type="submit"
-      class="btn-custom-success"
+      class="btn btn-success px-4 py-2 font-weight-bold"
       [disabled]="loading() || infoForm.invalid"
     >
       {{ loading() ? 'Saving...' : 'Save changes' }}
