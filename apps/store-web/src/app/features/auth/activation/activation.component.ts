@@ -28,6 +28,7 @@ export class ActivationComponent implements OnInit, OnDestroy {
   otpResendCountdown = signal<number>(0);
   otpResending = signal<boolean>(false);
   showIntroOverlay = signal<boolean>(false);
+  copiedType = signal<string | null>(null);
   
   private fallbackTimeoutId: any = null;
   
@@ -62,6 +63,16 @@ export class ActivationComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // Custom group validator to ensure the new password is not the same as the temporary password
+    this.step2Form.addValidators((control: AbstractControl) => {
+      const newPassword = control.get('newPassword');
+      const tempPasswordVal = this.step1Form.get('tempPassword')?.value;
+      if (newPassword && tempPasswordVal && newPassword.value === tempPasswordVal) {
+        return { sameAsTemporary: true };
+      }
+      return null;
+    });
+
     // Redirect if already authenticated and activated
     const currentUser = this.store.selectSignal(AuthState.user)();
     if (currentUser && currentUser.isActivated) {
@@ -95,6 +106,13 @@ export class ActivationComponent implements OnInit, OnDestroy {
 
   toggleConfirmPassword(): void {
     this.confirmPasswordVisible.update((v) => !v);
+  }
+
+  copyText(text: string, type: string): void {
+    navigator.clipboard.writeText(text).then(() => {
+      this.copiedType.set(type);
+      setTimeout(() => this.copiedType.set(null), 1500);
+    });
   }
 
   // --- Form Submissions ---
