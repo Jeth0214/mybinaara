@@ -1,0 +1,71 @@
+<aside class="sidebar" [class.expanded]="expanded()" [class.mobile-open]="mobileOpen()">
+
+  <!-- Header: clickable logo + brand text -->
+  <div class="sidebar-header">
+    <a class="brand-block" routerLink="/dashboard" (click)="closeOverlay.emit()">
+      <img
+        src="/images/logo/logo.png"
+        alt="myBinaara"
+        class="brand-logo"
+        [class.brand-logo--sm]="!expanded()"
+      />
+      @if (expanded()) {
+        <div class="brand-text">
+          <span class="brand-name">MyBinaara</span>
+          <span class="brand-tagline">Admin Console</span>
+        </div>
+      }
+    </a>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="sidebar-nav">
+    @for (group of navGroups(); track group.label) {
+      <div class="nav-group">
+        @if (expanded()) {
+          <span class="nav-group-label">{{ group.label }}</span>
+        }
+        @for (item of group.items; track item.route) {
+          <a
+            class="nav-item"
+            [routerLink]="item.route"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' || item.route === '/stores' }"
+            (click)="closeOverlay.emit()"
+            [title]="expanded() ? '' : item.label"
+          >
+            <i class="bi {{ item.icon }} nav-icon"></i>
+            @if (expanded()) {
+              <span class="nav-label">{{ item.label }}</span>
+              @if (item.badge !== undefined) {
+                <span class="nav-badge">{{ item.badge }}</span>
+              }
+            }
+          </a>
+        }
+      </div>
+    }
+  </nav>
+
+  <!-- Footer -->
+  <div class="sidebar-footer">
+    <div class="user-row d-flex align-items-center">
+      <div class="user-avatar">{{ getInitials(currentUser()?.name) }}</div>
+      @if (expanded()) {
+        <div class="user-info flex-grow-1">
+          <span class="user-name">{{ currentUser()?.name || 'Admin' }}</span>
+          <span class="user-role">{{ userRoleLabel() }}</span>
+        </div>
+        <button
+          class="btn border-0 p-1 text-danger bg-transparent d-flex align-items-center justify-content-center"
+          (click)="onLogout()"
+          title="Logout"
+          aria-label="Logout"
+        >
+          <i class="bi bi-box-arrow-right fs-5"></i>
+        </button>
+      }
+    </div>
+  </div>
+
+</aside>

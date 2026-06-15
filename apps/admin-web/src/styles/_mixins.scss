@@ -1,0 +1,15 @@
+// Shared SCSS mixins — add as needed
+
+@mixin card-hover {
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+  }
+}
+
+@mixin responsive-hide-below($breakpoint: 768px) {
+  @media (max-width: #{$breakpoint - 0.02}) {
+    display: none !important;
+  }
+}

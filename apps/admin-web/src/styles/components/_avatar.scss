@@ -1,0 +1,26 @@
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--brand-gold);
+  color: var(--brand-green-dark);
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+
+  &.avatar-sm {
+    width: 28px;
+    height: 28px;
+    font-size: 0.65rem;
+  }
+
+  &.avatar-lg {
+    width: 48px;
+    height: 48px;
+    font-size: 1rem;
+  }
+}

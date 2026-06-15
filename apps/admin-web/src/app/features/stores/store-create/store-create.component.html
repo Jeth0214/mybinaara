@@ -1,0 +1,402 @@
+<div class="container py-4" style="max-width: 900px;">
+  <!-- Header -->
+  <div class="mb-4 d-flex justify-content-between align-items-center">
+    <div>
+      <h4 class="fw-bold mb-1">Create Store Account</h4>
+      <p class="text-muted mb-0">Register a new merchant and generate verification credentials</p>
+    </div>
+    <a routerLink="/stores" class="btn btn-link text-decoration-none text-muted d-flex align-items-center gap-2">
+      <i class="bi bi-arrow-left"></i>
+      <span>Back to Directory</span>
+    </a>
+  </div>
+
+  <!-- Progress Stepper -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-0">
+      <div class="stepper">
+        <!-- Step 1 -->
+        <div class="stepper-step">
+          <div
+            class="stepper-circle"
+            [class.stepper-circle--active]="currentStep() === 1"
+            [class.stepper-circle--completed]="currentStep() > 1"
+          >
+            @if (currentStep() > 1) { <i class="bi bi-check-lg"></i> } @else { 1 }
+          </div>
+          <span
+            class="stepper-label"
+            [class.stepper-label--active]="currentStep() === 1"
+            [class.stepper-label--completed]="currentStep() > 1"
+          >
+            Business Info
+          </span>
+        </div>
+        <div class="stepper-connector" [class.stepper-connector--completed]="currentStep() > 1"></div>
+
+        <!-- Step 2 -->
+        <div class="stepper-step">
+          <div
+            class="stepper-circle"
+            [class.stepper-circle--active]="currentStep() === 2"
+            [class.stepper-circle--completed]="currentStep() > 2"
+          >
+            @if (currentStep() > 2) { <i class="bi bi-check-lg"></i> } @else { 2 }
+          </div>
+          <span
+            class="stepper-label"
+            [class.stepper-label--active]="currentStep() === 2"
+            [class.stepper-label--completed]="currentStep() > 2"
+          >
+            Saudi Registry
+          </span>
+        </div>
+        <div class="stepper-connector" [class.stepper-connector--completed]="currentStep() > 2"></div>
+
+        <!-- Step 3 -->
+        <div class="stepper-step">
+          <div
+            class="stepper-circle"
+            [class.stepper-circle--active]="currentStep() === 3"
+            [class.stepper-circle--completed]="currentStep() > 3"
+          >
+            @if (currentStep() > 3) { <i class="bi bi-check-lg"></i> } @else { 3 }
+          </div>
+          <span
+            class="stepper-label"
+            [class.stepper-label--active]="currentStep() === 3"
+            [class.stepper-label--completed]="currentStep() > 3"
+          >
+            Owner Contacts
+          </span>
+        </div>
+        <div class="stepper-connector" [class.stepper-connector--completed]="currentStep() > 3"></div>
+
+        <!-- Step 4 -->
+        <div class="stepper-step">
+          <div
+            class="stepper-circle"
+            [class.stepper-circle--active]="currentStep() === 4"
+            [class.stepper-circle--completed]="isCreated()"
+          >
+            @if (isCreated()) { <i class="bi bi-check-lg"></i> } @else { 4 }
+          </div>
+          <span
+            class="stepper-label"
+            [class.stepper-label--active]="currentStep() === 4"
+            [class.stepper-label--completed]="isCreated()"
+          >
+            Credentials
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wizard Content Card -->
+  <div class="card border-0 shadow-sm p-4">
+    
+    <!-- STEP 1: Business Details -->
+    @if (currentStep() === 1) {
+      <div [formGroup]="step1Form" class="step-content">
+        <h5 class="fw-semibold mb-3">Step 1: Business Details</h5>
+        
+        <div class="mb-3">
+          <label class="form-label fw-medium">Store / Company Name <span class="text-danger">*</span></label>
+          <input
+            type="text"
+            class="form-control"
+            placeholder="e.g. Riyadh Pipes Factory"
+            formControlName="name"
+          />
+          @if (step1Form.get('name')?.touched && step1Form.get('name')?.invalid) {
+            <div class="text-danger fs-8 mt-1">Store name is required (min 3 characters).</div>
+          }
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label fw-medium">Commercial Category <span class="text-danger">*</span></label>
+            <select class="form-select" formControlName="category">
+              <option value="">Select Category...</option>
+              @for (cat of categories; track cat.value) {
+                <option [value]="cat.value">{{ cat.label }}</option>
+              }
+            </select>
+            @if (step1Form.get('category')?.touched && step1Form.get('category')?.invalid) {
+              <div class="text-danger fs-8 mt-1">Please select a category.</div>
+            }
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-medium">Headquarters City <span class="text-danger">*</span></label>
+            <select class="form-select" formControlName="location">
+              <option value="">Select City...</option>
+              @for (city of cities; track city.value) {
+                <option [value]="city.value">{{ city.label }}</option>
+              }
+            </select>
+            @if (step1Form.get('location')?.touched && step1Form.get('location')?.invalid) {
+              <div class="text-danger fs-8 mt-1">Please select a Saudi city.</div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- STEP 2: Saudi Registry Details -->
+    @if (currentStep() === 2) {
+      <div [formGroup]="step2Form" class="step-content">
+        <h5 class="fw-semibold mb-3">Step 2: Saudi Arabia Corporate Registration</h5>
+        <p class="text-muted fs-7 mb-4">Please input verified credentials corresponding to the merchant registry records in KSA.</p>
+
+        <div class="mb-3">
+          <label class="form-label fw-medium">Commercial Registration (CR) Number <span class="text-danger">*</span></label>
+          <input
+            type="text"
+            class="form-control font-monospace"
+            placeholder="e.g. 1010XXXXXX"
+            maxlength="10"
+            formControlName="crNumber"
+          />
+          <small class="text-muted fs-8">Must be exactly 10 numeric digits</small>
+          @if (step2Form.get('crNumber')?.touched && step2Form.get('crNumber')?.invalid) {
+            <div class="text-danger fs-8 mt-1">CR Number is required and must be exactly 10 digits.</div>
+          }
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-medium">VAT Registration Number <span class="text-danger">*</span></label>
+          <input
+            type="text"
+            class="form-control font-monospace"
+            placeholder="e.g. 300XXXXXXXXXXXX"
+            maxlength="15"
+            formControlName="vatNumber"
+          />
+          <small class="text-muted fs-8">Must be exactly 15 numeric digits starting with '3'</small>
+          @if (step2Form.get('vatNumber')?.touched && step2Form.get('vatNumber')?.invalid) {
+            <div class="text-danger fs-8 mt-1">VAT Number is required and must be 15 digits starting with '3'.</div>
+          }
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-medium">Corporate Bank Account IBAN <span class="text-danger">*</span></label>
+          <div class="input-group">
+            <span class="input-group-text bg-light font-monospace fw-semibold">SA</span>
+            <input
+              type="text"
+              class="form-control font-monospace"
+              placeholder="22 Digits (e.g. 80000000123456789012)"
+              maxlength="24"
+              formControlName="iban"
+            />
+          </div>
+          <small class="text-muted fs-8">Provide the full Saudi IBAN starting with SA (24 characters total)</small>
+          @if (step2Form.get('iban')?.touched && step2Form.get('iban')?.invalid) {
+            <div class="text-danger fs-8 mt-1">Saudi IBAN is required and must start with SA followed by 22 digits.</div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- STEP 3: Owner Contacts -->
+    @if (currentStep() === 3) {
+      <div [formGroup]="step3Form" class="step-content">
+        <h5 class="fw-semibold mb-3">Step 3: Business Owner & Contacts</h5>
+
+        <div class="mb-3">
+          <label class="form-label fw-medium">Authorized Owner/Manager Name <span class="text-danger">*</span></label>
+          <input
+            type="text"
+            class="form-control"
+            placeholder="e.g. Salim bin Salman"
+            formControlName="ownerName"
+          />
+          @if (step3Form.get('ownerName')?.touched && step3Form.get('ownerName')?.invalid) {
+            <div class="text-danger fs-8 mt-1">Owner name is required (min 3 characters).</div>
+          }
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label fw-medium">Primary Contact Email <span class="text-danger">*</span></label>
+            <input
+              type="email"
+              class="form-control"
+              placeholder="e.g. owner@store.com"
+              formControlName="ownerEmail"
+            />
+            @if (step3Form.get('ownerEmail')?.touched && step3Form.get('ownerEmail')?.invalid) {
+              <div class="text-danger fs-8 mt-1">Please enter a valid business email.</div>
+            }
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-medium">Owner Mobile Number <span class="text-danger">*</span></label>
+            <input
+              type="text"
+              class="form-control font-monospace"
+              placeholder="e.g. +9665XXXXXXXX or 05XXXXXXXX"
+              formControlName="ownerPhone"
+            />
+            <small class="text-muted fs-8">Saudi mobile numbers (e.g. 0512345678 or +966512345678)</small>
+            @if (step3Form.get('ownerPhone')?.touched && step3Form.get('ownerPhone')?.invalid) {
+              <div class="text-danger fs-8 mt-1">Please enter a valid Saudi phone number.</div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- STEP 4: Confirmation & Credentials -->
+    @if (currentStep() === 4) {
+      <div class="step-content">
+        @if (!isCreated()) {
+          <h5 class="fw-semibold mb-3">Step 4: Review and Generate Credentials</h5>
+          <p class="text-muted fs-7 mb-4">Please verify all store information. On submission, the store account will be generated in the verification queue, and credentials will be sent to the merchant.</p>
+
+          <!-- Profile Preview -->
+          <div class="bg-light p-3 rounded-3 mb-4">
+            <h6 class="fw-semibold fs-7 border-bottom pb-2 mb-3 text-secondary text-uppercase">Merchant Summary</h6>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <span class="d-block text-muted fs-8 text-uppercase">Store Name</span>
+                <strong class="text-dark">{{ step1Form.value.name }}</strong>
+              </div>
+              <div class="col-md-3">
+                <span class="d-block text-muted fs-8 text-uppercase">Category</span>
+                <strong class="text-dark">{{ step1Form.value.category }}</strong>
+              </div>
+              <div class="col-md-3">
+                <span class="d-block text-muted fs-8 text-uppercase">HQ Location</span>
+                <strong class="text-dark">{{ step1Form.value.location }}</strong>
+              </div>
+              
+              <div class="col-md-4 mt-3">
+                <span class="d-block text-muted fs-8 text-uppercase">CR Number</span>
+                <code class="text-secondary font-monospace">{{ step2Form.value.crNumber }}</code>
+              </div>
+              <div class="col-md-4 mt-3">
+                <span class="d-block text-muted fs-8 text-uppercase">VAT Number</span>
+                <code class="text-secondary font-monospace">{{ step2Form.value.vatNumber }}</code>
+              </div>
+              <div class="col-md-4 mt-3">
+                <span class="d-block text-muted fs-8 text-uppercase">IBAN (Saudi Bank)</span>
+                <code class="text-secondary font-monospace">SA{{ step2Form.value.iban }}</code>
+              </div>
+
+              <div class="col-md-6 mt-3">
+                <span class="d-block text-muted fs-8 text-uppercase">Authorized Contact</span>
+                <strong class="text-dark">{{ step3Form.value.ownerName }}</strong>
+              </div>
+              <div class="col-md-6 mt-3">
+                <span class="d-block text-muted fs-8 text-uppercase">Email & Phone</span>
+                <span class="text-dark font-monospace fs-7">{{ step3Form.value.ownerEmail }} / {{ step3Form.value.ownerPhone }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Generated Credentials Section -->
+          <div class="border border-success border-opacity-25 bg-success bg-opacity-5 p-3 rounded-3 mb-4">
+            <h6 class="fw-bold fs-7 text-success text-uppercase mb-3 d-flex align-items-center gap-2">
+              <i class="bi bi-shield-lock-fill"></i> Credentials to Be Dispatched
+            </h6>
+            
+            <div class="row g-3">
+              <div class="col-md-12">
+                <label class="form-label fs-8 text-muted fw-semibold mb-1 text-uppercase">Generated Temporary Password</label>
+                <div class="input-group">
+                  <input
+                    type="text"
+                    readonly
+                    class="form-control font-monospace fs-7 text-success fw-bold"
+                    [value]="tempPassword()"
+                  />
+                  <button class="btn btn-outline-success" (click)="copyToClipboard(tempPassword(), 'Password')">
+                    <i class="bi bi-clipboard"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="col-md-12 mt-3">
+                <label class="form-label fs-8 text-muted fw-semibold mb-1 text-uppercase">Activation Link</label>
+                <div class="input-group">
+                  <input
+                    type="text"
+                    readonly
+                    class="form-control font-monospace fs-7 text-success"
+                    [value]="activationLink()"
+                  />
+                  <button class="btn btn-outline-success" (click)="copyToClipboard(activationLink(), 'Activation Link')">
+                    <i class="bi bi-clipboard"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        } @else {
+          <!-- Store Created Details -->
+          <div class="text-center py-4">
+            <div class="mb-3">
+              <div class="display-4 text-success"><i class="bi bi-check2-circle"></i></div>
+            </div>
+            <h4 class="fw-bold text-success">Store Account Initialized!</h4>
+            <p class="text-muted mb-4">The account for <strong>{{ step1Form.value.name }}</strong> has been added to the database. An activation email has been dispatched with the credentials below.</p>
+
+            <div class="mx-auto bg-light p-4 rounded-3 text-start mb-4" style="max-width: 600px;">
+              <table class="table table-sm table-borderless align-middle mb-0 font-monospace fs-7">
+                <tbody>
+                  <tr>
+                    <td class="text-muted pe-3 py-2" style="width: 150px;">STORE ID:</td>
+                    <td class="fw-semibold text-dark">store-pending-{{ step2Form.value.crNumber }}</td>
+                  </tr>
+                  <tr>
+                    <td class="text-muted pe-3 py-2">TEMP PASSWORD:</td>
+                    <td class="fw-bold text-success">{{ tempPassword() }}</td>
+                  </tr>
+                  <tr>
+                    <td class="text-muted pe-3 py-2">ACTIVATION LINK:</td>
+                    <td class="text-break"><a [href]="activationLink()" target="_blank" class="text-success">{{ activationLink() }}</a></td>
+                  </tr>
+                  <tr>
+                    <td class="text-muted pe-3 py-2">QUEUE STATUS:</td>
+                    <td><span class="badge bg-warning text-dark fw-bold">PENDING DOCUMENT VERIFICATION</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <button class="btn btn-success px-4 py-2" (click)="resetAndExit()">
+              Back to Merchant Directory
+            </button>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Action Buttons -->
+    @if (!isCreated()) {
+      <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          [disabled]="currentStep() === 1"
+          (click)="prevStep()"
+        >
+          Previous
+        </button>
+
+        @if (currentStep() < 4) {
+          <button type="button" class="btn btn-success" (click)="nextStep()">
+            Next Step
+          </button>
+        } @else {
+          <button type="button" class="btn btn-success px-4" (click)="submitStore()">
+            Create Store & Send Credentials
+          </button>
+        }
+      </div>
+    }
+  </div>
+</div>

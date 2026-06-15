@@ -1,0 +1,89 @@
+// ── Stat card: used for dashboard KPI cards ──────────────────────────────────
+.stat-card {
+  background: #fff;
+  border: 1px solid var(--brand-border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+  }
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1.25rem;
+
+  &.stat-icon--green {
+    background: rgba(45, 122, 79, 0.1);
+    color: var(--brand-green);
+  }
+
+  &.stat-icon--gold {
+    background: rgba(217, 146, 1, 0.1);
+    color: var(--brand-gold);
+  }
+
+  &.stat-icon--blue {
+    background: rgba(41, 128, 185, 0.1);
+    color: var(--brand-info);
+  }
+
+  &.stat-icon--danger {
+    background: rgba(192, 57, 43, 0.1);
+    color: var(--brand-error);
+  }
+}
+
+.stat-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--brand-text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--brand-text-dark);
+  line-height: 1.2;
+}
+
+.stat-trend {
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  &.stat-trend--up {
+    color: var(--brand-green);
+  }
+
+  &.stat-trend--down {
+    color: var(--brand-error);
+  }
+
+  i {
+    font-size: 0.7rem;
+  }
+}
