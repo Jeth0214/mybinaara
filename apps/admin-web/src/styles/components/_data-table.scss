@@ -103,3 +103,17 @@
     min-width: 600px;
   }
 }
+
+// Override Bootstrap table head background color to match white card-bg
+table thead,
+.table thead,
+.data-table thead {
+  background-color: #ffffff !important;
+  --bs-table-bg: #ffffff !important;
+  
+  th {
+    background-color: #ffffff !important;
+    --bs-table-bg: #ffffff !important;
+    border-bottom: 1px solid var(--brand-border) !important;
+  }
+}

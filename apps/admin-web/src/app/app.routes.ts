@@ -47,12 +47,12 @@ export const routes: Routes = [
             data: { title: 'Create Store', icon: 'bi-plus-circle' },
           },
           {
-            path: 'verification',
+            path: ':id/edit',
             loadComponent: () =>
-              import('./features/stores/verification-queue/verification-queue.component').then(
-                (m) => m.VerificationQueueComponent
+              import('./features/stores/store-create/store-create.component').then(
+                (m) => m.StoreCreateComponent
               ),
-            data: { title: 'Verification Queue', icon: 'bi-shield-check' },
+            data: { title: 'Edit Store', icon: 'bi-pencil' },
           },
           {
             path: ':id',

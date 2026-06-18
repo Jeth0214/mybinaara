@@ -1,0 +1,35 @@
+<div class="container py-4" style="max-width: 1200px;">
+  <!-- Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+    <div>
+      <h4 class="fw-bold mb-1">Store & Vendor Directory</h4>
+      <p class="text-muted mb-0">Manage registered merchant accounts, verification status, and plans in Saudi Arabia</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a routerLink="create" class="btn btn-success d-flex align-items-center gap-2">
+        <i class="bi bi-plus-lg"></i>
+        <span>Add New Store</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Filters Subcomponent -->
+  <app-store-list-filters
+    [(searchQuery)]="searchQuery"
+    [(statusFilter)]="statusFilter"
+    [(cityFilter)]="cityFilter"
+    [cities]="cities"
+  />
+
+  <!-- Table Directory Subcomponent -->
+  <app-store-list-table
+    [stores]="paginatedStores()"
+    [totalStores]="filteredStores().length"
+    [pageSize]="pageSize()"
+    [pageIndex]="pageIndex()"
+    [loading]="loading()"
+    (deleteStore)="deleteStore($event)"
+    (changePlan)="changePlan($event.storeId, $event.event)"
+    (pageChange)="pageSize.set($event.pageSize); pageIndex.set($event.pageIndex)"
+  />
+</div>

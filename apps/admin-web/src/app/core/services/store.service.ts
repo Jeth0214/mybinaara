@@ -1,12 +1,15 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { Store, StoreStatus, StoreDocument, DocumentType, DocumentStatus } from '../models/store.model';
 import { MOCK_STORES } from '../data/mock-stores.data';
+import { UserCatalogService } from './user-catalog.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class StoreService {
+  private readonly catalogService = inject(UserCatalogService);
+
   // Master reactive state for stores
   private readonly _stores = signal<Store[]>(MOCK_STORES);
   
@@ -14,8 +17,12 @@ export class StoreService {
   readonly stores = this._stores.asReadonly();
   
   // Computed signals for common groupings
-  readonly pendingVerificationStores = computed(() => 
-    this._stores().filter(s => s.status === 'pending')
+  readonly unsubscribedStores = computed(() => 
+    this._stores().filter(s => 
+      s.subscriptionPlanId === 'basic' && 
+      s.subscriptionHistory && 
+      s.subscriptionHistory.some(h => h.planId === 'premium' || h.planId === 'enterprise')
+    )
   );
 
   readonly activeStores = computed(() => 
@@ -25,6 +32,16 @@ export class StoreService {
   readonly suspendedStores = computed(() => 
     this._stores().filter(s => s.status === 'suspended')
   );
+
+  constructor() {
+    const products = this.catalogService.products();
+    this._stores.update(stores =>
+      stores.map(store => ({
+        ...store,
+        totalProducts: products.filter(p => p.storeId === store.id).length
+      }))
+    );
+  }
 
   /**
    * Fetch all stores as an Observable (for compatibility with HTTP patterns)
@@ -45,30 +62,30 @@ export class StoreService {
    */
   createStore(storeData: Partial<Store>): Store {
     const id = `store-${Date.now()}`;
-    const tempPassword = `Binaara${Math.random().toString(36).substring(2, 8).toUpperCase()}!`;
-    const activationLink = `https://mybinaara.com/activate/${id}-${Math.random().toString(36).substring(2, 6)}`;
+    const tempPassword = storeData.tempPassword || `Binaara${Math.random().toString(36).substring(2, 8).toUpperCase()}!`;
+    const activationLink = storeData.activationLink || 'https://mybinaara.com/activate';
     
-    // Create mock documents if details were provided
-    const documents: StoreDocument[] = [
+    // Create mock documents if details were not provided, defaulting to approved
+    const documents: StoreDocument[] = storeData.documents || [
       {
         type: 'cr',
         fileName: `cr_${storeData.name?.toLowerCase().replace(/\s+/g, '_')}.pdf`,
         fileUrl: '/assets/mock-docs/cr_sample.pdf',
-        status: 'pending',
+        status: 'approved',
         uploadedAt: new Date().toISOString()
       },
       {
         type: 'vat',
         fileName: `vat_${storeData.name?.toLowerCase().replace(/\s+/g, '_')}.pdf`,
         fileUrl: '/assets/mock-docs/vat_sample.pdf',
-        status: 'pending',
+        status: 'approved',
         uploadedAt: new Date().toISOString()
       },
       {
         type: 'iban',
         fileName: `iban_${storeData.name?.toLowerCase().replace(/\s+/g, '_')}.pdf`,
         fileUrl: '/assets/mock-docs/iban_sample.pdf',
-        status: 'pending',
+        status: 'approved',
         uploadedAt: new Date().toISOString()
       }
     ];
@@ -82,14 +99,21 @@ export class StoreService {
       ownerName: storeData.ownerName || '',
       ownerEmail: storeData.ownerEmail || '',
       ownerPhone: storeData.ownerPhone || '',
+      ownerWhatsapp: storeData.ownerWhatsapp || '',
       location: storeData.location || 'Riyadh',
-      category: storeData.category || 'Building Materials',
-      status: 'pending', // Starts as pending verification
-      subscriptionPlanId: storeData.subscriptionPlanId || 'basic',
+      district: storeData.district || '',
+      lat: storeData.lat || 0,
+      lng: storeData.lng || 0,
+      status: 'pending',
+      isActivated: false,
+      subscriptionPlanId: 'basic',
+      subscriptionHistory: [],
       activationLink,
       tempPassword,
+      storeLogo: storeData.storeLogo,
       createdAt: new Date().toISOString(),
-      documents
+      documents,
+      totalProducts: 0
     };
 
     this._stores.update(currentStores => [newStore, ...currentStores]);
@@ -126,17 +150,26 @@ export class StoreService {
         let finalRejectionReason = store.rejectionReason;
 
         if (status === 'rejected') {
-          storeStatus = 'rejected';
+          storeStatus = 'suspended';
           finalRejectionReason = `Document Verification Failed: ${rejectionReason}`;
         } else if (updatedDocs.every(d => d.status === 'approved')) {
           storeStatus = 'active'; // Auto-activate if all docs approved
           finalRejectionReason = undefined;
         }
 
+        const isActivated = storeStatus === 'active' ? true : (storeStatus === 'pending' ? false : store.isActivated);
+
+        let history = store.subscriptionHistory || [];
+        if (storeStatus === 'active' && store.status === 'pending' && history.length === 0) {
+          history = [{ planId: 'basic', startDate: new Date().toISOString() }];
+        }
+
         return {
           ...store,
           documents: updatedDocs,
           status: storeStatus,
+          isActivated,
+          subscriptionHistory: history,
           rejectionReason: finalRejectionReason
         };
       })
@@ -159,11 +192,20 @@ export class StoreService {
           return doc;
         });
 
+        const isActivated = status === 'active' ? true : (status === 'pending' ? false : store.isActivated);
+
+        let history = store.subscriptionHistory || [];
+        if (status === 'active' && store.status === 'pending' && history.length === 0) {
+          history = [{ planId: 'basic', startDate: new Date().toISOString() }];
+        }
+
         return {
           ...store,
           status,
+          isActivated,
+          subscriptionHistory: history,
           documents: updatedDocs,
-          rejectionReason: status === 'rejected' ? rejectionReason : store.rejectionReason
+          rejectionReason: (status === 'suspended') ? rejectionReason : store.rejectionReason
         };
       })
     );
@@ -174,9 +216,42 @@ export class StoreService {
    */
   assignSubscriptionPlan(storeId: string, planId: 'basic' | 'premium' | 'enterprise'): void {
     this._stores.update(currentStores =>
-      currentStores.map(store =>
-        store.id === storeId ? { ...store, subscriptionPlanId: planId } : store
-      )
+      currentStores.map(store => {
+        if (store.id !== storeId) return store;
+
+        const history = [...(store.subscriptionHistory || [])];
+        const now = new Date().toISOString();
+
+        // 1. Close the current active subscription entry (if any)
+        if (history.length > 0 && !history[history.length - 1].endDate) {
+          history[history.length - 1] = {
+            ...history[history.length - 1],
+            endDate: now
+          };
+        }
+
+        // 2. Add the new plan entry
+        history.push({
+          planId: planId,
+          startDate: now
+        });
+
+        return {
+          ...store,
+          subscriptionPlanId: planId,
+          subscriptionHistory: history
+        };
+      })
+    );
+  }
+
+  /**
+   * Delete Store
+   */
+  deleteStore(storeId: string): void {
+    this._stores.update(currentStores =>
+      currentStores.filter(store => store.id !== storeId)
     );
   }
 }
+

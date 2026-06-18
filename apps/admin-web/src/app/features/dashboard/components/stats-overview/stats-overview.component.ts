@@ -3,7 +3,7 @@ import { DecimalPipe } from '@angular/common';
 
 export interface AdminDashboardStats {
   activeStores: number;
-  pendingVerifications: number;
+  unsubscribedStores: number;
   adminUsers: number;
   catalogProducts: number;
 }
@@ -43,7 +43,7 @@ export class StatsOverviewComponent {
     const s = this.stats();
     return [
       { label: 'Active Stores', value: s.activeStores, subtitle: 'Live registered merchants', icon: 'bi-shop-window', color: 'green' },
-      { label: 'Pending Verifications', value: s.pendingVerifications, subtitle: 'Requires operator action', icon: 'bi-shield-check', color: 'gold' },
+      { label: 'Unsubscribed', value: s.unsubscribedStores, subtitle: 'Expired subscription tiers', icon: 'bi-exclamation-circle', color: 'danger' },
       { label: 'Admin Users', value: s.adminUsers, subtitle: 'Platform operators list', icon: 'bi-person-gear', color: 'blue' },
       { label: 'Catalog Products', value: s.catalogProducts, subtitle: 'Total master items database', icon: 'bi-box-seam', color: 'green' },
     ];

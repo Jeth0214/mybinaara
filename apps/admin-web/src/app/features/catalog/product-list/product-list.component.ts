@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, computed, effect, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { UserCatalogService } from '../../../core/services/user-catalog.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { Product } from '../../../core/models/catalog.model';
@@ -9,7 +10,7 @@ import { Product } from '../../../core/models/catalog.model';
 @Component({
   selector: 'app-product-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, MatPaginatorModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="container py-4" style="max-width: 1200px;">
@@ -40,7 +41,7 @@ import { Product } from '../../../core/models/catalog.model';
                 </span>
                 <input
                   type="text"
-                  class="form-control border-start-0 ps-0"
+                  class="form-control border-start-0 ps-2"
                   placeholder="Search product name, SKU, brand, store..."
                   [ngModel]="searchQuery()"
                   (ngModelChange)="searchQuery.set($event)"
@@ -95,7 +96,7 @@ import { Product } from '../../../core/models/catalog.model';
               </tr>
             </thead>
             <tbody>
-              @for (prod of filteredProducts(); track prod.id) {
+              @for (prod of paginatedProducts(); track prod.id) {
                 <tr>
                   <td class="ps-4 py-3">
                     <div class="d-flex align-items-center gap-3">
@@ -147,6 +148,17 @@ import { Product } from '../../../core/models/catalog.model';
             </tbody>
           </table>
         </div>
+        @if (filteredProducts().length > 0) {
+          <mat-paginator
+            [length]="filteredProducts().length"
+            [pageSize]="pageSize()"
+            [pageSizeOptions]="[5, 10, 25, 50, 100]"
+            [pageIndex]="pageIndex()"
+            (page)="handlePageEvent($event)"
+            aria-label="Select page"
+            class="border-top"
+          />
+        }
       </div>
     </div>
   `,
@@ -179,9 +191,26 @@ export class ProductListComponent {
   readonly categoryFilter = signal('all');
   readonly statusFilter = signal('all');
 
+  // Pagination Signals
+  readonly pageSize = signal(10);
+  readonly pageIndex = signal(0);
+
   readonly categories = this.userCatalogService.categories;
   readonly allProducts = this.userCatalogService.products;
   readonly pendingCount = computed(() => this.userCatalogService.pendingProducts().length);
+
+  constructor() {
+    // Reset page index on filter change
+    effect(() => {
+      this.searchQuery();
+      this.categoryFilter();
+      this.statusFilter();
+      
+      untracked(() => {
+        this.pageIndex.set(0);
+      });
+    });
+  }
 
   readonly filteredProducts = computed(() => {
     const query = this.searchQuery().toLowerCase().trim();
@@ -201,4 +230,16 @@ export class ProductListComponent {
       return matchesSearch && matchesCategory && matchesStatus;
     });
   });
+
+  readonly paginatedProducts = computed(() => {
+    const list = this.filteredProducts();
+    const start = this.pageIndex() * this.pageSize();
+    const end = start + this.pageSize();
+    return list.slice(start, end);
+  });
+
+  handlePageEvent(event: PageEvent): void {
+    this.pageSize.set(event.pageSize);
+    this.pageIndex.set(event.pageIndex);
+  }
 }

@@ -30,6 +30,8 @@ export class LayoutComponent implements OnInit, OnDestroy {
   /** mobile overlay open */
   readonly mobileOpen = signal(false);
 
+  readonly currentYear = new Date().getFullYear();
+
   ngOnInit(): void {
     this.sub = this.breakpoints
       .observe([Breakpoints.XLarge, Breakpoints.Large, Breakpoints.Medium])
