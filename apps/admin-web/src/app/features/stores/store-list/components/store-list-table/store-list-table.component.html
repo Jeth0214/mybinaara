@@ -1,0 +1,126 @@
+<div class="card border-0 shadow-sm overflow-hidden">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0 custom-table">
+      <thead class="table-light text-uppercase fs-8 fw-semibold text-muted">
+        <tr>
+          <th scope="col" class="ps-4">Store details</th>
+          <th scope="col">Products</th>
+          <th scope="col">Owner Info</th>
+          <th scope="col">Subscription</th>
+          <th scope="col">Status</th>
+          <th scope="col" class="text-end pe-4">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (loading()) {
+          <tr>
+            <td colspan="6" class="text-center py-5 text-muted">
+              <div class="spinner-border text-success mb-3" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="mb-0 fw-medium">Loading store directory...</p>
+            </td>
+          </tr>
+        } @else {
+          @for (store of stores(); track store.id) {
+            <tr>
+              <td class="ps-4 py-3">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="avatar avatar--circle avatar--success overflow-hidden d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; flex-shrink: 0;">
+                    @if (store.storeLogo) {
+                      <img [src]="store.storeLogo" alt="{{ store.name }} Logo" style="width: 100%; height: 100%; object-fit: cover;" />
+                    } @else {
+                      <i class="bi bi-shop fs-5"></i>
+                    }
+                  </div>
+                  <div>
+                    <h6 class="mb-0 fw-semibold fs-7-5">
+                      <a [routerLink]="['/stores', store.id]" class="text-decoration-none text-dark hover-success">
+                        {{ store.name }}
+                      </a>
+                    </h6>
+                    <span class="fs-8 text-muted d-flex align-items-center gap-1 mt-0.5 fs-7-5">
+                      <i class="bi bi-geo-alt"></i> {{ store.location }}@if (store.district) { ({{ store.district }}) }, Saudi Arabia
+                    </span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="fw-semibold text-dark fs-7-5">
+                  <i class="bi bi-box-seam text-muted me-1"></i>
+                  {{ getProductCount(store.id) }}
+                </span>
+              </td>
+              <td>
+                <div class="fs-7-5">
+                  <div class="fw-medium text-dark">{{ store.ownerName }}</div>
+                  <div class="text-muted fs-8 mt-0.5">
+                    {{ store.ownerPhone }}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <select
+                  class="form-select form-select-sm border-0 bg-light fw-semibold fs-7-5"
+                  style="width: 120px;"
+                  [value]="store.subscriptionPlanId"
+                  (change)="changePlan.emit({ storeId: store.id, event: $event })"
+                >
+                  <option value="basic">Basic (Free)</option>
+                  <option value="premium">Premium</option>
+                  <option value="enterprise">Enterprise</option>
+                </select>
+              </td>
+              <td>
+                <span [class]="'status-badge status-badge--' + store.status">
+                  {{ store.status }}
+                </span>
+              </td>
+              <td class="text-end pe-4">
+                <div ngbDropdown class="d-inline-block" container="body">
+                  <button class="btn btn-icon-ellipsis border-0 bg-transparent" ngbDropdownToggle [id]="'actionsDropdown-' + store.id" aria-label="Store actions">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                  <div ngbDropdownMenu [attr.aria-labelledby]="'actionsDropdown-' + store.id" class="dropdown-menu-custom shadow border">
+                    <!-- View Details -->
+                    <a ngbDropdownItem [routerLink]="['/stores', store.id]">
+                      <i class="bi bi-eye me-2 text-muted"></i> View Details
+                    </a>
+                    <!-- Edit Store -->
+                    <a ngbDropdownItem [routerLink]="['/stores', store.id, 'edit']">
+                      <i class="bi bi-pencil me-2 text-muted"></i> Edit Store
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <!-- Delete Store -->
+                    <button ngbDropdownItem class="text-danger" (click)="deleteStore.emit(store)">
+                      <i class="bi bi-trash me-2"></i> Delete Store
+                    </button>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="text-center py-5 text-muted">
+                <i class="bi bi-shop-window fs-2 d-block mb-3 opacity-30"></i>
+                <p class="mb-0 fw-medium">No stores found matching your filters</p>
+                <small>Try adjusting search queries or city filters.</small>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+  @if (!loading() && totalStores() > 0) {
+    <mat-paginator
+      [length]="totalStores()"
+      [pageSize]="pageSize()"
+      [pageSizeOptions]="[5, 10, 25, 50, 100]"
+      [pageIndex]="pageIndex()"
+      (page)="pageChange.emit($event)"
+      aria-label="Select page"
+      class="border-top"
+    />
+  }
+</div>

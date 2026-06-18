@@ -92,8 +92,25 @@
   flex: 1;
   overflow-y: auto;
   padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
 
   @media (max-width: 767px) {
     padding: 1rem 0.5rem;
+  }
+}
+
+.app-footer {
+  flex-shrink: 0;
+  border-top-color: var(--brand-border) !important;
+  font-size: 0.72rem;
+  letter-spacing: 0.02rem;
+  
+  a {
+    transition: color 0.15s ease-in-out;
+  }
+  
+  a:hover {
+    color: var(--brand-green) !important;
   }
 }

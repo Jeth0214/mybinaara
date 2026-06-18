@@ -1,9 +1,114 @@
+// Custom overrides for Angular Material Stepper to match brand identity
+::ng-deep {
+  .mat-stepper-horizontal,
+  .mat-stepper-vertical,
+  .mat-step-header,
+  .mat-step-label,
+  .mat-step-icon,
+  .mat-step-text-label {
+    font-family: 'Outfit', sans-serif !important;
+  }
+
+  .mat-horizontal-stepper-header-container {
+    padding: 1.25rem 0 !important;
+    border-bottom: 1px solid var(--brand-border) !important;
+    margin-bottom: 1.5rem !important;
+    
+    // Mobile responsiveness: scroll headers horizontally instead of wrapping/squishing
+    overflow-x: auto !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    -ms-overflow-style: none !important;  /* IE and Edge */
+    scrollbar-width: none !important;  /* Firefox */
+    &::-webkit-scrollbar {
+      display: none !important; /* Chrome, Safari and Opera */
+    }
+  }
+
+  .mat-step-header {
+    background: transparent !important;
+    padding: 0 16px !important;
+    border-radius: 8px !important;
+    transition: background-color 0.2s ease !important;
+    flex-shrink: 0 !important;
+    
+    &:hover {
+      background: rgba(45, 122, 79, 0.05) !important;
+    }
+
+    .mat-step-icon {
+      background-color: var(--brand-border) !important;
+      color: var(--brand-text-light) !important;
+      border: 2px solid var(--brand-border) !important;
+      transition: all 0.25s ease !important;
+      font-weight: 600 !important;
+
+      &.mat-step-icon-selected {
+        background-color: var(--brand-green) !important;
+        border-color: var(--brand-green) !important;
+        color: #fff !important;
+      }
+
+      &.mat-step-icon-state-edit, &.mat-step-icon-state-done {
+        background-color: var(--brand-green) !important;
+        border-color: var(--brand-green) !important;
+        color: #fff !important;
+      }
+    }
+
+    .mat-step-label {
+      color: var(--brand-text-light) !important;
+      font-weight: 500 !important;
+      font-size: 0.85rem !important;
+
+      &.mat-step-label-active {
+        color: var(--brand-green) !important;
+        font-weight: 600 !important;
+      }
+
+      &.mat-step-label-selected {
+        color: var(--brand-green) !important;
+        font-weight: 600 !important;
+      }
+    }
+  }
+
+  .mat-stepper-horizontal-line {
+    border-top-color: var(--brand-border) !important;
+    border-top-width: 2px !important;
+  }
+}
+
 .step-content {
   animation: fadeIn 0.3s ease-out;
 }
 
 .fs-8 {
   font-size: 0.775rem;
+}
+
+.fs-7-5 {
+  font-size: 0.825rem;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.border-dashed {
+  border-style: dashed !important;
+}
+
+.hover-bg-light-dark {
+  transition: background-color 0.2s ease-in-out;
+  &:hover {
+    background-color: #eef1ec !important;
+  }
+}
+
+.transition-all {
+  transition: all 0.2s ease-in-out;
 }
 
 @keyframes fadeIn {
@@ -14,5 +119,12 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+// Layout adjustments for alignment
+@media (min-width: 992px) {
+  .border-end-lg {
+    border-right: 1px solid var(--brand-border) !important;
   }
 }

@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, Component, inject, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { UserCatalogService } from '../../../core/services/user-catalog.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { Product } from '../../../core/models/catalog.model';
@@ -15,9 +15,15 @@ import { Product } from '../../../core/models/catalog.model';
     <div class="container py-4 relative" style="max-width: 1100px;">
       <!-- Header -->
       <div class="mb-4">
-        <a routerLink="/catalog/products" class="text-decoration-none text-muted fs-7 d-inline-flex align-items-center gap-1 mb-2">
-          <i class="bi bi-arrow-left"></i> Back to Catalog
-        </a>
+        @if (fromStoreId()) {
+          <a [routerLink]="['/stores', fromStoreId()]" class="text-decoration-none text-muted fs-7 d-inline-flex align-items-center gap-1 mb-2">
+            <i class="bi bi-arrow-left"></i> Back to Store Details
+          </a>
+        } @else {
+          <a routerLink="/catalog/products" class="text-decoration-none text-muted fs-7 d-inline-flex align-items-center gap-1 mb-2">
+            <i class="bi bi-arrow-left"></i> Back to Catalog
+          </a>
+        }
         <h4 class="fw-bold mb-1">Product Approval Queue</h4>
         <p class="text-muted mb-0">Inspect and approve newly uploaded items submitted by vendors before they go live</p>
       </div>
@@ -71,7 +77,11 @@ import { Product } from '../../../core/models/catalog.model';
                   <h5 class="fw-bold mb-1">{{ prod.name }}</h5>
                   <span class="fs-8 text-muted font-monospace">SKU: {{ prod.sku }}</span>
                 </div>
-                <span class="badge bg-warning text-dark text-uppercase fs-8 fw-bold px-2.5 py-1.5">Pending Review</span>
+                <span [class]="'badge text-uppercase fs-8 fw-bold px-2.5 py-1.5 ' + 
+                  (prod.status === 'approved' ? 'bg-success text-white' : 
+                   prod.status === 'pending' ? 'bg-warning text-dark' : 'bg-danger text-white')">
+                  {{ prod.status }} Review
+                </span>
               </div>
 
               <!-- Product Specifications -->
@@ -104,20 +114,27 @@ import { Product } from '../../../core/models/catalog.model';
               </div>
 
               <!-- Master Approval Controls -->
-              <div class="d-flex gap-2 border-top pt-4">
-                <button
-                  class="btn btn-success w-50 py-2.5 d-flex align-items-center justify-content-center gap-2 fw-semibold fs-7-5"
-                  (click)="approveProduct(prod)"
-                >
-                  <i class="bi bi-check-circle"></i> Approve & Live List
-                </button>
-                <button
-                  class="btn btn-outline-danger w-50 py-2.5 d-flex align-items-center justify-content-center gap-2 fw-semibold fs-7-5"
-                  (click)="openRejectModal(prod.id)"
-                >
-                  <i class="bi bi-x-circle"></i> Reject Submission
-                </button>
-              </div>
+              @if (prod.status === 'pending') {
+                <div class="d-flex gap-2 border-top pt-4">
+                  <button
+                    class="btn btn-success w-50 py-2.5 d-flex align-items-center justify-content-center gap-2 fw-semibold fs-7-5"
+                    (click)="approveProduct(prod)"
+                  >
+                    <i class="bi bi-check-circle"></i> Approve & Live List
+                  </button>
+                  <button
+                    class="btn btn-outline-danger w-50 py-2.5 d-flex align-items-center justify-content-center gap-2 fw-semibold fs-7-5"
+                    (click)="openRejectModal(prod.id)"
+                  >
+                    <i class="bi bi-x-circle"></i> Reject Submission
+                  </button>
+                </div>
+              } @else {
+                <div class="alert alert-info d-flex align-items-center gap-2 mt-4 fs-7-5 mb-0">
+                  <i class="bi bi-info-circle-fill text-primary"></i>
+                  <span>This product has already been reviewed and is marked as <strong>{{ prod.status }}</strong>.</span>
+                </div>
+              }
             </div>
           } @else {
             <div class="card border-0 shadow-sm p-5 text-center text-muted">
@@ -220,12 +237,25 @@ import { Product } from '../../../core/models/catalog.model';
     }
   `]
 })
-export class ProductApprovalComponent {
+export class ProductApprovalComponent implements OnInit {
   private readonly userCatalogService = inject(UserCatalogService);
   private readonly toast = inject(ToastService);
+  private readonly route = inject(ActivatedRoute);
 
   readonly pendingProducts = this.userCatalogService.pendingProducts;
   readonly selectedProductId = signal<string | null>(null);
+  readonly fromStoreId = signal<string | null>(null);
+
+  ngOnInit(): void {
+    const id = this.route.snapshot.queryParamMap.get('productId');
+    if (id) {
+      this.selectedProductId.set(id);
+    }
+    const storeId = this.route.snapshot.queryParamMap.get('fromStoreId');
+    if (storeId) {
+      this.fromStoreId.set(storeId);
+    }
+  }
 
   readonly selectedProduct = computed(() => {
     const id = this.selectedProductId();

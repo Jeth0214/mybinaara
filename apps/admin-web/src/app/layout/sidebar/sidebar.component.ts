@@ -67,7 +67,6 @@ export class SidebarComponent {
       items: [
         { label: 'All Stores', icon: 'bi-shop-window', route: '/stores' },
         { label: 'Create Store', icon: 'bi-plus-circle', route: '/stores/create' },
-        { label: 'Verification', icon: 'bi-shield-check', route: '/stores/verification' },
       ],
     },
     {

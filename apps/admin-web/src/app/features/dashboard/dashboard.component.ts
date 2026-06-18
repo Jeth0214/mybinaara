@@ -39,7 +39,7 @@ export class DashboardComponent implements OnInit {
   readonly computedStats = computed(() => {
     return {
       activeStores: this.storeService.activeStores().length,
-      pendingVerifications: this.storeService.pendingVerificationStores().length,
+      unsubscribedStores: this.storeService.unsubscribedStores().length,
       adminUsers: this.userCatalogService.admins().length,
       catalogProducts: this.userCatalogService.products().length,
     };

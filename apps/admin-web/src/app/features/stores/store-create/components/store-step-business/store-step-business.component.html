@@ -1,0 +1,232 @@
+<div class="row g-4 mt-2">
+  <div class="col-lg-8 border-end-lg">
+    <form [formGroup]="form()" class="pe-lg-4">
+      <h5 class="fw-semibold mb-3">Step 1: Business Details</h5>
+      
+      <div class="mb-3">
+        <label class="form-label fw-medium">Store / Company Name <span class="text-danger">*</span></label>
+        <input
+          type="text"
+          class="form-control"
+          placeholder="e.g. Riyadh Pipes Factory"
+          formControlName="name"
+        />
+        @if (form().get('name')?.touched && form().get('name')?.invalid) {
+          <div class="text-danger fs-8 mt-1">Store name is required (min 3 characters).</div>
+        }
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold text-dark mb-2">Store Logo Image <span class="text-danger">*</span></label>
+        
+        @if (form().get('storeLogo')?.value; as logoData) {
+          <!-- Image Upload Preview & Edit -->
+          <div class="d-flex align-items-center gap-3 p-3 border rounded-3 bg-light bg-opacity-25">
+            <div class="avatar avatar--circle overflow-hidden border border-success border-opacity-50 bg-white d-flex align-items-center justify-content-center" style="width: 64px; height: 64px; flex-shrink: 0; box-shadow: var(--shadow-2xs);">
+              <img [src]="logoData" alt="Store Logo Preview" style="width: 100%; height: 100%; object-fit: cover;" />
+            </div>
+            <div>
+              <span class="d-block text-success fw-semibold fs-7-5 mb-1"><i class="bi bi-patch-check-fill me-1"></i> Logo Uploaded & Verified</span>
+              <input 
+                #logoFileInputEdit 
+                type="file" 
+                class="d-none" 
+                accept="image/*" 
+                (change)="onLogoFileSelect($event)" 
+              />
+              <button type="button" class="btn btn-xs btn-outline-success py-1.5 px-3 fs-8 d-flex align-items-center gap-1.5" (click)="logoFileInputEdit.click()">
+                <i class="bi bi-pencil-square"></i> Change Logo
+              </button>
+            </div>
+          </div>
+        } @else {
+          <!-- Drop/Click Upload Zone -->
+          <div 
+            class="border border-dashed rounded-3 p-4 text-center cursor-pointer hover-bg-light"
+            style="background: #fafbfa; transition: all 0.2s;"
+            (click)="logoFileInput.click()"
+          >
+            <input 
+              #logoFileInput 
+              type="file" 
+              class="d-none" 
+              accept="image/*" 
+              (change)="onLogoFileSelect($event)" 
+            />
+            <i class="bi bi-cloud-arrow-up text-success display-6 mb-2 d-block opacity-75"></i>
+            <span class="d-block fw-semibold text-dark fs-7.5">Click to upload Store Logo</span>
+            <span class="text-muted fs-8 mt-1 d-block">Supported: PNG, JPG, JPEG, WEBP. Max size: 2MB. Min: 200x200px (Square ratio preferred)</span>
+          </div>
+        }
+        
+        @if (form().get('storeLogo')?.touched && form().get('storeLogo')?.invalid) {
+          <div class="text-danger fs-8 mt-1.5"><i class="bi bi-exclamation-circle me-2"></i> Store logo is required.</div>
+        }
+
+        @if (logoError(); as err) {
+          <div class="alert alert-danger d-flex align-items-center gap-2 py-2 px-3 mt-2.5 fs-8 border-0 shadow-2xs">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>{{ err }}</span>
+          </div>
+        }
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-12">
+          <label class="form-label fw-medium">Headquarters City <span class="text-danger">*</span></label>
+          <select class="form-select" formControlName="location">
+            <option value="">Select City...</option>
+            @for (city of cities(); track city.value) {
+              <option [value]="city.value">{{ city.label }}</option>
+            }
+          </select>
+          @if (form().get('location')?.touched && form().get('location')?.invalid) {
+            <div class="text-danger fs-8 mt-1">Please select a Saudi city.</div>
+          }
+        </div>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-4">
+          <label class="form-label fw-medium">District Name <span class="text-danger">*</span></label>
+          <input
+            type="text"
+            class="form-control"
+            placeholder="e.g. Al-Olaya"
+            formControlName="district"
+          />
+          @if (form().get('district')?.touched && form().get('district')?.invalid) {
+            <div class="text-danger fs-8 mt-1">District name is required.</div>
+          }
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-medium">Latitude <span class="text-danger">*</span></label>
+          <input
+            type="number"
+            step="0.000001"
+            class="form-control font-monospace"
+            placeholder="e.g. 24.6877"
+            formControlName="lat"
+          />
+          @if (form().get('lat')?.touched && form().get('lat')?.invalid) {
+            <div class="text-danger fs-8 mt-1">Latitude is required (-90 to 90).</div>
+          }
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-medium">Longitude <span class="text-danger">*</span></label>
+          <input
+            type="number"
+            step="0.000001"
+            class="form-control font-monospace"
+            placeholder="e.g. 46.7211"
+            formControlName="lng"
+          />
+          @if (form().get('lng')?.touched && form().get('lng')?.invalid) {
+            <div class="text-danger fs-8 mt-1">Longitude is required (-180 to 180).</div>
+          }
+        </div>
+      </div>
+
+      <!-- OSM Map Preview -->
+      <div class="mb-3">
+        <label class="form-label fw-medium d-flex align-items-center gap-2">
+          <i class="bi bi-geo-alt-fill text-success"></i>
+          <span>Live Location Preview</span>
+        </label>
+        @if (getMapUrl(); as mapUrl) {
+          <div class="map-container border rounded overflow-hidden shadow-sm" style="height: 250px;">
+            <iframe
+              width="100%"
+              height="100%"
+              frameborder="0"
+              scrolling="no"
+              marginheight="0"
+              marginwidth="0"
+              [src]="mapUrl"
+              style="border: 0;">
+            </iframe>
+          </div>
+        } @else {
+          <div class="bg-light border rounded text-center py-5 text-muted">
+            <i class="bi bi-map fs-2 d-block mb-2 text-secondary"></i>
+            <span>Enter valid Latitude & Longitude to load the map preview</span>
+          </div>
+        }
+      </div>
+
+      @if (isEditMode() && isPendingAccount()) {
+        <div class="mb-4 border p-3 rounded-3 bg-light bg-opacity-25 mt-3">
+          <div class="form-check form-switch d-flex align-items-start gap-2.5">
+            <input
+              class="form-check-input ms-0 mt-1"
+              type="checkbox"
+              id="isActivatedSwitch"
+              formControlName="isActivated"
+              style="width: 2.2em; height: 1.1em; cursor: pointer;"
+            />
+            <div>
+              <label class="form-check-label fw-bold text-dark cursor-pointer mb-0.5" for="isActivatedSwitch">
+                Account Activated
+              </label>
+              <span class="d-block text-muted fs-8">If checked, this store account is active. If unchecked, the status is set to "Pending" and the merchant cannot log in.</span>
+            </div>
+          </div>
+        </div>
+      }
+
+      <div class="d-flex justify-content-end mt-4 pt-3 border-top">
+        <button type="button" class="btn btn-success" matStepperNext [disabled]="form().invalid">
+          Next Step
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Side Helper Panel -->
+  <div class="col-lg-4">
+    <div class="card bg-light border-0 p-3 h-100">
+      <h6 class="fw-bold text-dark mb-3"><i class="bi bi-info-circle text-success me-2"></i>Testing Guide</h6>
+      <p class="fs-8 text-muted">Use these pre-verified Saudi store location mockups to fill the coordinates fields.</p>
+      
+      <div class="d-flex flex-column gap-3">
+        <div class="bg-white p-2.5 rounded border border-light shadow-2xs">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <span class="badge bg-success-subtle text-success fs-8">Riyadh HQ</span>
+            <button class="btn btn-link btn-xs p-0 text-decoration-none fs-8" (click)="form().patchValue({location: 'Riyadh', district: 'Al-Olaya', lat: 24.6877, lng: 46.7211})">Use Data</button>
+          </div>
+          <div class="fs-8 text-muted mt-1">
+            <div><strong>City:</strong> Riyadh</div>
+            <div><strong>District:</strong> Al-Olaya</div>
+            <div><strong>Coordinates:</strong> 24.6877, 46.7211</div>
+          </div>
+        </div>
+
+        <div class="bg-white p-2.5 rounded border border-light shadow-2xs">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <span class="badge bg-success-subtle text-success fs-8">Jeddah Hub</span>
+            <button class="btn btn-link btn-xs p-0 text-decoration-none fs-8" (click)="form().patchValue({location: 'Jeddah', district: 'Al-Safa', lat: 21.5794, lng: 39.2014})">Use Data</button>
+          </div>
+          <div class="fs-8 text-muted mt-1">
+            <div><strong>City:</strong> Jeddah</div>
+            <div><strong>District:</strong> Al-Safa</div>
+            <div><strong>Coordinates:</strong> 21.5794, 39.2014</div>
+          </div>
+        </div>
+
+        <div class="bg-white p-2.5 rounded border border-light shadow-2xs">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <span class="badge bg-success-subtle text-success fs-8">Dammam Branch</span>
+            <button class="btn btn-link btn-xs p-0 text-decoration-none fs-8" (click)="form().patchValue({location: 'Dammam', district: 'Al-Khobar', lat: 26.4207, lng: 50.0888})">Use Data</button>
+          </div>
+          <div class="fs-8 text-muted mt-1">
+            <div><strong>City:</strong> Dammam</div>
+            <div><strong>District:</strong> Al-Khobar</div>
+            <div><strong>Coordinates:</strong> 26.4207, 50.0888</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

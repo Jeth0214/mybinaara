@@ -1,0 +1,92 @@
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body p-4">
+    <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">Subscription Assignment</h6>
+    
+    <div class="mb-3">
+      <label class="form-label fs-8 text-muted fw-semibold text-uppercase">Assigned Plan</label>
+      <select
+        class="form-select fw-semibold"
+        [value]="store().subscriptionPlanId"
+        (change)="onPlanChange($event)"
+        [disabled]="store().status === 'pending'"
+      >
+        <option value="basic">Basic (Free Trial)</option>
+        <option value="premium">Premium Merchant</option>
+        <option value="enterprise">Enterprise VIP</option>
+      </select>
+      @if (store().status === 'pending') {
+        <span class="d-block text-muted fs-8 mt-1.5"><i class="bi bi-info-circle me-1.5"></i> Subscription plan assignments are disabled until the store account is activated.</span>
+      }
+    </div>
+
+    <!-- Plan Features Summary -->
+    <div 
+      [class]="'p-3 rounded-2.5 fs-7-5 ' + (store().subscriptionPlanId === 'enterprise' ? 'border' : '')"
+      [style.background-color]="store().subscriptionPlanId === 'enterprise' ? 'rgba(217, 146, 1, 0.08)' : 'var(--bs-light)'"
+      [style.border-color]="store().subscriptionPlanId === 'enterprise' ? 'rgba(217, 146, 1, 0.35)' : 'transparent'"
+    >
+      @if (store().subscriptionPlanId === 'basic') {
+        <div class="text-secondary">
+          <i class="bi bi-info-circle me-2 text-primary me-2"></i> <strong>Basic Plan Features:</strong>
+          <ul class="mb-0 mt-1.5 ps-3 fs-8">
+            <li>Up to 100 catalog listings</li>
+            <li>Standard Saudi logistics assignment</li>
+            <li>Standard portal dashboards</li>
+          </ul>
+        </div>
+      } @else if (store().subscriptionPlanId === 'premium') {
+        <div class="text-success">
+          <i class="bi bi-info-circle text-success me-2"></i> <strong>Premium Plan Features:</strong>
+          <ul class="mb-0 mt-1.5 ps-3 fs-8 text-success-dark">
+            <li>Unlimited catalog products</li>
+            <li>Priority search optimization</li>
+            <li>Advanced business sales analytics</li>
+          </ul>
+        </div>
+      } @else if (store().subscriptionPlanId === 'enterprise') {
+        <div class="text-gold">
+          <i class="bi bi-info-circle text-gold me-2"></i> <strong>Enterprise Plan Features:</strong>
+          <ul class="mb-0 mt-1.5 ps-3 fs-8" style="color: #925f01;">
+            <li>Dedicated account manager & ERP integration</li>
+            <li>Customized branding banner assets</li>
+            <li>Commission-free featured store weeks</li>
+          </ul>
+        </div>
+      }
+    </div>
+
+    <!-- Subscription History Timeline (Premium Visuals) -->
+    @if (store().status === 'pending') {
+      <div class="mt-4 pt-3 border-top text-center text-muted py-2 fs-8">
+        <i class="bi bi-clock-history me-1.5"></i> No subscription history available for pending accounts.
+      </div>
+    } @else if (store().subscriptionHistory && store().subscriptionHistory.length > 0) {
+      <div class="mt-4 pt-3 border-top">
+        <label class="form-label fs-8 text-muted fw-semibold text-uppercase mb-2.5">Subscription History</label>
+        <div class="d-flex flex-column gap-2.5">
+          @for (hist of store().subscriptionHistory; track hist.startDate) {
+            <div class="d-flex align-items-start gap-2.5 fs-8">
+              <i class="bi bi-clock-history text-muted mt-0.5 me-2"></i>
+              <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-center">
+                  <strong class="text-dark text-capitalize">{{ hist.planId }} Plan</strong>
+                  @if (!hist.endDate) {
+                    <span class="badge bg-success-subtle text-success fs-9 py-0.5 px-1.5 rounded-pill">Current</span>
+                  }
+                </div>
+                <span class="text-muted d-block mt-0.5" style="font-size: 0.68rem;">
+                  {{ hist.startDate | date:'mediumDate' }}
+                  @if (hist.endDate) {
+                    to {{ hist.endDate | date:'mediumDate' }}
+                  } @else {
+                    (Active)
+                  }
+                </span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>

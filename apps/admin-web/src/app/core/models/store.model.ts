@@ -1,4 +1,4 @@
-export type StoreStatus = 'pending' | 'active' | 'suspended' | 'rejected';
+export type StoreStatus = 'active' | 'suspended' | 'pending';
 
 export type DocumentType = 'cr' | 'vat' | 'iban';
 export type DocumentStatus = 'pending' | 'approved' | 'rejected';
@@ -21,15 +21,28 @@ export interface Store {
   ownerName: string;
   ownerEmail: string;
   ownerPhone: string; // Starts with +966 or 05
+  ownerWhatsapp: string; // Starts with +966 or 05
   location: string; // Saudi Arabia City
-  category: string;
+  district: string;
+  lat: number;
+  lng: number;
   status: StoreStatus;
+  isActivated: boolean;
+  subscriptionHistory: SubscriptionHistory[];
   subscriptionPlanId: 'basic' | 'premium' | 'enterprise';
   activationLink?: string;
   tempPassword?: string;
+  storeLogo?: string; // URL or Base64 of store image logo
   createdAt: string;
   documents: StoreDocument[];
   rejectionReason?: string;
+  totalProducts: number;
+}
+
+export interface SubscriptionHistory {
+  planId: 'basic' | 'premium' | 'enterprise';
+  startDate: string;
+  endDate?: string;
 }
 
 export interface CategoryOption {

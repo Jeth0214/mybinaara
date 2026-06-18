@@ -41,3 +41,10 @@
 @use './styles/components/stepper';
 
 @import 'bootstrap-icons/font/bootstrap-icons.css';
+
+// Override Angular Material Paginator typography
+.mat-mdc-paginator,
+.mat-mdc-paginator * {
+  font-family: 'Outfit', sans-serif !important;
+}
+

@@ -1,0 +1,108 @@
+<div class="row g-4 mt-2">
+  <div class="col-lg-8 border-end-lg">
+    <form [formGroup]="form()" class="pe-lg-4">
+      <h5 class="fw-semibold mb-3">Step 2: Saudi Arabia Corporate Registration</h5>
+      <p class="text-muted fs-7 mb-4">Please input verified credentials corresponding to the merchant registry records in KSA.</p>
+
+      <div class="mb-3">
+        <label class="form-label fw-medium">Commercial Registration (CR) Number <span class="text-danger">*</span></label>
+        <input
+          type="text"
+          class="form-control font-monospace"
+          placeholder="e.g. 1010XXXXXX"
+          maxlength="10"
+          formControlName="crNumber"
+        />
+        <small class="text-muted fs-8">Must be exactly 10 numeric digits</small>
+        @if (form().get('crNumber')?.touched && form().get('crNumber')?.invalid) {
+          <div class="text-danger fs-8 mt-1">CR Number is required and must be exactly 10 digits.</div>
+        }
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-medium">VAT Registration Number <span class="text-danger">*</span></label>
+        <input
+          type="text"
+          class="form-control font-monospace"
+          placeholder="e.g. 300XXXXXXXXXXXX"
+          maxlength="15"
+          formControlName="vatNumber"
+        />
+        <small class="text-muted fs-8">Must be exactly 15 numeric digits starting with '3'</small>
+        @if (form().get('vatNumber')?.touched && form().get('vatNumber')?.invalid) {
+          <div class="text-danger fs-8 mt-1">VAT Number is required and must be 15 digits starting with '3'.</div>
+        }
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-medium">Corporate Bank Account IBAN <span class="text-danger">*</span></label>
+        <div class="input-group">
+          <span class="input-group-text bg-light font-monospace fw-semibold">SA</span>
+          <input
+            type="text"
+            class="form-control font-monospace"
+            placeholder="22 Digits (e.g. 80000000123456789012)"
+            maxlength="24"
+            formControlName="iban"
+          />
+        </div>
+        <small class="text-muted fs-8">Provide the full Saudi IBAN starting with SA (24 characters total)</small>
+        @if (form().get('iban')?.touched && form().get('iban')?.invalid) {
+          <div class="text-danger fs-8 mt-1">Saudi IBAN is required and must start with SA followed by 22 digits.</div>
+        }
+      </div>
+
+      <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+        <button type="button" class="btn btn-outline-secondary" matStepperPrevious>
+          Previous
+        </button>
+        <button type="button" class="btn btn-success" matStepperNext [disabled]="form().invalid">
+          Next Step
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Side Helper Panel -->
+  <div class="col-lg-4">
+    <div class="card bg-light border-0 p-3 h-100">
+      <h6 class="fw-bold text-dark mb-3"><i class="bi bi-info-circle text-success me-2"></i>Testing Guide</h6>
+      <p class="fs-8 text-muted">Use this valid format mockup registry details to satisfy the strict regex validations.</p>
+      
+      <div class="d-flex flex-column gap-3">
+        <div class="bg-white p-2.5 rounded border border-light shadow-2xs">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="fw-semibold fs-8 text-dark">Commercial Reg (CR)</span>
+            <button class="btn btn-link btn-xs p-0 text-decoration-none fs-8" (click)="form().patchValue({crNumber: '1010348712'})">Fill</button>
+          </div>
+          <div class="d-flex justify-content-between align-items-center font-monospace fs-8 bg-light p-1 rounded mt-1">
+            <span>1010348712</span>
+            <button class="btn btn-xs btn-link p-0 text-muted" (click)="copyToClipboard('1010348712', 'CR Number')"><i class="bi bi-clipboard"></i></button>
+          </div>
+        </div>
+
+        <div class="bg-white p-2.5 rounded border border-light shadow-2xs">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="fw-semibold fs-8 text-dark">VAT Certificate Number</span>
+            <button class="btn btn-link btn-xs p-0 text-decoration-none fs-8" (click)="form().patchValue({vatNumber: '300054321000003'})">Fill</button>
+          </div>
+          <div class="d-flex justify-content-between align-items-center font-monospace fs-8 bg-light p-1 rounded mt-1">
+            <span>300054321000003</span>
+            <button class="btn btn-xs btn-link p-0 text-muted" (click)="copyToClipboard('300054321000003', 'VAT Number')"><i class="bi bi-clipboard"></i></button>
+          </div>
+        </div>
+
+        <div class="bg-white p-2.5 rounded border border-light shadow-2xs">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="fw-semibold fs-8 text-dark">Bank IBAN Letter</span>
+            <button class="btn btn-link btn-xs p-0 text-decoration-none fs-8" (click)="form().patchValue({iban: 'SA5580000000123456789012'})">Fill</button>
+          </div>
+          <div class="d-flex justify-content-between align-items-center font-monospace fs-8 bg-light p-1 rounded mt-1">
+            <span>SA5580000000123456789012</span>
+            <button class="btn btn-xs btn-link p-0 text-muted" (click)="copyToClipboard('SA5580000000123456789012', 'IBAN')"><i class="bi bi-clipboard"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

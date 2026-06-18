@@ -1,6 +1,7 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { CustomerAccount, AdminUser, UserStatus, AdminRole } from '../models/user.model';
 import { Product, Category, Brand, ProductApprovalStatus } from '../models/catalog.model';
+import { MOCK_STORES } from '../data/mock-stores.data';
 
 @Injectable({
   providedIn: 'root'
@@ -124,65 +125,111 @@ export class UserCatalogService {
   }
 
   // ── PRODUCT CATALOG STATE ────────────────────────────────────────────────
-  private readonly _products = signal<Product[]>([
-    {
-      id: 'prod-1',
-      name: 'Heavy Duty PVC Pipe 110mm',
-      storeId: 'store-1',
-      storeName: 'Al-Fozan Building Materials',
-      category: 'Plumbing',
-      brand: 'Saudi Pipes',
-      price: 45.00,
-      sku: 'PL-PVC-110-HD',
-      status: 'pending',
-      description: 'Industrial grade 110mm outer diameter PVC pipe. High pressure resistant, suitable for drainage and waste systems.',
-      image: '/assets/mock-products/pvc_pipe.jpg',
-      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: 'prod-2',
-      name: 'Copper Electrical Wire 4mm 100m',
-      storeId: 'store-3',
-      storeName: 'Desert Sun Electricals',
-      category: 'Electrical',
-      brand: 'Schneider Electric',
-      price: 185.00,
-      sku: 'EL-COP-4-100',
-      status: 'approved',
-      description: 'Single-core copper wiring cable insulated with high-grade PVC. 4mm core diameter, ideal for home and industrial lighting grids.',
-      image: '/assets/mock-products/copper_wire.jpg',
-      createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: 'prod-3',
-      name: 'Premium Waterproof Concrete Mix 20kg',
-      storeId: 'store-2',
-      storeName: 'Riyadh Steel Co.',
-      category: 'Building Materials',
-      brand: 'Riyadh Steel',
-      price: 28.50,
-      sku: 'BM-CONC-WP-20',
-      status: 'pending',
-      description: 'Quick-setting concrete mix enhanced with waterproofing additives. Perfect for foundations, retaining walls, and wet areas.',
-      image: '/assets/mock-products/concrete_mix.jpg',
-      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: 'prod-4',
-      name: 'Industrial Hammer Drill 800W',
-      storeId: 'store-6',
-      storeName: 'Hejaz Hardware Store',
-      category: 'Tools & Hardware',
-      brand: 'Bosch',
-      price: 340.00,
-      sku: 'TL-DRILL-800-HD',
-      status: 'rejected',
-      rejectionReason: 'Invalid SKU format. Brand registration is missing authorization certificate.',
-      description: 'Bosch professional hammer drill with 800W motor. Reversible speed trigger, active vibration control.',
-      image: '/assets/mock-products/hammer_drill.jpg',
-      createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+  private readonly _products = signal<Product[]>(this.generateMockProducts());
+
+  private generateMockProducts(): Product[] {
+    const baseProducts: Product[] = [
+      {
+        id: 'prod-1',
+        name: 'Heavy Duty PVC Pipe 110mm',
+        storeId: 'store-1',
+        storeName: 'Al-Fozan Building Materials',
+        category: 'Plumbing',
+        brand: 'Saudi Pipes',
+        price: 45.00,
+        sku: 'PL-PVC-110-HD',
+        status: 'pending',
+        description: 'Industrial grade 110mm outer diameter PVC pipe. High pressure resistant, suitable for drainage and waste systems.',
+        image: '/assets/mock-products/pvc_pipe.jpg',
+        createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: 'prod-2',
+        name: 'Copper Electrical Wire 4mm 100m',
+        storeId: 'store-1',
+        storeName: 'Al-Fozan Building Materials',
+        category: 'Electrical',
+        brand: 'Schneider Electric',
+        price: 185.00,
+        sku: 'EL-COP-4-100',
+        status: 'approved',
+        description: 'Single-core copper wiring cable insulated with high-grade PVC. 4mm core diameter, ideal for home and industrial lighting grids.',
+        image: '/assets/mock-products/copper_wire.jpg',
+        createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: 'prod-3',
+        name: 'Premium Waterproof Concrete Mix 20kg',
+        storeId: 'store-2',
+        storeName: 'Riyadh Steel Co.',
+        category: 'Building Materials',
+        brand: 'Riyadh Steel',
+        price: 28.50,
+        sku: 'BM-CONC-WP-20',
+        status: 'pending',
+        description: 'Quick-setting concrete mix enhanced with waterproofing additives. Perfect for foundations, retaining walls, and wet areas.',
+        image: '/assets/mock-products/concrete_mix.jpg',
+        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: 'prod-4',
+        name: 'Industrial Hammer Drill 800W',
+        storeId: 'store-5',
+        storeName: 'Najd HVAC Solutions',
+        category: 'Tools & Hardware',
+        brand: 'Bosch',
+        price: 340.00,
+        sku: 'TL-DRILL-800-HD',
+        status: 'rejected',
+        rejectionReason: 'Invalid SKU format. Brand registration is missing authorization certificate.',
+        description: 'Bosch professional hammer drill with 800W motor. Reversible speed trigger, active vibration control.',
+        image: '/assets/mock-products/hammer_drill.jpg',
+        createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+      }
+    ];
+
+    const generated: Product[] = [];
+    const categoriesList = ['Building Materials', 'Cement & Blocks', 'Steel & Metal', 'Doors & Windows', 'Paint & Finishes', 'Electrical', 'Plumbing', 'HVAC & Air Conditioning', 'Wood & Carpentry', 'Roofing', 'Flooring & Tiles', 'Glass & Aluminum', 'Waterproofing', 'Tools & Hardware', 'Equipment & Machinery', 'Safety Supplies', 'Landscaping'];
+    const brandsList = ['Riyadh Steel', 'Schneider Electric', 'Saudi Pipes', 'Bosch', 'Al-Jazeerah Paints', 'SABIC', 'Saudi Ceramics'];
+    const productStatuses = ['pending', 'approved', 'rejected'] as const;
+
+    for (let i = 5; i <= 100; i++) {
+      let storeId = `store-${(i % 100) + 1}`;
+      let store = MOCK_STORES.find(s => s.id === storeId);
+
+      // Reassign to a non-pending store if the selected one is pending
+      if (store && store.status === 'pending') {
+        const nonPending = MOCK_STORES.find(s => s.status !== 'pending' && s.id !== storeId);
+        if (nonPending) {
+          storeId = nonPending.id;
+          store = nonPending;
+        }
+      }
+
+      const storeName = store ? store.name : `Saudi Merchant Supply Co. ${(i % 100) + 1}`;
+      const cat = categoriesList[i % categoriesList.length];
+      const brand = brandsList[i % brandsList.length];
+      const price = Math.floor(15 + Math.random() * 2485);
+      const status = productStatuses[i % productStatuses.length];
+      
+      generated.push({
+        id: `prod-${i}`,
+        name: `Industrial ${cat} Brand ${brand} v${i}`,
+        storeId: storeId,
+        storeName: storeName,
+        category: cat,
+        brand: brand,
+        price: price,
+        sku: `SKU-${cat.substring(0, 3).toUpperCase()}-${i}-${Math.floor(100 + Math.random() * 900)}`,
+        status: status,
+        description: `High-quality industrial grade ${cat} solution under Brand ${brand}. Built to Saudi standards, certified for commercial construction grids.`,
+        image: (i % 6 === 0) ? '' : '/assets/mock-products/product_sample.jpg',
+        createdAt: new Date(Date.now() - (i % 30) * 24 * 60 * 60 * 1000).toISOString()
+      });
     }
-  ]);
+
+    return [...baseProducts, ...generated];
+  }
 
   readonly products = this._products.asReadonly();
   

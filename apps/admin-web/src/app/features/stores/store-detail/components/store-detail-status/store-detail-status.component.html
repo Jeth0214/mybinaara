@@ -1,0 +1,39 @@
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body p-4">
+    <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">Account Status</h6>
+    
+    <div class="d-flex align-items-center gap-3 mb-4">
+      <span [class]="'display-6 status-indicator status-indicator--' + store().status">
+        <i class="bi" [class]="store().status === 'active' ? 'bi-check-circle-fill text-success' : store().status === 'pending' ? 'bi-clock-fill text-warning' : 'bi-slash-circle-fill text-danger'"></i>
+      </span>
+      <div>
+        <h6 class="mb-0 fw-semibold text-capitalize">{{ store().status }} Store</h6>
+        <span class="fs-8 text-muted">Created {{ store().createdAt | date:'short' }}</span>
+      </div>
+    </div>
+
+    <!-- Suspension Alerts -->
+    @if (store().status === 'suspended' && store().rejectionReason) {
+      <div class="alert alert-warning p-2.5 fs-7 mb-4">
+        <div class="fw-bold d-block mb-1 fs-8 text-uppercase">Reason / Status Note</div>
+        {{ store().rejectionReason }}
+      </div>
+    }
+
+    <div class="d-flex flex-column gap-2">
+      @if (store().status === 'active') {
+        <button (click)="suspend.emit()" class="btn btn-outline-danger d-flex align-items-center justify-content-center gap-2 py-2">
+          <i class="bi bi-slash-circle"></i> Suspend Store Account
+        </button>
+      } @else if (store().status === 'pending') {
+        <button (click)="reactivate.emit()" class="btn btn-success d-flex align-items-center justify-content-center gap-2 py-2">
+          <i class="bi bi-check-lg"></i> Activate Store Account
+        </button>
+      } @else {
+        <button (click)="reactivate.emit()" class="btn btn-success d-flex align-items-center justify-content-center gap-2 py-2">
+          <i class="bi bi-check-lg"></i> Reactivate Store Account
+        </button>
+      }
+    </div>
+  </div>
+</div>

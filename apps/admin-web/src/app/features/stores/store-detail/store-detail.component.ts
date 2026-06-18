@@ -6,11 +6,30 @@ import { Subscription } from 'rxjs';
 import { StoreService } from '../../../core/services/store.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { Store, StoreStatus, DocumentType, DocumentStatus } from '../../../core/models/store.model';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { StoreConfirmModalComponent } from '../components/store-confirm-modal/store-confirm-modal.component';
+
+import { StoreDetailProfileComponent } from './components/store-detail-profile/store-detail-profile.component';
+import { StoreDetailDocumentsComponent } from './components/store-detail-documents/store-detail-documents.component';
+import { StoreDetailStatusComponent } from './components/store-detail-status/store-detail-status.component';
+import { StoreDetailSubscriptionComponent } from './components/store-detail-subscription/store-detail-subscription.component';
+import { StoreDetailCredentialsComponent } from './components/store-detail-credentials/store-detail-credentials.component';
+import { StoreDetailProductsComponent } from './components/store-detail-products/store-detail-products.component';
 
 @Component({
   selector: 'app-store-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [
+    CommonModule,
+    RouterLink,
+    FormsModule,
+    StoreDetailProfileComponent,
+    StoreDetailDocumentsComponent,
+    StoreDetailStatusComponent,
+    StoreDetailSubscriptionComponent,
+    StoreDetailCredentialsComponent,
+    StoreDetailProductsComponent
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './store-detail.component.html',
   styleUrl: './store-detail.component.scss'
@@ -19,16 +38,21 @@ export class StoreDetailComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly storeService = inject(StoreService);
   private readonly toast = inject(ToastService);
+  private readonly modalService = inject(NgbModal);
   private sub = new Subscription();
 
   // Route State Signal
   readonly storeId = signal<string | null>(null);
+
+  // Loading Indicator Signal
+  readonly loading = signal(false);
 
   // Selected Tab Signal
   readonly activeTab = signal<'profile' | 'docs'>('profile');
 
   // Modal State Signals
   readonly showSuspendModal = signal(false);
+  readonly selectedSuspensionOption = signal('');
   readonly suspensionReason = signal('');
   readonly showRejectDocModal = signal(false);
   readonly rejectDocType = signal<DocumentType | null>(null);
@@ -74,8 +98,28 @@ export class StoreDetailComponent implements OnInit, OnDestroy {
     const s = this.store();
     if (!s) return;
 
-    this.storeService.verifyDocument(s.id, type, 'approved');
-    this.toast.success(`Document (${type.toUpperCase()}) approved.`);
+    const modalRef = this.modalService.open(StoreConfirmModalComponent, { centered: true });
+    modalRef.componentInstance.title.set('Approve Document');
+    modalRef.componentInstance.message.set(
+      `Are you sure you want to approve the <strong>${type.toUpperCase()}</strong> document for <strong>${s.name}</strong>?`
+    );
+    modalRef.componentInstance.confirmText.set('Approve');
+    modalRef.componentInstance.cancelText.set('Cancel');
+    modalRef.componentInstance.isDanger.set(false);
+
+    modalRef.result.then(
+      (confirmed) => {
+        if (confirmed) {
+          this.loading.set(true);
+          setTimeout(() => {
+            this.storeService.verifyDocument(s.id, type, 'approved');
+            this.toast.success(`Document (${type.toUpperCase()}) approved.`);
+            this.loading.set(false);
+          }, 600);
+        }
+      },
+      () => {}
+    );
   }
 
   openRejectDocModal(type: DocumentType): void {
@@ -100,28 +144,49 @@ export class StoreDetailComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.storeService.verifyDocument(s.id, type, 'rejected', reason);
-    this.toast.warning(`Document (${type.toUpperCase()}) rejected.`);
+    this.loading.set(true);
     this.closeRejectDocModal();
+
+    setTimeout(() => {
+      this.storeService.verifyDocument(s.id, type, 'rejected', reason);
+      this.toast.warning(`Document (${type.toUpperCase()}) rejected.`);
+      this.loading.set(false);
+    }, 600);
   }
 
   activateStore(): void {
     const s = this.store();
     if (!s) return;
 
-    // Check if any documents are pending or rejected
-    const hasUnverifiedDocs = s.documents.some(doc => doc.status !== 'approved');
-    if (hasUnverifiedDocs) {
-      if (!confirm('This store has unapproved documents. Activating it will automatically mark all documents as Approved. Proceed?')) {
-        return;
-      }
-    }
+    const isReactivating = s.status === 'suspended';
+    const actionWord = isReactivating ? 'reactivate' : 'activate';
 
-    this.storeService.updateStoreStatus(s.id, 'active');
-    this.toast.success(`Store "${s.name}" is now active!`);
+    const modalRef = this.modalService.open(StoreConfirmModalComponent, { centered: true });
+    modalRef.componentInstance.title.set(`${isReactivating ? 'Reactivate' : 'Activate'} Store Account`);
+    modalRef.componentInstance.message.set(
+      `Are you sure you want to ${actionWord} the store account <strong>${s.name}</strong>?`
+    );
+    modalRef.componentInstance.confirmText.set(isReactivating ? 'Reactivate' : 'Activate');
+    modalRef.componentInstance.cancelText.set('Cancel');
+    modalRef.componentInstance.isDanger.set(false);
+
+    modalRef.result.then(
+      (confirmed) => {
+        if (confirmed) {
+          this.loading.set(true);
+          setTimeout(() => {
+            this.storeService.updateStoreStatus(s.id, 'active');
+            this.toast.success(`Store "${s.name}" is now active!`);
+            this.loading.set(false);
+          }, 600);
+        }
+      },
+      () => {}
+    );
   }
 
   openSuspendModal(): void {
+    this.selectedSuspensionOption.set('');
     this.suspensionReason.set('');
     this.showSuspendModal.set(true);
   }
@@ -132,40 +197,61 @@ export class StoreDetailComponent implements OnInit, OnDestroy {
 
   submitSuspendStore(): void {
     const s = this.store();
-    const reason = this.suspensionReason().trim();
+    const option = this.selectedSuspensionOption();
+    let reason = '';
+
+    if (option === 'Other') {
+      reason = this.suspensionReason().trim();
+    } else {
+      reason = option;
+    }
 
     if (!s) return;
-    if (!reason) {
-      this.toast.error('Please provide a reason for suspending this store.');
+    if (!option) {
+      this.toast.error('Please select a suspension reason.');
+      return;
+    }
+    if (option === 'Other' && !reason) {
+      this.toast.error('Please specify the reason for suspension.');
       return;
     }
 
-    this.storeService.updateStoreStatus(s.id, 'suspended', reason);
-    this.toast.warning(`Store "${s.name}" is now suspended.`);
+    this.loading.set(true);
     this.closeSuspendModal();
-  }
 
-  rejectStore(): void {
-    const s = this.store();
-    if (!s) return;
-
-    const reason = prompt('Please enter rejection reason for this store:');
-    if (reason === null) return; // cancelled
-    if (!reason.trim()) {
-      this.toast.error('Rejection reason is required.');
-      return;
-    }
-
-    this.storeService.updateStoreStatus(s.id, 'rejected', reason.trim());
-    this.toast.error(`Store "${s.name}" registration rejected.`);
+    setTimeout(() => {
+      this.storeService.updateStoreStatus(s.id, 'suspended', reason);
+      this.toast.warning(`Store "${s.name}" is now suspended.`);
+      this.loading.set(false);
+    }, 600);
   }
 
   changePlan(planId: 'basic' | 'premium' | 'enterprise'): void {
     const s = this.store();
     if (!s) return;
 
-    this.storeService.assignSubscriptionPlan(s.id, planId);
-    this.toast.success(`Subscription plan updated to "${planId.toUpperCase()}".`);
+    const modalRef = this.modalService.open(StoreConfirmModalComponent, { centered: true });
+    modalRef.componentInstance.title.set('Change Subscription Plan');
+    modalRef.componentInstance.message.set(
+      `Are you sure you want to change the subscription plan for <strong>${s.name}</strong> to <strong>${planId.toUpperCase()}</strong>?`
+    );
+    modalRef.componentInstance.confirmText.set('Change Plan');
+    modalRef.componentInstance.cancelText.set('Cancel');
+    modalRef.componentInstance.isDanger.set(false);
+
+    modalRef.result.then(
+      (confirmed) => {
+        if (confirmed) {
+          this.loading.set(true);
+          setTimeout(() => {
+            this.storeService.assignSubscriptionPlan(s.id, planId);
+            this.toast.success(`Subscription plan updated to "${planId.toUpperCase()}".`);
+            this.loading.set(false);
+          }, 600);
+        }
+      },
+      () => {}
+    );
   }
 
   resendCredentials(): void {
