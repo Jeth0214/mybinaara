@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, inject, signal, OnInit } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { MatStepperModule } from '@angular/material/stepper';
 import { StoreService } from '../../../core/services/store.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { SAUDI_CITIES } from '../../../core/models/store.model';
+import { SAUDI_CITIES, StoreDaySchedule } from '../../../core/models/store.model';
 
 import { StoreStepBusinessComponent } from './components/store-step-business/store-step-business.component';
 import { StoreStepRegistryComponent } from './components/store-step-registry/store-step-registry.component';
@@ -67,7 +67,18 @@ export class StoreCreateComponent implements OnInit {
     lat: [null as number | null, [Validators.required, Validators.min(-90), Validators.max(90)]],
     lng: [null as number | null, [Validators.required, Validators.min(-180), Validators.max(180)]],
     storeLogo: ['', Validators.required],
-    isActivated: [false]
+    isActivated: [false],
+    workingHours: this.fb.group(
+      ['sat', 'sun', 'mon', 'tue', 'wed', 'thu', 'fri'].reduce((acc, dayKey) => {
+        const isFri = dayKey === 'fri';
+        acc[dayKey] = this.fb.group({
+          openTime: [{ value: isFri ? '' : '08:00 AM', disabled: isFri }],
+          closeTime: [{ value: isFri ? '' : '09:00 PM', disabled: isFri }],
+          isOff: [isFri]
+        });
+        return acc;
+      }, {} as any)
+    )
   });
 
   // Step 2: Saudi Arabia Registry Info
@@ -109,6 +120,37 @@ export class StoreCreateComponent implements OnInit {
           storeLogo: store.storeLogo || '',
           isActivated: store.isActivated
         });
+
+        const storeSchedule = store.schedule || [
+          { day: 'sat', openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
+          { day: 'sun', openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
+          { day: 'mon', openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
+          { day: 'tue', openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
+          { day: 'wed', openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
+          { day: 'thu', openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
+          { day: 'fri', openTime: '', closeTime: '', isOff: true }
+        ];
+
+        const workingHoursGroup = this.step1Form.get('workingHours') as FormGroup;
+        if (workingHoursGroup) {
+          storeSchedule.forEach(item => {
+            const dayGroup = workingHoursGroup.get(item.day) as FormGroup;
+            if (dayGroup) {
+              dayGroup.patchValue({
+                openTime: item.openTime,
+                closeTime: item.closeTime,
+                isOff: item.isOff
+              });
+              if (item.isOff) {
+                dayGroup.get('openTime')?.disable();
+                dayGroup.get('closeTime')?.disable();
+              } else {
+                dayGroup.get('openTime')?.enable();
+                dayGroup.get('closeTime')?.enable();
+              }
+            }
+          });
+        }
         this.step2Form.patchValue({
           crNumber: store.crNumber,
           vatNumber: store.vatNumber,
@@ -136,6 +178,31 @@ export class StoreCreateComponent implements OnInit {
         this.router.navigate(['/stores']);
       }
     }
+    this.setupWorkingHoursListeners();
+  }
+
+  private setupWorkingHoursListeners(): void {
+    const daysKeys = ['sat', 'sun', 'mon', 'tue', 'wed', 'thu', 'fri'];
+    daysKeys.forEach((dayKey) => {
+      const dayGroup = this.step1Form.get(`workingHours.${dayKey}`) as FormGroup;
+      if (dayGroup) {
+        dayGroup.get('isOff')?.valueChanges.subscribe((isOff: boolean) => {
+          const openCtrl = dayGroup.get('openTime');
+          const closeCtrl = dayGroup.get('closeTime');
+          if (isOff) {
+            openCtrl?.disable();
+            closeCtrl?.disable();
+            openCtrl?.setValue('');
+            closeCtrl?.setValue('');
+          } else {
+            openCtrl?.enable();
+            closeCtrl?.enable();
+            openCtrl?.setValue('08:00 AM');
+            closeCtrl?.setValue('09:00 PM');
+          }
+        });
+      }
+    });
   }
 
   getMapUrl(): SafeResourceUrl | null {
@@ -203,6 +270,14 @@ export class StoreCreateComponent implements OnInit {
     this.loading.set(true);
 
     setTimeout(() => {
+      const workingHoursVal = this.step1Form.getRawValue().workingHours as any;
+      const scheduleArray: StoreDaySchedule[] = Object.keys(workingHoursVal || {}).map(day => ({
+        day: day as any,
+        openTime: workingHoursVal[day]?.openTime || '',
+        closeTime: workingHoursVal[day]?.closeTime || '',
+        isOff: !!workingHoursVal[day]?.isOff
+      }));
+
       const storeData = {
         name: this.step1Form.value.name!,
         location: this.step1Form.value.location!,
@@ -220,7 +295,8 @@ export class StoreCreateComponent implements OnInit {
         ownerName: this.step3Form.value.ownerName!,
         ownerEmail: this.step3Form.value.ownerEmail!,
         ownerPhone: this.step3Form.value.ownerPhone!,
-        ownerWhatsapp: this.step3Form.value.ownerWhatsapp!
+        ownerWhatsapp: this.step3Form.value.ownerWhatsapp!,
+        schedule: scheduleArray
       };
 
       // Attach uploaded mock documents in files model format

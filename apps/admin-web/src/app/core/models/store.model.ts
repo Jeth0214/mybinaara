@@ -37,7 +37,16 @@ export interface Store {
   documents: StoreDocument[];
   rejectionReason?: string;
   totalProducts: number;
+  schedule?: StoreDaySchedule[];
 }
+
+export interface StoreDaySchedule {
+  day: 'sat' | 'sun' | 'mon' | 'tue' | 'wed' | 'thu' | 'fri';
+  openTime: string;
+  closeTime: string;
+  isOff: boolean;
+}
+
 
 export interface SubscriptionHistory {
   planId: 'basic' | 'premium' | 'enterprise';

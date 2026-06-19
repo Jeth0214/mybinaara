@@ -349,6 +349,16 @@ for (let i = 7; i <= 100; i++) {
 
 export const MOCK_STORES: Store[] = [...BASE_MOCK_STORES, ...GENERATED_STORES].map(s => ({ 
   ...s, 
-  totalProducts: s.totalProducts || 0 
+  totalProducts: s.totalProducts || 0,
+  schedule: s.schedule || [
+    { day: 'sat', openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
+    { day: 'sun', openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
+    { day: 'mon', openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
+    { day: 'tue', openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
+    { day: 'wed', openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
+    { day: 'thu', openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
+    { day: 'fri', openTime: '', closeTime: '', isOff: true }
+  ]
 }));
+
 

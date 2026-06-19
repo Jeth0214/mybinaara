@@ -23,3 +23,4 @@ export class StoreDetailProfileComponent {
     return `https://wa.me/${cleanNumber}`;
   }
 }
+

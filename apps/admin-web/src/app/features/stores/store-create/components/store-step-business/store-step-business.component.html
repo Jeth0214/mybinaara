@@ -19,9 +19,17 @@
       <div class="mb-3">
         <label class="form-label fw-semibold text-dark mb-2">Store Logo Image <span class="text-danger">*</span></label>
         
-        @if (form().get('storeLogo')?.value; as logoData) {
+        @if (logoUploading()) {
+          <!-- Logo Uploading Indicator -->
+          <div class="d-flex align-items-center gap-3 p-4 border border-dashed rounded-3 bg-white justify-content-center">
+            <div class="spinner-border text-success" role="status" style="width: 1.5rem; height: 1.5rem;">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <span class="text-success fw-semibold fs-7.5">Uploading logo...</span>
+          </div>
+        } @else if (form().get('storeLogo')?.value; as logoData) {
           <!-- Image Upload Preview & Edit -->
-          <div class="d-flex align-items-center gap-3 p-3 border rounded-3 bg-light bg-opacity-25">
+          <div class="d-flex align-items-center gap-3 p-3 bg-white border rounded-3">
             <div class="avatar avatar--circle overflow-hidden border border-success border-opacity-50 bg-white d-flex align-items-center justify-content-center" style="width: 64px; height: 64px; flex-shrink: 0; box-shadow: var(--shadow-2xs);">
               <img [src]="logoData" alt="Store Logo Preview" style="width: 100%; height: 100%; object-fit: cover;" />
             </div>
@@ -42,8 +50,7 @@
         } @else {
           <!-- Drop/Click Upload Zone -->
           <div 
-            class="border border-dashed rounded-3 p-4 text-center cursor-pointer hover-bg-light"
-            style="background: #fafbfa; transition: all 0.2s;"
+            class="border border-dashed rounded-3 p-4 text-center cursor-pointer bg-white hover-bg-light"
             (click)="logoFileInput.click()"
           >
             <input 
@@ -55,7 +62,7 @@
             />
             <i class="bi bi-cloud-arrow-up text-success display-6 mb-2 d-block opacity-75"></i>
             <span class="d-block fw-semibold text-dark fs-7.5">Click to upload Store Logo</span>
-            <span class="text-muted fs-8 mt-1 d-block">Supported: PNG, JPG, JPEG, WEBP. Max size: 2MB. Min: 200x200px (Square ratio preferred)</span>
+            <span class="text-muted fs-8-5 mt-1 d-block">Supported: PNG, JPG, JPEG, WEBP. Max size: 2MB. Min: 200x200px (Square ratio preferred)</span>
           </div>
         }
         
@@ -154,6 +161,69 @@
             <span>Enter valid Latitude & Longitude to load the map preview</span>
           </div>
         }
+      </div>
+
+      <!-- Working Hours Section -->
+      <div class="card p-4 border shadow-sm mb-4 mt-4 bg-white">
+        <div class="card-header-block mb-3">
+          <h6 class="fw-bold text-dark mb-1">Working Hours (Schedule)</h6>
+          <p class="text-muted mb-0 fs-8">Friday is pre-set as the weekly day off per Saudi working week</p>
+        </div>
+
+        <div formGroupName="workingHours" class="working-hours-grid">
+          @for (day of days; track day.key) {
+            <div [formGroupName]="day.key" class="day-schedule-row d-flex align-items-center py-2 border-bottom">
+              
+              <!-- Day Label -->
+              <div class="day-label fw-semibold text-dark" style="width: 80px;" [class.text-warning]="day.key === 'fri'">
+                {{ day.label }}
+              </div>
+              
+              <!-- Start Time -->
+              <div class="time-input-cell flex-grow-1 mx-2">
+                <select
+                  formControlName="openTime"
+                  class="form-select fs-7"
+                  style="height: 38px;"
+                >
+                  <option value="">Closed / Off</option>
+                  @for (time of timeSlots; track time) {
+                    <option [value]="time">{{ time }}</option>
+                  }
+                </select>
+              </div>
+              
+              <!-- End Time -->
+              <div class="time-input-cell flex-grow-1 mx-2">
+                <select
+                  formControlName="closeTime"
+                  class="form-select fs-7"
+                  style="height: 38px;"
+                >
+                  <option value="">Closed / Off</option>
+                  @for (time of timeSlots; track time) {
+                    <option [value]="time">{{ time }}</option>
+                  }
+                </select>
+              </div>
+              
+              <!-- Off Checkbox -->
+              <div class="form-check ms-3 mb-0 d-flex align-items-center">
+                <input 
+                  class="form-check-input" 
+                  type="checkbox" 
+                  formControlName="isOff" 
+                  [id]="'isOff-' + day.key"
+                  style="cursor: pointer; width: 1.15rem; height: 1.15rem;"
+                />
+                <label class="form-check-label small fw-semibold text-muted ms-2 d-none d-md-block mb-0" [for]="'isOff-' + day.key" style="cursor: pointer;">
+                  Off
+                </label>
+              </div>
+
+            </div>
+          }
+        </div>
       </div>
 
       @if (isEditMode() && isPendingAccount()) {
