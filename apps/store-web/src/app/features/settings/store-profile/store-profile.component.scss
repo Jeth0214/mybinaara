@@ -32,12 +32,12 @@
 
   &:hover {
     color: var(--brand-green);
-    background-color: rgba(45, 122, 79, 0.04);
+    background-color: #e2f0e6;
   }
 
   &.active {
-    background-color: #e2f0e6; // very light green
-    color: var(--brand-green);
+    background-color: var(--brand-green); // very light green
+    color: #e2f0e6;
     font-weight: 600;
   }
 }
