@@ -1,6 +1,6 @@
 [build]
   base = "apps/admin-web"
-  publish = "dist/admin-web"
+  publish = "dist/admin-web/browser"
   command = "npm run build -- --configuration production"
 
 [build.environment]
@@ -10,5 +10,6 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
 
 
