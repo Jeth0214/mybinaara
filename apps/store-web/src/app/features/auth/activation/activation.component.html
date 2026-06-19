@@ -112,7 +112,7 @@
               </div>
             </div>
 
-            <div class="field" [class.has-error]="step2Form.get('newPassword')?.invalid && step2Form.get('newPassword')?.touched">
+            <div class="field" [class.has-error]="(step2Form.get('newPassword')?.invalid || step2Form.hasError('sameAsTemporary')) && step2Form.get('newPassword')?.touched">
               <label for="newPassword">New Password</label>
               <div class="input-wrap">
                 <i class="bi bi-key"></i>
@@ -136,6 +136,8 @@
                 <p class="field-error">Password cannot be empty.</p>
               } @else if (step2Form.get('newPassword')?.hasError('minlength') && step2Form.get('newPassword')?.touched) {
                 <p class="field-error">Password must be at least 8 characters long.</p>
+              } @else if (step2Form.hasError('sameAsTemporary') && step2Form.get('newPassword')?.touched) {
+                <p class="field-error">New password cannot be the same as your temporary password.</p>
               }
             </div>
 
@@ -244,6 +246,57 @@
           <strong>Already activated?</strong>
           <a href="/login" class="login-link"> Sign in to your store portal</a> instead.
         </p>
+      </div>
+
+      <!-- Credentials Helper Panel -->
+      <div class="credentials-helper-card mt-4 p-3 rounded border bg-light-subtle">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <i class="bi bi-key-fill text-success"></i>
+          <span class="fw-bold text-dark small">Mock Activation Credentials</span>
+        </div>
+        <div class="credentials-list small">
+          <div class="credentials-item d-flex justify-content-between align-items-center py-1.5 border-bottom border-light-subtle">
+            <span class="text-muted">Pending Email:</span>
+            <div class="d-flex align-items-center gap-2">
+              <code class="text-success fw-semibold bg-light px-2 py-0.5 rounded" style="font-size: 0.8rem;">pending@example.com</code>
+              <button type="button" class="btn btn-sm btn-link p-0 text-success animate__animated" (click)="copyText('pending@example.com', 'pendingEmail')" title="Copy Email">
+                <i class="bi" [class.bi-clipboard]="copiedType() !== 'pendingEmail'" [class.bi-clipboard-check-fill]="copiedType() === 'pendingEmail'"></i>
+              </button>
+            </div>
+          </div>
+          <div class="credentials-item d-flex justify-content-between align-items-center py-1.5 border-bottom border-light-subtle">
+            <span class="text-muted">Pending Phone:</span>
+            <div class="d-flex align-items-center gap-2">
+              <code class="text-success fw-semibold bg-light px-2 py-0.5 rounded" style="font-size: 0.8rem;">+966559876543</code>
+              <button type="button" class="btn btn-sm btn-link p-0 text-success animate__animated" (click)="copyText('+966559876543', 'pendingPhone')" title="Copy Phone">
+                <i class="bi" [class.bi-clipboard]="copiedType() !== 'pendingPhone'" [class.bi-clipboard-check-fill]="copiedType() === 'pendingPhone'"></i>
+              </button>
+            </div>
+          </div>
+          <div class="credentials-item d-flex justify-content-between align-items-center py-1.5 border-bottom border-light-subtle">
+            <span class="text-muted">Temp Password:</span>
+            <div class="d-flex align-items-center gap-2">
+              <code class="text-success fw-semibold bg-light px-2 py-0.5 rounded" style="font-size: 0.8rem;">TempPass123!</code>
+              <button type="button" class="btn btn-sm btn-link p-0 text-success animate__animated" (click)="copyText('TempPass123!', 'tempPassword')" title="Copy Temp Password">
+                <i class="bi" [class.bi-clipboard]="copiedType() !== 'tempPassword'" [class.bi-clipboard-check-fill]="copiedType() === 'tempPassword'"></i>
+              </button>
+            </div>
+          </div>
+          <div class="credentials-item d-flex justify-content-between align-items-center py-1.5">
+            <span class="text-muted">OTP Code:</span>
+            <div class="d-flex align-items-center gap-2">
+              <code class="text-success fw-semibold bg-light px-2 py-0.5 rounded" style="font-size: 0.8rem;">123456</code>
+              <button type="button" class="btn btn-sm btn-link p-0 text-success animate__animated" (click)="copyText('123456', 'otpCode')" title="Copy OTP">
+                <i class="bi" [class.bi-clipboard]="copiedType() !== 'otpCode'" [class.bi-clipboard-check-fill]="copiedType() === 'otpCode'"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        @if (copiedType()) {
+          <div class="text-success text-center small mt-2 fw-semibold animate__animated animate__fadeIn">
+            Copied!
+          </div>
+        }
       </div>
 
       <!-- Footer -->

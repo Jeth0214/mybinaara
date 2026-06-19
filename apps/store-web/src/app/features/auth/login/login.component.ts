@@ -21,12 +21,20 @@ export class LoginComponent implements OnInit, OnDestroy {
   loading = signal(false);
   passwordVisible = signal(false);
   errorMsg = signal<string | null>(null);
+  copiedType = signal<string | null>(null);
 
   form = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required]],
     remember: [false],
   });
+
+  copyText(text: string, type: string): void {
+    navigator.clipboard.writeText(text).then(() => {
+      this.copiedType.set(type);
+      setTimeout(() => this.copiedType.set(null), 1500);
+    });
+  }
 
   ngOnInit(): void {
     // Redirect if already authenticated
