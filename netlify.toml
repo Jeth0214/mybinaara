@@ -1,7 +1,8 @@
 [build]
   base = "apps/admin-web"
-  publish = "dist/admin-web/browser"
+  publish = "dist/admin-web"
   command = "npm run build -- --configuration production"
 
 [build.environment]
   NODE_VERSION = "22"
+
