@@ -27,6 +27,13 @@
             <div class="d-flex align-items-center gap-2">
               <h4 class="fw-bold mb-0">{{ s.name }}</h4>
               <span [class]="'status-badge status-badge--' + s.status">{{ s.status }}</span>
+              <span class="badge d-inline-flex align-items-center gap-1.5 py-2 px-2.5 rounded-pill fs-8 " 
+                    [ngClass]="todaySchedule().isOpen ? 'bg-success bg-opacity-10 text-success' : 'bg-danger bg-opacity-10 text-danger '">
+                <span class="status-dot d-inline-block rounded-circle me-1" 
+                      [ngClass]="todaySchedule().isOpen ? 'bg-success' : 'bg-danger'"
+                      style="width: 7px; height: 7px;"></span>
+                {{ todaySchedule().text }}
+              </span>
             </div>
             <p class="text-muted mb-0 mt-1 fs-7">
               <i class="bi bi-geo-alt"></i> {{ s.location }}@if (s.district) { ({{ s.district }}) }, Saudi Arabia &nbsp;•&nbsp;
@@ -117,6 +124,9 @@
 
     <!-- Store Products Catalog Section (100% Width) -->
     <app-store-detail-products [store]="s" />
+
+    <!-- Store Working Hours & Schedule Section (100% Width) -->
+    <app-store-detail-schedule [store]="s" />
 
     <!-- MODAL OVERLAYS (Signal Controlled) -->
     

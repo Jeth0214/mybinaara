@@ -15,6 +15,7 @@ import { StoreDetailStatusComponent } from './components/store-detail-status/sto
 import { StoreDetailSubscriptionComponent } from './components/store-detail-subscription/store-detail-subscription.component';
 import { StoreDetailCredentialsComponent } from './components/store-detail-credentials/store-detail-credentials.component';
 import { StoreDetailProductsComponent } from './components/store-detail-products/store-detail-products.component';
+import { StoreDetailScheduleComponent } from './components/store-detail-schedule/store-detail-schedule.component';
 
 @Component({
   selector: 'app-store-detail',
@@ -28,7 +29,8 @@ import { StoreDetailProductsComponent } from './components/store-detail-products
     StoreDetailStatusComponent,
     StoreDetailSubscriptionComponent,
     StoreDetailCredentialsComponent,
-    StoreDetailProductsComponent
+    StoreDetailProductsComponent,
+    StoreDetailScheduleComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './store-detail.component.html',
@@ -73,6 +75,29 @@ export class StoreDetailComponent implements OnInit, OnDestroy {
     const type = this.selectedDocType();
     return s?.documents.find(d => d.type === type) || null;
   });
+
+  // Computed Today's Schedule for the header badge
+  readonly todaySchedule = computed(() => {
+    const s = this.store();
+    if (!s || !s.schedule) {
+      return { isOpen: false, text: 'Closed (Schedule not configured)' };
+    }
+
+    const daysMap: Array<'sun' | 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat'> = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+    const currentDayIndex = new Date().getDay();
+    const dayKey = daysMap[currentDayIndex];
+    const daySched = s.schedule.find(item => item.day === dayKey);
+
+    if (!daySched || daySched.isOff) {
+      return { isOpen: false, text: 'Closed Today' };
+    }
+
+    return {
+      isOpen: true,
+      text: `Open Today: ${daySched.openTime} - ${daySched.closeTime}`
+    };
+  });
+
 
   ngOnInit(): void {
     this.sub.add(
