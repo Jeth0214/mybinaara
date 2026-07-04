@@ -6,7 +6,6 @@ const BASE_MOCK_STORES: any[] = [
     name: 'Al-Fozan Building Materials',
     crNumber: '1010348712',
     vatNumber: '300054321000003',
-    iban: 'SA5580000000123456789012',
     ownerName: 'Mohammed Al-Fozan',
     ownerEmail: 'mohammed@fozan.com.sa',
     ownerPhone: '+966505123456',
@@ -26,22 +25,11 @@ const BASE_MOCK_STORES: any[] = [
     documents: [
       {
         type: 'cr',
-        fileName: 'commercial_registration.pdf',
-        fileUrl: '/assets/mock-docs/cr_fozan.pdf',
         status: 'approved',
         uploadedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
       },
       {
         type: 'vat',
-        fileName: 'vat_certificate.pdf',
-        fileUrl: '/assets/mock-docs/vat_fozan.pdf',
-        status: 'approved',
-        uploadedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
-      },
-      {
-        type: 'iban',
-        fileName: 'iban_letter.pdf',
-        fileUrl: '/assets/mock-docs/iban_fozan.pdf',
         status: 'approved',
         uploadedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
       }
@@ -52,7 +40,6 @@ const BASE_MOCK_STORES: any[] = [
     name: 'Riyadh Steel Co.',
     crNumber: '1010892341',
     vatNumber: '310243210900003',
-    iban: 'SA4540000000987654321098',
     ownerName: 'Abdulrahman Al-Sudairy',
     ownerEmail: 'sudairy@riyadhsteel.sa',
     ownerPhone: '+966541223344',
@@ -72,22 +59,11 @@ const BASE_MOCK_STORES: any[] = [
     documents: [
       {
         type: 'cr',
-        fileName: 'cr_riyadh_steel.pdf',
-        fileUrl: '/assets/mock-docs/cr_steel.pdf',
         status: 'approved',
         uploadedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString()
       },
       {
         type: 'vat',
-        fileName: 'vat_cert_steel.pdf',
-        fileUrl: '/assets/mock-docs/vat_steel.pdf',
-        status: 'approved',
-        uploadedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString()
-      },
-      {
-        type: 'iban',
-        fileName: 'iban_bank_letter.pdf',
-        fileUrl: '/assets/mock-docs/iban_steel.pdf',
         status: 'approved',
         uploadedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString()
       }
@@ -98,7 +74,6 @@ const BASE_MOCK_STORES: any[] = [
     name: 'Desert Sun Electricals',
     crNumber: '4030129843',
     vatNumber: '300998877600003',
-    iban: 'SA2010000000112233445566',
     ownerName: 'Khalid Masoud',
     ownerEmail: 'khalid@desertsun.com',
     ownerPhone: '+966567890123',
@@ -120,22 +95,11 @@ const BASE_MOCK_STORES: any[] = [
     documents: [
       {
         type: 'cr',
-        fileName: 'cr_desert_sun.pdf',
-        fileUrl: '/assets/mock-docs/cr_desert_sun.pdf',
         status: 'approved',
         uploadedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
       },
       {
         type: 'vat',
-        fileName: 'vat_cert_desert_sun.pdf',
-        fileUrl: '/assets/mock-docs/vat_desert_sun.pdf',
-        status: 'approved',
-        uploadedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-      },
-      {
-        type: 'iban',
-        fileName: 'iban_desert_sun.pdf',
-        fileUrl: '/assets/mock-docs/iban_desert_sun.pdf',
         status: 'approved',
         uploadedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
       }
@@ -146,7 +110,6 @@ const BASE_MOCK_STORES: any[] = [
     name: 'Red Sea Plumbing & Piping',
     crNumber: '4030654321',
     vatNumber: '302055667700003',
-    iban: 'SA8805000000443322110099',
     ownerName: 'Yousef Al-Harbi',
     ownerEmail: 'yousef@redseapipes.sa',
     ownerPhone: '+966555666777',
@@ -165,22 +128,11 @@ const BASE_MOCK_STORES: any[] = [
     documents: [
       {
         type: 'cr',
-        fileName: 'cr_red_sea.pdf',
-        fileUrl: '/assets/mock-docs/cr_red_sea.pdf',
         status: 'approved',
         uploadedAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString()
       },
       {
         type: 'vat',
-        fileName: 'vat_red_sea.pdf',
-        fileUrl: '/assets/mock-docs/vat_red_sea.pdf',
-        status: 'approved',
-        uploadedAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString()
-      },
-      {
-        type: 'iban',
-        fileName: 'iban_red_sea.pdf',
-        fileUrl: '/assets/mock-docs/iban_red_sea.pdf',
         status: 'approved',
         uploadedAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString()
       }
@@ -191,7 +143,6 @@ const BASE_MOCK_STORES: any[] = [
     name: 'Najd HVAC Solutions',
     crNumber: '1010998877',
     vatNumber: '304099887700003',
-    iban: 'SA1230000000778899001122',
     ownerName: 'Fahad Al-Otaibi',
     ownerEmail: 'fahad@najdhvac.sa',
     ownerPhone: '+966533444555',
@@ -212,22 +163,11 @@ const BASE_MOCK_STORES: any[] = [
     documents: [
       {
         type: 'cr',
-        fileName: 'cr_najd.pdf',
-        fileUrl: '/assets/mock-docs/cr_najd.pdf',
         status: 'approved',
         uploadedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
       },
       {
         type: 'vat',
-        fileName: 'vat_najd.pdf',
-        fileUrl: '/assets/mock-docs/vat_najd.pdf',
-        status: 'approved',
-        uploadedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
-      },
-      {
-        type: 'iban',
-        fileName: 'iban_najd.pdf',
-        fileUrl: '/assets/mock-docs/iban_najd.pdf',
         status: 'approved',
         uploadedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
       }
@@ -238,7 +178,6 @@ const BASE_MOCK_STORES: any[] = [
     name: 'Hejaz Hardware Store',
     crNumber: '4031223344',
     vatNumber: '301122334400003',
-    iban: 'SA9245000000223344556677',
     ownerName: 'Ali bin Laden',
     ownerEmail: 'ali@hejaztools.com',
     ownerPhone: '+966598765432',
@@ -257,22 +196,11 @@ const BASE_MOCK_STORES: any[] = [
     documents: [
       {
         type: 'cr',
-        fileName: 'cr_hejaz.pdf',
-        fileUrl: '/assets/mock-docs/cr_hejaz.pdf',
         status: 'approved',
         uploadedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
       },
       {
         type: 'vat',
-        fileName: 'vat_cert_hejaz.pdf',
-        fileUrl: '/assets/mock-docs/vat_cert_hejaz.pdf',
-        status: 'approved',
-        uploadedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
-      },
-      {
-        type: 'iban',
-        fileName: 'iban_letter.pdf',
-        fileUrl: '/assets/mock-docs/iban_letter.pdf',
         status: 'approved',
         uploadedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
       }
@@ -281,7 +209,7 @@ const BASE_MOCK_STORES: any[] = [
 ];
 
 // Generate 94 more stores to reach exactly 100 stores
-const GENERATED_STORES: Store[] = [];
+const GENERATED_STORES: any[] = [];
 const cities = ['Riyadh', 'Jeddah', 'Dammam', 'Mecca', 'Medina', 'Khobar', 'Jubail', 'Tabuk', 'Abha', 'Buraidah'];
 const plans = ['basic', 'premium', 'enterprise'] as const;
 const statuses = ['active', 'suspended', 'pending'] as const;
@@ -299,7 +227,6 @@ for (let i = 7; i <= 100; i++) {
     name: `Saudi Merchant Supply Co. ${i}`,
     crNumber: `1010${Math.floor(100000 + Math.random() * 900000)}`,
     vatNumber: `3000${Math.floor(100000000 + Math.random() * 900000000)}00003`,
-    iban: `SA${Math.floor(10 + Math.random() * 89)}80000000${Math.floor(1000000000 + Math.random() * 9000000000)}`,
     ownerName: `Abdulrahman Al-Qahtani ${i}`,
     ownerEmail: `vendor${i}@saudisupply.sa`,
     ownerPhone: `+96650${Math.floor(1000000 + Math.random() * 9000000)}`,
@@ -324,22 +251,11 @@ for (let i = 7; i <= 100; i++) {
     documents: [
       {
         type: 'cr',
-        fileName: `cr_supply_${i}.pdf`,
-        fileUrl: `/assets/mock-docs/cr_sample.pdf`,
         status: 'approved',
         uploadedAt: new Date(Date.now() - (i % 60) * 24 * 60 * 60 * 1000).toISOString()
       },
       {
         type: 'vat',
-        fileName: `vat_supply_${i}.pdf`,
-        fileUrl: `/assets/mock-docs/vat_sample.pdf`,
-        status: 'approved',
-        uploadedAt: new Date(Date.now() - (i % 60) * 24 * 60 * 60 * 1000).toISOString()
-      },
-      {
-        type: 'iban',
-        fileName: `iban_supply_${i}.pdf`,
-        fileUrl: `/assets/mock-docs/iban_sample.pdf`,
         status: 'approved',
         uploadedAt: new Date(Date.now() - (i % 60) * 24 * 60 * 60 * 1000).toISOString()
       }
@@ -347,18 +263,42 @@ for (let i = 7; i <= 100; i++) {
   });
 }
 
-export const MOCK_STORES: Store[] = [...BASE_MOCK_STORES, ...GENERATED_STORES].map(s => ({ 
-  ...s, 
-  totalProducts: s.totalProducts || 0,
-  schedule: s.schedule || [
-    { day: 'sat', openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
-    { day: 'sun', openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
-    { day: 'mon', openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
-    { day: 'tue', openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
-    { day: 'wed', openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
-    { day: 'thu', openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
-    { day: 'fri', openTime: '', closeTime: '', isOff: true }
-  ]
-}));
+export const MOCK_STORES: Store[] = [...BASE_MOCK_STORES, ...GENERATED_STORES].map(s => {
+  const buildingNumber = '1234';
+  const streetName = s.streetAddress || 'Main Street';
+  const district = s.district || '';
+  const city = s.location || '';
+  const postalCode = '12345';
+  const additionalNumber = '9123';
+  const country = 'Saudi Arabia';
+  const fullAddress = `${buildingNumber} ${streetName},\n${district ? district + ',\n' : ''}${city} ${postalCode} - ${additionalNumber},\n${country}`;
 
+  const loc = {
+    fullAddress,
+    buildingNumber,
+    streetName,
+    district,
+    city,
+    postalCode,
+    additionalNumber,
+    country,
+    latitude: Number(s.lat || 0),
+    longitude: Number(s.lng || 0),
+    plusCode: ''
+  };
 
+  return {
+    ...s,
+    location: loc,
+    totalProducts: s.totalProducts || 0,
+    schedule: s.schedule || [
+      { day: 'sat', openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
+      { day: 'sun', openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
+      { day: 'mon', openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
+      { day: 'tue', openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
+      { day: 'wed', openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
+      { day: 'thu', openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
+      { day: 'fri', openTime: '', closeTime: '', isOff: true }
+    ]
+  };
+});

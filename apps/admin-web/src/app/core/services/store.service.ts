@@ -69,22 +69,11 @@ export class StoreService {
     const documents: StoreDocument[] = storeData.documents || [
       {
         type: 'cr',
-        fileName: `cr_${storeData.name?.toLowerCase().replace(/\s+/g, '_')}.pdf`,
-        fileUrl: '/assets/mock-docs/cr_sample.pdf',
         status: 'approved',
         uploadedAt: new Date().toISOString()
       },
       {
         type: 'vat',
-        fileName: `vat_${storeData.name?.toLowerCase().replace(/\s+/g, '_')}.pdf`,
-        fileUrl: '/assets/mock-docs/vat_sample.pdf',
-        status: 'approved',
-        uploadedAt: new Date().toISOString()
-      },
-      {
-        type: 'iban',
-        fileName: `iban_${storeData.name?.toLowerCase().replace(/\s+/g, '_')}.pdf`,
-        fileUrl: '/assets/mock-docs/iban_sample.pdf',
         status: 'approved',
         uploadedAt: new Date().toISOString()
       }
@@ -95,15 +84,22 @@ export class StoreService {
       name: storeData.name || 'Unnamed Store',
       crNumber: storeData.crNumber || '',
       vatNumber: storeData.vatNumber || '',
-      iban: storeData.iban || '',
       ownerName: storeData.ownerName || '',
       ownerEmail: storeData.ownerEmail || '',
       ownerPhone: storeData.ownerPhone || '',
       ownerWhatsapp: storeData.ownerWhatsapp || '',
-      location: storeData.location || 'Riyadh',
-      district: storeData.district || '',
-      lat: storeData.lat || 0,
-      lng: storeData.lng || 0,
+      location: storeData.location || {
+        country: 'Saudi Arabia',
+        city: 'Riyadh',
+        district: '',
+        buildingNumber: '1234',
+        streetName: 'Main Street',
+        postalCode: '12345',
+        additionalNumber: '9123',
+        fullAddress: '1234 Main Street,\nRiyadh 12345 - 9123,\nSaudi Arabia',
+        latitude: 24.7136,
+        longitude: 46.6753
+      },
       status: 'pending',
       isActivated: false,
       subscriptionPlanId: 'basic',

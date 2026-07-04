@@ -58,7 +58,6 @@ import { CustomerAccount, UserStatus } from '../../../core/models/user.model';
               <input
                 type="text"
                 class="form-control border-start-0 ps-2"
-                placeholder="Search name, email, company..."
                 [ngModel]="searchQuery()"
                 (ngModelChange)="searchQuery.set($event)"
               />

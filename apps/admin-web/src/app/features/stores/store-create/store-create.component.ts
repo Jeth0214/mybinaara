@@ -5,12 +5,11 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { MatStepperModule } from '@angular/material/stepper';
 import { StoreService } from '../../../core/services/store.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { SAUDI_CITIES, StoreDaySchedule } from '../../../core/models/store.model';
+import { StoreDaySchedule } from '../../../core/models/store.model';
 
 import { StoreStepBusinessComponent } from './components/store-step-business/store-step-business.component';
+import { StoreStepLocationScheduleComponent } from './components/store-step-location-schedule/store-step-location-schedule.component';
 import { StoreStepRegistryComponent } from './components/store-step-registry/store-step-registry.component';
-import { StoreStepContactsComponent } from './components/store-step-contacts/store-step-contacts.component';
-import { StoreStepDocumentsComponent } from './components/store-step-documents/store-step-documents.component';
 import { StoreStepReviewComponent } from './components/store-step-review/store-step-review.component';
 
 @Component({
@@ -20,9 +19,8 @@ import { StoreStepReviewComponent } from './components/store-step-review/store-s
     RouterLink, 
     MatStepperModule,
     StoreStepBusinessComponent,
+    StoreStepLocationScheduleComponent,
     StoreStepRegistryComponent,
-    StoreStepContactsComponent,
-    StoreStepDocumentsComponent,
     StoreStepReviewComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -37,19 +35,12 @@ export class StoreCreateComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly sanitizer = inject(DomSanitizer);
 
-  readonly cities = SAUDI_CITIES;
-
   // Wizard Navigation Step Tracking (for non-stepper logic/credentials)
   readonly currentStepIndex = signal(0);
 
   // Edit Mode Signals
   readonly isEditMode = signal(false);
   readonly storeId = signal<string | null>(null);
-
-  // Document File Upload Tracking Signals
-  readonly crFile = signal<string | null>(null);
-  readonly vatFile = signal<string | null>(null);
-  readonly ibanFile = signal<string | null>(null);
 
   // Generated Credentials Signals
   readonly tempPassword = signal('');
@@ -59,15 +50,31 @@ export class StoreCreateComponent implements OnInit {
   readonly isPendingAccount = signal(false);
   readonly loading = signal(false);
 
-  // Step 1: Location & Business (Removed Category)
+  // Step 1: Business Info (Branding & Owners)
   readonly step1Form = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(3)]],
-    location: ['', Validators.required],
-    district: ['', [Validators.required, Validators.minLength(3)]],
-    lat: [null as number | null, [Validators.required, Validators.min(-90), Validators.max(90)]],
-    lng: [null as number | null, [Validators.required, Validators.min(-180), Validators.max(180)]],
     storeLogo: ['', Validators.required],
     isActivated: [false],
+    ownerName: ['', [Validators.required, Validators.minLength(3)]],
+    ownerEmail: ['', [Validators.required, Validators.email]],
+    ownerPhone: ['', [Validators.required, Validators.pattern('^(?:\\+966|0)?5[0-9]{8}$')]],
+    ownerWhatsapp: ['', [Validators.required, Validators.pattern('^(?:\\+966|0)?5[0-9]{8}$')]]
+  });
+  // Step 2: Location and Schedule (Operational parameters)
+  readonly step2Form = this.fb.group({
+    location: this.fb.group({
+      country: ['Saudi Arabia', Validators.required],
+      city: ['', Validators.required],
+      district: [{ value: '', disabled: true }, Validators.required],
+      building_number: [''],
+      street_name: [''],
+      postal_code: [''],
+      additional_number: [''],
+      fullAddress: ['', Validators.required],
+      latitude: [null as number | null, [Validators.min(-90), Validators.max(90)]],
+      longitude: [null as number | null, [Validators.min(-180), Validators.max(180)]],
+      plus_code: ['']
+    }),
     workingHours: this.fb.group(
       ['sat', 'sun', 'mon', 'tue', 'wed', 'thu', 'fri'].reduce((acc, dayKey) => {
         const isFri = dayKey === 'fri';
@@ -81,26 +88,10 @@ export class StoreCreateComponent implements OnInit {
     )
   });
 
-  // Step 2: Saudi Arabia Registry Info
-  readonly step2Form = this.fb.group({
-    crNumber: ['', [Validators.required, Validators.pattern('^[0-9]{10}$')]],
-    vatNumber: ['', [Validators.required, Validators.pattern('^3[0-9]{14}$')]],
-    iban: ['', [Validators.required, Validators.pattern('^SA[0-9]{22}$')]]
-  });
-
-  // Step 3: Contact Details
+  // Step 3: Saudi Registry
   readonly step3Form = this.fb.group({
-    ownerName: ['', [Validators.required, Validators.minLength(3)]],
-    ownerEmail: ['', [Validators.required, Validators.email]],
-    ownerPhone: ['', [Validators.required, Validators.pattern('^(?:\\+966|0)?5[0-9]{8}$')]],
-    ownerWhatsapp: ['', [Validators.required, Validators.pattern('^(?:\\+966|0)?5[0-9]{8}$')]]
-  });
-
-  // Step 4: Document Upload Validation Form
-  readonly step4Form = this.fb.group({
-    crUploaded: [false, Validators.requiredTrue],
-    vatUploaded: [false, Validators.requiredTrue],
-    ibanUploaded: [false, Validators.requiredTrue]
+    crNumber: ['', [Validators.required, Validators.pattern('^[0-9]{10}$')]],
+    vatNumber: ['', [Validators.required, Validators.pattern('^3[0-9]{14}$')]]
   });
 
   ngOnInit(): void {
@@ -111,14 +102,35 @@ export class StoreCreateComponent implements OnInit {
       const store = this.storeService.getStoreById(id);
       if (store) {
         this.isPendingAccount.set(store.status === 'pending');
+        
+        // Step 1 Form Patch
         this.step1Form.patchValue({
           name: store.name,
-          location: store.location,
-          district: store.district,
-          lat: store.lat,
-          lng: store.lng,
           storeLogo: store.storeLogo || '',
-          isActivated: store.isActivated
+          isActivated: store.isActivated,
+          ownerName: store.ownerName,
+          ownerEmail: store.ownerEmail,
+          ownerPhone: store.ownerPhone,
+          ownerWhatsapp: store.ownerWhatsapp
+        });
+
+        // Step 2 Form (Location & Schedule) Patch
+        const locationGroup = this.step2Form.get('location') as FormGroup;
+        if (store.location && store.location.city) {
+          locationGroup.get('district')?.enable();
+        }
+        locationGroup.patchValue({
+          country: store.location.country || 'Saudi Arabia',
+          city: store.location.city || '',
+          district: store.location.district || '',
+          building_number: store.location.buildingNumber || '',
+          street_name: store.location.streetName || '',
+          postal_code: store.location.postalCode || '',
+          additional_number: store.location.additionalNumber || '',
+          fullAddress: store.location.fullAddress || '',
+          latitude: store.location.latitude,
+          longitude: store.location.longitude,
+          plus_code: store.location.plusCode || ''
         });
 
         const storeSchedule = store.schedule || [
@@ -131,7 +143,7 @@ export class StoreCreateComponent implements OnInit {
           { day: 'fri', openTime: '', closeTime: '', isOff: true }
         ];
 
-        const workingHoursGroup = this.step1Form.get('workingHours') as FormGroup;
+        const workingHoursGroup = this.step2Form.get('workingHours') as FormGroup;
         if (workingHoursGroup) {
           storeSchedule.forEach(item => {
             const dayGroup = workingHoursGroup.get(item.day) as FormGroup;
@@ -151,28 +163,12 @@ export class StoreCreateComponent implements OnInit {
             }
           });
         }
-        this.step2Form.patchValue({
-          crNumber: store.crNumber,
-          vatNumber: store.vatNumber,
-          iban: store.iban
-        });
+
+        // Step 3 Form Patch (Registry)
         this.step3Form.patchValue({
-          ownerName: store.ownerName,
-          ownerEmail: store.ownerEmail,
-          ownerPhone: store.ownerPhone,
-          ownerWhatsapp: store.ownerWhatsapp
+          crNumber: store.crNumber,
+          vatNumber: store.vatNumber
         });
-
-        // Set uploaded status to true in edit mode since they already exist
-        this.step4Form.patchValue({
-          crUploaded: true,
-          vatUploaded: true,
-          ibanUploaded: true
-        });
-
-        this.crFile.set(store.documents.find(d => d.type === 'cr')?.fileName || 'commercial_registration.pdf');
-        this.vatFile.set(store.documents.find(d => d.type === 'vat')?.fileName || 'vat_certificate.pdf');
-        this.ibanFile.set(store.documents.find(d => d.type === 'iban')?.fileName || 'iban_letter.pdf');
       } else {
         this.toast.error('Store not found.');
         this.router.navigate(['/stores']);
@@ -184,7 +180,7 @@ export class StoreCreateComponent implements OnInit {
   private setupWorkingHoursListeners(): void {
     const daysKeys = ['sat', 'sun', 'mon', 'tue', 'wed', 'thu', 'fri'];
     daysKeys.forEach((dayKey) => {
-      const dayGroup = this.step1Form.get(`workingHours.${dayKey}`) as FormGroup;
+      const dayGroup = this.step2Form.get(`workingHours.${dayKey}`) as FormGroup;
       if (dayGroup) {
         dayGroup.get('isOff')?.valueChanges.subscribe((isOff: boolean) => {
           const openCtrl = dayGroup.get('openTime');
@@ -206,20 +202,30 @@ export class StoreCreateComponent implements OnInit {
   }
 
   getMapUrl(): SafeResourceUrl | null {
-    const lat = this.step1Form.value.lat;
-    const lng = this.step1Form.value.lng;
+    const loc = this.step2Form.value.location;
+    const lat = loc?.latitude;
+    const lng = loc?.longitude;
     if (lat === null || lng === null || lat === undefined || lng === undefined || isNaN(Number(lat)) || isNaN(Number(lng))) {
       return null;
     }
-    const url = `https://www.openstreetmap.org/export/embed.html?bbox=${Number(lng) - 0.015},${Number(lat) - 0.015},${Number(lng) + 0.015},${Number(lat) + 0.015}&layer=mapnik&marker=${lat},${lng}`;
+    const url = `https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`;
     return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
 
   onStepChange(event: any): void {
     this.currentStepIndex.set(event.selectedIndex);
     
-    // In Create mode, step 5 (index 4) generates credentials and creates the record automatically
-    if (event.selectedIndex === 4 && !this.isEditMode() && !this.isCreated()) {
+    // Console log the payload of the step we just finished
+    if (event.previouslySelectedIndex === 0) {
+      console.log('Step 1 finished - Business Info payload:', this.step1Form.value);
+    } else if (event.previouslySelectedIndex === 1) {
+      console.log('Step 2 finished - Location & Schedule payload:', this.step2Form.getRawValue());
+    } else if (event.previouslySelectedIndex === 2) {
+      console.log('Step 3 finished - Saudi Registry payload:', this.step3Form.value);
+    }
+
+    // In Create mode, step 4 (index 3) generates credentials and creates the record automatically
+    if (event.selectedIndex === 3 && !this.isEditMode() && !this.isCreated()) {
       this.generatePreviewCredentials();
       this.submitStore();
     }
@@ -230,39 +236,8 @@ export class StoreCreateComponent implements OnInit {
     this.tempPassword.set(`Binaara${randomHex}!`);
   }
 
-  onFileSelect(event: Event, type: 'cr' | 'vat' | 'iban'): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      const fileName = input.files[0].name;
-      if (type === 'cr') {
-        this.crFile.set(fileName);
-        this.step4Form.patchValue({ crUploaded: true });
-      } else if (type === 'vat') {
-        this.vatFile.set(fileName);
-        this.step4Form.patchValue({ vatUploaded: true });
-      } else if (type === 'iban') {
-        this.ibanFile.set(fileName);
-        this.step4Form.patchValue({ ibanUploaded: true });
-      }
-      this.toast.success(`${type.toUpperCase()} document auto-validated successfully!`);
-    }
-  }
-
-  autoAttachMockDocs(): void {
-    this.crFile.set('cr_registration_sample.pdf');
-    this.vatFile.set('vat_certificate_sample.pdf');
-    this.ibanFile.set('iban_bank_letter_sample.pdf');
-    
-    this.step4Form.patchValue({
-      crUploaded: true,
-      vatUploaded: true,
-      ibanUploaded: true
-    });
-    this.toast.success('Mock Saudi files attached successfully for validation testing!');
-  }
-
   submitStore(): void {
-    if (this.step1Form.invalid || this.step2Form.invalid || this.step3Form.invalid || this.step4Form.invalid) {
+    if (this.step1Form.invalid || this.step2Form.invalid || this.step3Form.invalid) {
       this.toast.error('Please resolve all validation errors before saving.');
       return;
     }
@@ -270,7 +245,7 @@ export class StoreCreateComponent implements OnInit {
     this.loading.set(true);
 
     setTimeout(() => {
-      const workingHoursVal = this.step1Form.getRawValue().workingHours as any;
+      const workingHoursVal = this.step2Form.getRawValue().workingHours as any;
       const scheduleArray: StoreDaySchedule[] = Object.keys(workingHoursVal || {}).map(day => ({
         day: day as any,
         openTime: workingHoursVal[day]?.openTime || '',
@@ -278,32 +253,39 @@ export class StoreCreateComponent implements OnInit {
         isOff: !!workingHoursVal[day]?.isOff
       }));
 
+      const rawLocation = this.step2Form.getRawValue().location as any;
       const storeData = {
         name: this.step1Form.value.name!,
-        location: this.step1Form.value.location!,
-        district: this.step1Form.value.district!,
-        lat: Number(this.step1Form.value.lat!),
-        lng: Number(this.step1Form.value.lng!),
+        location: {
+          fullAddress: rawLocation.fullAddress || '',
+          buildingNumber: rawLocation.building_number || '',
+          streetName: rawLocation.street_name || '',
+          district: rawLocation.district || '',
+          city: rawLocation.city || '',
+          postalCode: rawLocation.postal_code || '',
+          additionalNumber: rawLocation.additional_number || '',
+          country: rawLocation.country || 'Saudi Arabia',
+          latitude: rawLocation.latitude !== null && rawLocation.latitude !== undefined ? Number(rawLocation.latitude) : undefined,
+          longitude: rawLocation.longitude !== null && rawLocation.longitude !== undefined ? Number(rawLocation.longitude) : undefined,
+          plusCode: rawLocation.plus_code || ''
+        },
         storeLogo: this.step1Form.value.storeLogo || '',
         isActivated: !!this.step1Form.value.isActivated,
         status: this.isEditMode() 
           ? (this.step1Form.value.isActivated ? 'active' as const : 'pending' as const) 
           : 'pending' as const,
-        crNumber: this.step2Form.value.crNumber!,
-        vatNumber: this.step2Form.value.vatNumber!,
-        iban: this.step2Form.value.iban!,
-        ownerName: this.step3Form.value.ownerName!,
-        ownerEmail: this.step3Form.value.ownerEmail!,
-        ownerPhone: this.step3Form.value.ownerPhone!,
-        ownerWhatsapp: this.step3Form.value.ownerWhatsapp!,
+        crNumber: this.step3Form.value.crNumber!,
+        vatNumber: this.step3Form.value.vatNumber!,
+        ownerName: this.step1Form.value.ownerName!,
+        ownerEmail: this.step1Form.value.ownerEmail!,
+        ownerPhone: this.step1Form.value.ownerPhone!,
+        ownerWhatsapp: this.step1Form.value.ownerWhatsapp!,
         schedule: scheduleArray
       };
 
-      // Attach uploaded mock documents in files model format
       const documents = [
-        { type: 'cr' as const, fileName: this.crFile() || 'cr_sample.pdf', fileUrl: '/assets/mock-docs/cr_sample.pdf', status: 'approved' as const, uploadedAt: new Date().toISOString() },
-        { type: 'vat' as const, fileName: this.vatFile() || 'vat_sample.pdf', fileUrl: '/assets/mock-docs/vat_sample.pdf', status: 'approved' as const, uploadedAt: new Date().toISOString() },
-        { type: 'iban' as const, fileName: this.ibanFile() || 'iban_sample.pdf', fileUrl: '/assets/mock-docs/iban_sample.pdf', status: 'approved' as const, uploadedAt: new Date().toISOString() }
+        { type: 'cr' as const, status: 'approved' as const, uploadedAt: new Date().toISOString() },
+        { type: 'vat' as const, status: 'approved' as const, uploadedAt: new Date().toISOString() }
       ];
 
       try {

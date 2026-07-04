@@ -81,7 +81,7 @@ export class StoreListComponent {
       const matchesStatus = status === 'all' || store.status === status;
 
       // 3. City filter
-      const matchesCity = city === 'all' || store.location === city;
+      const matchesCity = city === 'all' || store.location.city === city;
 
       return matchesSearch && matchesStatus && matchesCity;
     });

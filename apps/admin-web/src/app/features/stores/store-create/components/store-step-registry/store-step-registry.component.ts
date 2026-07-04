@@ -1,7 +1,6 @@
-import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatStepperModule } from '@angular/material/stepper';
-import { ToastService } from '../../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-store-step-registry',
@@ -12,12 +11,14 @@ import { ToastService } from '../../../../../core/services/toast.service';
 })
 export class StoreStepRegistryComponent {
   readonly form = input.required<FormGroup>();
-  
-  private readonly toast = inject(ToastService);
+  readonly isEditMode = input.required<boolean>();
 
-  copyToClipboard(text: string, label: string): void {
-    navigator.clipboard.writeText(text).then(() => {
-      this.toast.info(`${label} copied to clipboard!`);
+  readonly submitStore = output<void>();
+
+  fillTestingRegistry(): void {
+    this.form().patchValue({
+      crNumber: '1010348712',
+      vatNumber: '300054321000003'
     });
   }
 }

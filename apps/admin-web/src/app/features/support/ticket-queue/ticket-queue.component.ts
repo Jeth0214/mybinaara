@@ -126,7 +126,6 @@ import { SupportTicket } from '../../../core/models/subscription-support.model';
                   <textarea
                     class="form-control fs-7-5 mb-3"
                     rows="3"
-                    placeholder="Type support response message. Submitting will resolve the ticket."
                     [(ngModel)]="replyText"
                   ></textarea>
 

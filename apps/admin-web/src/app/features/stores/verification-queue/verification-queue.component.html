@@ -5,7 +5,7 @@
       <i class="bi bi-arrow-left"></i> Back to Store Directory
     </a>
     <h4 class="fw-bold mb-1">Store Verification Queue</h4>
-    <p class="text-muted mb-0">Review and validate Saudi business registries (CR, VAT, IBAN) to activate merchant accounts</p>
+    <p class="text-muted mb-0">Review and validate Saudi business registries (CR, VAT) to activate merchant accounts</p>
   </div>
 
   <!-- Queue Status Banner -->
@@ -53,7 +53,7 @@
                 <span class="badge bg-light text-dark fw-medium">{{ store.category }}</span>
               </td>
               <td>
-                <span class="text-secondary fw-semibold fs-7">{{ store.location }}</span>
+                <span class="text-secondary fw-semibold fs-7">{{ store.location.city }}</span>
               </td>
               <td>
                 <!-- List the 3 documents with status dots -->
@@ -113,7 +113,7 @@
         <div class="drawer-header p-3.5 border-bottom d-flex justify-content-between align-items-center bg-light">
           <div>
             <h5 class="fw-bold text-dark mb-0.5">Verification Inspector</h5>
-            <span class="fs-7-5 text-muted">{{ s.name }} ({{ s.location }}, KSA)</span>
+            <span class="fs-7-5 text-muted">{{ s.name }} ({{ s.location.city }}, KSA)</span>
           </div>
           <button class="btn-close" (click)="closeReviewDrawer()"></button>
         </div>
@@ -182,16 +182,12 @@
                     @if (doc.type === 'cr') {
                       <div>• <strong>Company Legal Name:</strong> {{ s.name }}</div>
                       <div>• <strong>Commercial Registration (CR):</strong> {{ s.crNumber }}</div>
-                      <div>• <strong>Issuing Chamber of Commerce:</strong> Chamber of {{ s.location }}</div>
+                      <div>• <strong>Issuing Chamber of Commerce:</strong> Chamber of {{ s.location.city }}</div>
                       <div>• <strong>Primary Commercial Activity:</strong> {{ s.category }}</div>
                     } @else if (doc.type === 'vat') {
                       <div>• <strong>Registered Tax Taxpayer:</strong> {{ s.name }}</div>
                       <div>• <strong>VAT Certificate Number:</strong> {{ s.vatNumber }}</div>
                       <div>• <strong>Applied VAT Rate:</strong> 15% standard rate</div>
-                    } @else if (doc.type === 'iban') {
-                      <div>• <strong>Beneficiary Entity:</strong> {{ s.name }}</div>
-                      <div>• <strong>Corporate IBAN:</strong> {{ s.iban }}</div>
-                      <div>• <strong>Verified Issuer:</strong> Al Rajhi Bank / Saudi National Bank</div>
                     }
                   </div>
 
@@ -220,7 +216,6 @@
           <textarea
             class="form-control fs-7"
             rows="3"
-            placeholder="e.g. CR Number format must match the 10-digit database standard or file upload is unreadable."
             [(ngModel)]="rejectionReason"
           ></textarea>
         </div>
