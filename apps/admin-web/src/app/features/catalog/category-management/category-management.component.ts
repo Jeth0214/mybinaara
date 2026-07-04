@@ -30,7 +30,7 @@ import { ToastService } from '../../../core/services/toast.service';
               </button>
             </div>
 
-            <!-- Add Category Inline Form -->
+             <!-- Add Category Inline Form -->
             @if (showAddCat()) {
               <form [formGroup]="catForm" (ngSubmit)="submitCategory()" class="bg-light p-3 rounded-3 mb-3 border animate-fade">
                 <div class="mb-2.5">
@@ -38,7 +38,6 @@ import { ToastService } from '../../../core/services/toast.service';
                   <input
                     type="text"
                     class="form-control form-control-sm fs-7-5"
-                    placeholder="e.g. Electrical Panels"
                     formControlName="name"
                   />
                   @if (catForm.get('name')?.touched && catForm.get('name')?.invalid) {
@@ -50,7 +49,6 @@ import { ToastService } from '../../../core/services/toast.service';
                   <textarea
                     class="form-control form-control-sm fs-7-5"
                     rows="2"
-                    placeholder="e.g. Switchboards, breakers and terminal junction layout boxes"
                     formControlName="description"
                   ></textarea>
                   @if (catForm.get('description')?.touched && catForm.get('description')?.invalid) {
@@ -131,7 +129,6 @@ import { ToastService } from '../../../core/services/toast.service';
                   <input
                     type="text"
                     class="form-control form-control-sm fs-7-5"
-                    placeholder="e.g. Philips Lighting"
                     formControlName="name"
                   />
                   @if (brandForm.get('name')?.touched && brandForm.get('name')?.invalid) {

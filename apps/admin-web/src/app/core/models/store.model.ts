@@ -1,15 +1,27 @@
 export type StoreStatus = 'active' | 'suspended' | 'pending';
 
-export type DocumentType = 'cr' | 'vat' | 'iban';
+export type DocumentType = 'cr' | 'vat';
 export type DocumentStatus = 'pending' | 'approved' | 'rejected';
 
 export interface StoreDocument {
   type: DocumentType;
-  fileName: string;
-  fileUrl: string;
   status: DocumentStatus;
   uploadedAt: string;
   rejectionReason?: string;
+}
+
+export interface StoreLocation {
+  fullAddress: string;
+  buildingNumber?: string;
+  streetName?: string;
+  district?: string;
+  city?: string;
+  postalCode?: string;
+  additionalNumber?: string;
+  country?: string;
+  latitude?: number;
+  longitude?: number;
+  plusCode?: string;
 }
 
 export interface Store {
@@ -17,15 +29,11 @@ export interface Store {
   name: string;
   crNumber: string; // 10 digits
   vatNumber: string; // 15 digits
-  iban: string; // Starts with SA
   ownerName: string;
   ownerEmail: string;
   ownerPhone: string; // Starts with +966 or 05
   ownerWhatsapp: string; // Starts with +966 or 05
-  location: string; // Saudi Arabia City
-  district: string;
-  lat: number;
-  lng: number;
+  location: StoreLocation;
   status: StoreStatus;
   isActivated: boolean;
   subscriptionHistory: SubscriptionHistory[];

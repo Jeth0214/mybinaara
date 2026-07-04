@@ -36,7 +36,7 @@
               </span>
             </div>
             <p class="text-muted mb-0 mt-1 fs-7">
-              <i class="bi bi-geo-alt"></i> {{ s.location }}@if (s.district) { ({{ s.district }}) }, Saudi Arabia &nbsp;•&nbsp;
+              <i class="bi bi-geo-alt"></i> {{ s.location.city }}@if (s.location.district) { ({{ s.location.district }}) }, {{ s.location.country }} &nbsp;•&nbsp;
               Joined {{ s.createdAt | date:'mediumDate' }}
             </p>
           </div>
@@ -143,7 +143,6 @@
               <option value="">-- Choose a reason --</option>
               <option value="Commercial Registration (CR) expired or invalid">Commercial Registration (CR) expired or invalid</option>
               <option value="VAT Certificate expired or invalid">VAT Certificate expired or invalid</option>
-              <option value="IBAN Verification failed">IBAN Verification failed</option>
               <option value="Violation of Platform Terms & Conditions">Violation of Platform Terms & Conditions</option>
               <option value="Under investigation for fraudulent activity">Under investigation for fraudulent activity</option>
               <option value="Other">Other (specify below)</option>
@@ -156,7 +155,6 @@
               <textarea
                 class="form-control fs-7"
                 rows="3"
-                placeholder="Describe the details of the suspension..."
                 [(ngModel)]="suspensionReason"
               ></textarea>
             </div>
@@ -188,7 +186,6 @@
             <textarea
               class="form-control fs-7"
               rows="3"
-              placeholder="e.g. The document is blurry or CR Number does not match input fields"
               [(ngModel)]="rejectionReason"
             ></textarea>
           </div>

@@ -1,8 +1,6 @@
-import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, signal, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { CityOption } from '../../../../../core/models/store.model';
 import { MatStepperModule } from '@angular/material/stepper';
 
 @Component({
@@ -15,54 +13,13 @@ import { MatStepperModule } from '@angular/material/stepper';
 })
 export class StoreStepBusinessComponent {
   readonly form = input.required<FormGroup>();
-  readonly cities = input.required<CityOption[]>();
   readonly isEditMode = input<boolean>(false);
   readonly isPendingAccount = input<boolean>(false);
 
-  // Days list for working hours
-  readonly days: Array<{ key: 'sat' | 'sun' | 'mon' | 'tue' | 'wed' | 'thu' | 'fri'; label: string }> = [
-    { key: 'sat', label: 'Sat' },
-    { key: 'sun', label: 'Sun' },
-    { key: 'mon', label: 'Mon' },
-    { key: 'tue', label: 'Tue' },
-    { key: 'wed', label: 'Wed' },
-    { key: 'thu', label: 'Thu' },
-    { key: 'fri', label: 'Fri' },
-  ];
-
-  // Generated time slots in 30-minute intervals for select inputs
-  readonly timeSlots: string[] = (() => {
-    const slots: string[] = [];
-    const periods = ['AM', 'PM'];
-    for (let p = 0; p < 2; p++) {
-      const period = periods[p];
-      slots.push(`12:00 ${period}`);
-      slots.push(`12:30 ${period}`);
-      for (let h = 1; h <= 11; h++) {
-        const hourStr = h.toString().padStart(2, '0');
-        slots.push(`${hourStr}:00 ${period}`);
-        slots.push(`${hourStr}:30 ${period}`);
-      }
-    }
-    return slots;
-  })();
-
-  
-  private readonly sanitizer = inject(DomSanitizer);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   readonly logoError = signal<string | null>(null);
   readonly logoUploading = signal<boolean>(false);
-
-  getMapUrl(): SafeResourceUrl | null {
-    const formGroup = this.form();
-    const lat = formGroup.value.lat;
-    const lng = formGroup.value.lng;
-    if (lat === null || lng === null || lat === undefined || lng === undefined || isNaN(Number(lat)) || isNaN(Number(lng))) {
-      return null;
-    }
-    const url = `https://www.openstreetmap.org/export/embed.html?bbox=${Number(lng) - 0.015},${Number(lat) - 0.015},${Number(lng) + 0.015},${Number(lat) + 0.015}&layer=mapnik&marker=${lat},${lng}`;
-    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
-  }
 
   onLogoFileSelect(event: Event): void {
     const inputEl = event.target as HTMLInputElement;
@@ -74,26 +31,25 @@ export class StoreStepBusinessComponent {
     this.logoError.set(null);
     this.logoUploading.set(true);
 
-    // 1. Validate File Type
     if (!file.type.startsWith('image/')) {
       this.logoError.set('Only image files (PNG, JPG, JPEG, WEBP) are allowed.');
       control?.setValue('');
       control?.setErrors({ invalidType: true });
       this.logoUploading.set(false);
+      this.cdr.markForCheck();
       return;
     }
 
-    // 2. Validate File Size (max 2MB)
-    const maxSize = 2 * 1024 * 1024; // 2MB
+    const maxSize = 2 * 1024 * 1024;
     if (file.size > maxSize) {
       this.logoError.set('File size exceeds 2MB limit. Please upload a smaller image.');
       control?.setValue('');
       control?.setErrors({ maxSize: true });
       this.logoUploading.set(false);
+      this.cdr.markForCheck();
       return;
     }
 
-    // 3. Validate Image Dimensions (min 200x200px and square-ish aspect ratio)
     const reader = new FileReader();
     reader.onload = (e: any) => {
       const img = new Image();
@@ -106,6 +62,7 @@ export class StoreStepBusinessComponent {
           control?.setValue('');
           control?.setErrors({ minDimensions: true });
           this.logoUploading.set(false);
+          this.cdr.markForCheck();
           return;
         }
 
@@ -115,10 +72,10 @@ export class StoreStepBusinessComponent {
           control?.setValue('');
           control?.setErrors({ aspectRatio: true });
           this.logoUploading.set(false);
+          this.cdr.markForCheck();
           return;
         }
 
-        // Simulate network upload
         setTimeout(() => {
           this.logoError.set(null);
           control?.setValue(e.target.result);
@@ -126,6 +83,7 @@ export class StoreStepBusinessComponent {
           control?.markAsTouched();
           control?.updateValueAndValidity();
           this.logoUploading.set(false);
+          this.cdr.markForCheck();
         }, 1200);
       };
       img.onerror = () => {
@@ -133,10 +91,19 @@ export class StoreStepBusinessComponent {
         control?.setValue('');
         control?.setErrors({ invalidImage: true });
         this.logoUploading.set(false);
+        this.cdr.markForCheck();
       };
       img.src = e.target.result;
     };
     reader.readAsDataURL(file);
   }
 
+  fillTestingContacts(): void {
+    this.form().patchValue({
+      ownerName: 'Mohammed Al-Fozan',
+      ownerEmail: 'mohammed@fozan.com.sa',
+      ownerPhone: '+966505123456',
+      ownerWhatsapp: '+966505123456'
+    });
+  }
 }

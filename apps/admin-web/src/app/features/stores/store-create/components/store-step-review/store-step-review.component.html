@@ -1,7 +1,7 @@
 <div class="row g-4 mt-2">
   <div class="col-lg-8 border-end-lg">
     @if (!isCreated()) {
-      <h5 class="fw-semibold mb-3">Step 5: Review and Generate Credentials</h5>
+      <h5 class="fw-semibold mb-3">Step 4: Review Details & Finish</h5>
       <p class="text-muted fs-7 mb-4">Please verify all store information. On submission, the store account will be generated, and credentials will be sent to the merchant.</p>
 
       <!-- Profile Preview -->
@@ -14,33 +14,29 @@
           </div>
           <div class="col-md-6">
             <span class="d-block text-muted fs-8 text-uppercase">HQ Location</span>
-            <strong class="text-dark">{{ step1().location }} @if (step1().district) { ({{ step1().district }}) }</strong>
+            <strong class="text-dark">{{ step2().location?.city || 'N/A' }}@if (step2().location?.district) { ({{ step2().location?.district }}) }</strong>
           </div>
           <div class="col-md-6">
             <span class="d-block text-muted fs-8 text-uppercase">Coordinates</span>
-            <strong class="text-dark font-monospace fs-7">{{ step1().lat }}, {{ step1().lng }}</strong>
+            <strong class="text-dark font-monospace fs-7">{{ step2().location?.latitude || 0 }}, {{ step2().location?.longitude || 0 }}</strong>
           </div>
           
           <div class="col-md-6">
             <span class="d-block text-muted fs-8 text-uppercase">CR Number</span>
-            <code class="text-secondary font-monospace">{{ step2().crNumber }}</code>
+            <code class="text-secondary font-monospace">{{ step3().crNumber }}</code>
           </div>
           <div class="col-md-6">
             <span class="d-block text-muted fs-8 text-uppercase">VAT Number</span>
-            <code class="text-secondary font-monospace">{{ step2().vatNumber }}</code>
-          </div>
-          <div class="col-md-6">
-            <span class="d-block text-muted fs-8 text-uppercase">IBAN (Saudi Bank)</span>
-            <code class="text-secondary font-monospace">SA{{ step2().iban }}</code>
+            <code class="text-secondary font-monospace">{{ step3().vatNumber }}</code>
           </div>
 
           <div class="col-md-6">
             <span class="d-block text-muted fs-8 text-uppercase">Authorized Contact</span>
-            <strong class="text-dark">{{ step3().ownerName }}</strong>
+            <strong class="text-dark">{{ step1().ownerName }}</strong>
           </div>
           <div class="col-md-6">
             <span class="d-block text-muted fs-8 text-uppercase">Email & Phone / WhatsApp</span>
-            <span class="text-dark font-monospace fs-7">{{ step3().ownerEmail }} / {{ step3().ownerPhone }} / {{ step3().ownerWhatsapp }}</span>
+            <span class="text-dark font-monospace fs-7">{{ step1().ownerEmail }} / {{ step1().ownerPhone }} / {{ step1().ownerWhatsapp }}</span>
           </div>
         </div>
       </div>
@@ -95,7 +91,7 @@
             <tbody>
               <tr>
                 <td class="text-muted pe-3 py-2" style="width: 150px;">STORE ID:</td>
-                <td class="fw-semibold text-dark">store-pending-{{ step2().crNumber }}</td>
+                <td class="fw-semibold text-dark">store-pending-{{ step3().crNumber }}</td>
               </tr>
               <tr>
                 <td class="text-muted pe-3 py-2">TEMP PASSWORD:</td>

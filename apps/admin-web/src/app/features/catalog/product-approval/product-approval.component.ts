@@ -158,7 +158,6 @@ import { Product } from '../../../core/models/catalog.model';
               <textarea
                 class="form-control fs-7-5"
                 rows="3"
-                placeholder="e.g. Product description is too short, or pricing falls below compliance guidelines."
                 [(ngModel)]="rejectionReason"
               ></textarea>
             </div>

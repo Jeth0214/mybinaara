@@ -95,7 +95,6 @@ import { AdminUser, AdminRole } from '../../../core/models/user.model';
                 <input
                   type="text"
                   class="form-control fs-7-5"
-                  placeholder="e.g. Salim Harbi"
                   formControlName="name"
                 />
                 @if (adminForm.get('name')?.touched && adminForm.get('name')?.invalid) {
@@ -108,7 +107,6 @@ import { AdminUser, AdminRole } from '../../../core/models/user.model';
                 <input
                   type="email"
                   class="form-control fs-7-5"
-                  placeholder="e.g. salim@mybinaara.com"
                   formControlName="email"
                 />
                 @if (adminForm.get('email')?.touched && adminForm.get('email')?.invalid) {

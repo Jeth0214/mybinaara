@@ -23,45 +23,32 @@
       </div>
     }
     <mat-horizontal-stepper [linear]="true" #stepper (selectionChange)="onStepChange($event)" class="custom-stepper">
-      <!-- Step 1: Business Details -->
+      <!-- Step 1: Business Info -->
       <mat-step [stepControl]="step1Form" label="Business Info">
         <app-store-step-business
           [form]="step1Form"
-          [cities]="cities"
           [isEditMode]="isEditMode()"
           [isPendingAccount]="isPendingAccount()"
         />
       </mat-step>
 
-      <!-- Step 2: Saudi Registry Details -->
-      <mat-step [stepControl]="step2Form" label="Saudi Registry">
-        <app-store-step-registry
+      <!-- Step 2: Location and Schedule -->
+      <mat-step [stepControl]="step2Form" label="Location & Schedule">
+        <app-store-step-location-schedule
           [form]="step2Form"
         />
       </mat-step>
 
-      <!-- Step 3: Owner Contacts -->
-      <mat-step [stepControl]="step3Form" label="Owner Contacts">
-        <app-store-step-contacts
+      <!-- Step 3: Saudi Registry -->
+      <mat-step [stepControl]="step3Form" label="Saudi Registry">
+        <app-store-step-registry
           [form]="step3Form"
-        />
-      </mat-step>
-
-      <!-- Step 4: Document Uploads -->
-      <mat-step [stepControl]="step4Form" label="Upload Documents">
-        <app-store-step-documents
-          [form]="step4Form"
-          [crFile]="crFile()"
-          [vatFile]="vatFile()"
-          [ibanFile]="ibanFile()"
           [isEditMode]="isEditMode()"
-          (fileSelect)="onFileSelect($event.event, $event.type)"
-          (autoAttach)="autoAttachMockDocs()"
           (submitStore)="submitStore()"
         />
       </mat-step>
 
-      <!-- Step 5: Credentials / Final Review (Create Mode Only) -->
+      <!-- Step 4: Credentials / Final Review (Create Mode Only) -->
       @if (!isEditMode()) {
         <mat-step label="Review Details">
           <app-store-step-review

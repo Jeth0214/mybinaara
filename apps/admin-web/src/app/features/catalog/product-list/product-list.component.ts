@@ -42,7 +42,6 @@ import { Product } from '../../../core/models/catalog.model';
                 <input
                   type="text"
                   class="form-control border-start-0 ps-2"
-                  placeholder="Search product name, SKU, brand, store..."
                   [ngModel]="searchQuery()"
                   (ngModelChange)="searchQuery.set($event)"
                 />

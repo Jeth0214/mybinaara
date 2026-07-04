@@ -52,7 +52,7 @@
           <div class="fs-8 text-muted border-bottom pb-2">MINISTRY OF COMMERCE</div>
           
           <div class="my-3 fw-bold text-dark fs-7">
-            CERTIFICATE OF {{ doc.type === 'cr' ? 'COMMERCIAL REGISTRATION' : doc.type === 'vat' ? 'VAT ENTRY' : 'BANK IBAN' }}
+            CERTIFICATE OF {{ doc.type === 'cr' ? 'COMMERCIAL REGISTRATION' : 'VAT ENTRY' }}
           </div>
 
           <div class="text-start fs-8 my-4 lh-lg">
@@ -65,10 +65,6 @@
               <div>• <strong>VAT Registration:</strong> {{ store().vatNumber }}</div>
               <div>• <strong>Taxable Entity:</strong> {{ store().name }}</div>
               <div>• <strong>Tax Rate:</strong> 15% Standard</div>
-            } @else if (doc.type === 'iban') {
-              <div>• <strong>Account Name:</strong> {{ store().name }}</div>
-              <div>• <strong>IBAN:</strong> {{ store().iban }}</div>
-              <div>• <strong>Status:</strong> Saudi Central Bank Validated</div>
             }
           </div>
 

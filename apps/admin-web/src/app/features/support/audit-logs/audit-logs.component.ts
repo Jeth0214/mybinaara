@@ -31,7 +31,6 @@ import { AuditLog } from '../../../core/models/subscription-support.model';
                 <input
                   type="text"
                   class="form-control border-start-0 ps-2"
-                  placeholder="Search operator name, action details, IP..."
                   [ngModel]="searchQuery()"
                   (ngModelChange)="searchQuery.set($event)"
                 />

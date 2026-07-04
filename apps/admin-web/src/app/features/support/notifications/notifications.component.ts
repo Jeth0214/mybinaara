@@ -65,7 +65,6 @@ import { SystemNotification } from '../../../core/models/subscription-support.mo
                 <input
                   type="text"
                   class="form-control fs-7-5"
-                  placeholder="e.g. System Update Completed"
                   formControlName="title"
                 />
                 @if (broadcastForm.get('title')?.touched && broadcastForm.get('title')?.invalid) {
@@ -78,7 +77,6 @@ import { SystemNotification } from '../../../core/models/subscription-support.mo
                 <textarea
                   class="form-control fs-7-5"
                   rows="4"
-                  placeholder="State details of the 플랫폼 wide announcement..."
                   formControlName="content"
                 ></textarea>
                 @if (broadcastForm.get('content')?.touched && broadcastForm.get('content')?.invalid) {
