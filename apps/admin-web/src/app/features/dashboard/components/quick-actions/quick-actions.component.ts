@@ -106,13 +106,5 @@ export class QuickActionsComponent {
       bg: 'rgba(41, 128, 185, 0.1)',
       color: '#2980b9',
     },
-    {
-      label: 'Product Approvals',
-      description: 'Review submissions',
-      icon: 'bi-check2-square',
-      route: '/catalog/approvals',
-      bg: 'rgba(142, 68, 173, 0.1)',
-      color: '#8e44ad',
-    },
   ];
 }

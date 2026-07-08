@@ -1,5 +1,3 @@
-export type ProductApprovalStatus = 'pending' | 'approved' | 'rejected';
-
 export interface Product {
   id: string;
   name: string;
@@ -9,11 +7,11 @@ export interface Product {
   brand: string;
   price: number;
   sku: string;
-  status: ProductApprovalStatus;
+  isSuspended: boolean;
   description: string;
   image: string;
   createdAt: string;
-  rejectionReason?: string;
+  suspensionReason?: string;
 }
 
 export interface Category {
@@ -23,11 +21,5 @@ export interface Category {
   description: string;
   productCount: number;
   isActive: boolean;
-}
-
-export interface Brand {
-  id: string;
-  name: string;
-  productCount: number;
-  isActive: boolean;
+  image: string;
 }

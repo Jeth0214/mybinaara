@@ -74,7 +74,6 @@ export class SidebarComponent {
       items: [
         { label: 'Products', icon: 'bi-box-seam', route: '/catalog/products' },
         { label: 'Categories', icon: 'bi-tags', route: '/catalog/categories' },
-        { label: 'Approvals', icon: 'bi-check2-square', route: '/catalog/approvals' },
       ],
     },
     {

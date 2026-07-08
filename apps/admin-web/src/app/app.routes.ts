@@ -92,27 +92,69 @@ export const routes: Routes = [
         children: [
           {
             path: 'products',
-            loadComponent: () =>
-              import('./features/catalog/product-list/product-list.component').then(
-                (m) => m.ProductListComponent
-              ),
-            data: { title: 'Product Catalog', icon: 'bi-box-seam' },
+            children: [
+              {
+                path: '',
+                loadComponent: () =>
+                  import('./features/catalog/product-list/product-list.component').then(
+                    (m) => m.ProductListComponent
+                  ),
+                data: { title: 'Product Catalog', icon: 'bi-box-seam' },
+              },
+              {
+                path: ':id/edit',
+                loadComponent: () =>
+                  import('./features/catalog/product-edit/product-edit.component').then(
+                    (m) => m.ProductEditComponent
+                  ),
+                data: { title: 'Edit Product', icon: 'bi-pencil' },
+              },
+              {
+                path: ':id',
+                loadComponent: () =>
+                  import('./features/catalog/product-detail/product-detail.component').then(
+                    (m) => m.ProductDetailComponent
+                  ),
+                data: { title: 'Product Details', icon: 'bi-box-seam' },
+              },
+            ],
           },
           {
             path: 'categories',
-            loadComponent: () =>
-              import('./features/catalog/category-management/category-management.component').then(
-                (m) => m.CategoryManagementComponent
-              ),
-            data: { title: 'Categories', icon: 'bi-tags' },
-          },
-          {
-            path: 'approvals',
-            loadComponent: () =>
-              import('./features/catalog/product-approval/product-approval.component').then(
-                (m) => m.ProductApprovalComponent
-              ),
-            data: { title: 'Product Approvals', icon: 'bi-check2-square' },
+            children: [
+              {
+                path: '',
+                loadComponent: () =>
+                  import('./features/catalog/category-management/category-management.component').then(
+                    (m) => m.CategoryManagementComponent
+                  ),
+                data: { title: 'Categories', icon: 'bi-tags' },
+              },
+              {
+                path: 'create',
+                loadComponent: () =>
+                  import('./features/catalog/category-form/category-form.component').then(
+                    (m) => m.CategoryFormComponent
+                  ),
+                data: { title: 'Create Category', icon: 'bi-plus-circle' },
+              },
+              {
+                path: ':id/edit',
+                loadComponent: () =>
+                  import('./features/catalog/category-form/category-form.component').then(
+                    (m) => m.CategoryFormComponent
+                  ),
+                data: { title: 'Edit Category', icon: 'bi-pencil' },
+              },
+              {
+                path: ':id',
+                loadComponent: () =>
+                  import('./features/catalog/category-detail/category-detail.component').then(
+                    (m) => m.CategoryDetailComponent
+                  ),
+                data: { title: 'Category Details', icon: 'bi-tags' },
+              },
+            ],
           },
         ],
       },
