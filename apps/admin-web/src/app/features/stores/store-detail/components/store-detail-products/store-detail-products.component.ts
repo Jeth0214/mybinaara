@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, input, computed, signal, effect, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { Store } from '../../../../../core/models/store.model';
 import { UserCatalogService } from '../../../../../core/services/user-catalog.service';
@@ -9,7 +8,7 @@ import { UserCatalogService } from '../../../../../core/services/user-catalog.se
 @Component({
   selector: 'app-store-detail-products',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, MatPaginatorModule],
+  imports: [CommonModule, FormsModule, MatPaginatorModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './store-detail-products.component.html',
   styles: [`
@@ -89,7 +88,7 @@ export class StoreDetailProductsComponent {
     }
 
     if (status !== 'all') {
-      list = list.filter(p => p.status === status);
+      list = list.filter(p => (status === 'suspended' ? p.isSuspended : !p.isSuspended));
     }
 
     if (cat !== 'all') {

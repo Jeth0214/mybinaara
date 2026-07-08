@@ -27,7 +27,7 @@
         </div>
         
         <!-- Category Filter -->
-        <div class="col-md-5 col-6">
+        <div class="col-md-4 col-6">
           <select
             class="form-select form-select-sm fs-7.5"
             [ngModel]="categoryFilter()"
@@ -39,18 +39,17 @@
             }
           </select>
         </div>
-        
+
         <!-- Status Filter -->
-        <div class="col-md-2 col-6">
+        <div class="col-md-3 col-6">
           <select
             class="form-select form-select-sm fs-7.5"
             [ngModel]="statusFilter()"
             (ngModelChange)="onStatusChange($event)"
           >
             <option value="all">All Statuses</option>
-            <option value="pending">Pending Review</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
+            <option value="active">Active</option>
+            <option value="suspended">Suspended</option>
           </select>
         </div>
       </div>
@@ -64,8 +63,7 @@
             <th scope="col">Category</th>
             <th scope="col">Brand</th>
             <th scope="col">Price</th>
-            <th scope="col">Approval Status</th>
-            <th scope="col" class="text-end pe-4">Inspection</th>
+            <th scope="col">Status</th>
           </tr>
         </thead>
         <tbody>
@@ -92,24 +90,17 @@
                 <strong class="text-success fs-7-5">{{ prod.price | number:'1.2-2' }} SAR</strong>
               </td>
               <td>
-                <span [class]="'status-badge status-badge--' + (prod.status === 'approved' ? 'active' : prod.status === 'pending' ? 'pending' : 'rejected')">
-                  {{ prod.status }}
-                </span>
-              </td>
-              <td class="text-end pe-4">
-                <a
-                  [routerLink]="['/catalog/approvals']"
-                  [queryParams]="{ productId: prod.id, fromStoreId: store().id }"
-                  class="btn btn-outline-secondary btn-sm fs-8 fw-semibold"
-                  title="Inspect Product"
+                <span
+                  [class]="'status-badge status-badge--' + (prod.isSuspended ? 'suspended' : 'active')"
+                  [title]="prod.isSuspended ? prod.suspensionReason : ''"
                 >
-                  Inspect
-                </a>
+                  {{ prod.isSuspended ? 'Suspended' : 'Active' }}
+                </span>
               </td>
             </tr>
           } @empty {
             <tr>
-              <td colspan="6" class="text-center py-5 text-muted">
+              <td colspan="5" class="text-center py-5 text-muted">
                 <i class="bi bi-box-seam fs-2 d-block mb-3 opacity-30"></i>
                 <p class="mb-0 fw-medium">No products match the filters or are listed under this store.</p>
               </td>

@@ -1,0 +1,21 @@
+.fs-8 {
+  font-size: 0.72rem;
+  letter-spacing: 0.02rem;
+}
+
+.btn-xs {
+  font-size: 0.7rem;
+  line-height: 1.2;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.border-dashed {
+  border-style: dashed !important;
+}
+
+.hover-bg-light:hover {
+  background-color: var(--brand-bg, #f7f8f5) !important;
+}

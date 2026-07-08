@@ -1,0 +1,28 @@
+.fs-8 {
+  font-size: 0.72rem;
+  letter-spacing: 0.02rem;
+}
+
+.product-thumb {
+  width: 56px;
+  height: 56px;
+  border: 1px solid var(--brand-border);
+  flex-shrink: 0;
+}
+
+.custom-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+}
+
+.custom-modal-card {
+  width: 100%;
+  max-width: 480px;
+  background: #fff;
+  margin: 1rem;
+}
