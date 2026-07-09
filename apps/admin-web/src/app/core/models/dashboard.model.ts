@@ -1,14 +1,3 @@
-export interface DashboardStats {
-  totalGmv: number;
-  activeStores: number;
-  totalUsers: number;
-  totalOrders: number;
-  gmvTrend: number;       // percentage change from last month
-  storesTrend: number;
-  usersTrend: number;
-  ordersTrend: number;
-}
-
 export interface RecentStore {
   id: string;
   businessName: string;
@@ -28,9 +17,9 @@ export interface StoreActivityItem {
   type: 'registration' | 'activation' | 'suspension' | 'verification';
 }
 
-export interface GrowthMetric {
-  month: string;
-  stores: number;
-  users: number;
-  gmv: number;
+export interface AdminDashboardStats {
+  activeStores: number;
+  adminUsers: number;
+  catalogProducts: number;
+  categories: number;
 }

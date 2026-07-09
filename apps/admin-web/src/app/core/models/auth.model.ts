@@ -1,4 +1,4 @@
-export type AdminRole = 'super_admin' | 'support' | 'finance' | 'ops';
+export type AdminRole = 'admin' | 'user';
 
 export interface AdminUser {
   id: string;
@@ -27,36 +27,15 @@ export const ADMIN_PERMISSIONS = {
   USERS_MANAGE:      'users.manage',
   CATALOG_VIEW:      'catalog.view',
   CATALOG_MANAGE:    'catalog.manage',
-  SUBSCRIPTIONS_VIEW:'subscriptions.view',
-  SUBSCRIPTIONS_MANAGE:'subscriptions.manage',
-  SUPPORT_VIEW:      'support.view',
-  SUPPORT_MANAGE:    'support.manage',
-  AUDIT_VIEW:        'audit.view',
   ADMIN_USERS_MANAGE:'admin.users.manage',
 } as const;
 
 /** Default permissions per role */
 export const ROLE_PERMISSIONS: Record<AdminRole, string[]> = {
-  super_admin: Object.values(ADMIN_PERMISSIONS),
-  support: [
+  admin: Object.values(ADMIN_PERMISSIONS),
+  user: [
     ADMIN_PERMISSIONS.STORES_VIEW,
     ADMIN_PERMISSIONS.USERS_VIEW,
-    ADMIN_PERMISSIONS.SUPPORT_VIEW,
-    ADMIN_PERMISSIONS.SUPPORT_MANAGE,
-  ],
-  finance: [
-    ADMIN_PERMISSIONS.STORES_VIEW,
-    ADMIN_PERMISSIONS.SUBSCRIPTIONS_VIEW,
-    ADMIN_PERMISSIONS.SUBSCRIPTIONS_MANAGE,
-    ADMIN_PERMISSIONS.AUDIT_VIEW,
-  ],
-  ops: [
-    ADMIN_PERMISSIONS.STORES_VIEW,
-    ADMIN_PERMISSIONS.STORES_CREATE,
-    ADMIN_PERMISSIONS.STORES_EDIT,
-    ADMIN_PERMISSIONS.STORES_VERIFY,
     ADMIN_PERMISSIONS.CATALOG_VIEW,
-    ADMIN_PERMISSIONS.CATALOG_MANAGE,
-    ADMIN_PERMISSIONS.USERS_VIEW,
   ],
 };

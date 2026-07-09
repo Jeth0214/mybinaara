@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { UserCatalogService } from '../../../core/services/user-catalog.service';
@@ -10,7 +9,7 @@ import { StoreConfirmModalComponent } from '../../stores/components/store-confir
 @Component({
   selector: 'app-category-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './category-detail.component.html',
   styleUrl: './category-detail.component.scss'

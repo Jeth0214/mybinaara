@@ -1,11 +1,9 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'app-store-confirm-modal',
   standalone: true,
-  imports: [CommonModule],
   template: `
     <div class="p-4 text-center">
       <div 

@@ -47,10 +47,8 @@ export class SidebarComponent {
   readonly userRoleLabel = computed(() => {
     const role = this.currentUser()?.role;
     switch (role) {
-      case 'super_admin': return 'Super Admin';
-      case 'support':     return 'Support';
-      case 'finance':     return 'Finance';
-      case 'ops':         return 'Operations';
+      case 'admin': return 'Admin';
+      case 'user':  return 'User';
       default:            return 'Admin';
     }
   });
@@ -77,24 +75,9 @@ export class SidebarComponent {
       ],
     },
     {
-      label: 'BILLING',
-      items: [
-        { label: 'Plans', icon: 'bi-credit-card', route: '/subscriptions/plans' },
-        { label: 'Subscriptions', icon: 'bi-receipt', route: '/subscriptions/stores' },
-      ],
-    },
-    {
-      label: 'SUPPORT',
-      items: [
-        { label: 'Tickets', icon: 'bi-ticket', route: '/support/tickets' },
-        { label: 'Audit Logs', icon: 'bi-journal-text', route: '/support/audit-logs' },
-        { label: 'Notifications', icon: 'bi-bell', route: '/support/notifications' },
-      ],
-    },
-    {
       label: 'SETTINGS',
       items: [
-        { label: 'Admin Users', icon: 'bi-person-gear', route: '/users/admins' },
+        { label: 'Users', icon: 'bi-person-gear', route: '/users/admins' },
       ],
     },
   ]);

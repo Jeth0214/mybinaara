@@ -16,11 +16,6 @@ const BASE_MOCK_STORES: any[] = [
     lng: 46.7211,
     status: 'active',
     isActivated: true,
-    subscriptionPlanId: 'enterprise',
-    subscriptionHistory: [
-      { planId: 'basic', startDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(), endDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString() },
-      { planId: 'enterprise', startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString() }
-    ],
     createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
     documents: [
       {
@@ -50,11 +45,6 @@ const BASE_MOCK_STORES: any[] = [
     lng: 46.8234,
     status: 'active',
     isActivated: true,
-    subscriptionPlanId: 'premium',
-    subscriptionHistory: [
-      { planId: 'basic', startDate: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(), endDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString() },
-      { planId: 'premium', startDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString() }
-    ],
     createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
     documents: [
       {
@@ -84,11 +74,6 @@ const BASE_MOCK_STORES: any[] = [
     lng: 39.2014,
     status: 'pending',
     isActivated: false,
-    subscriptionPlanId: 'basic',
-    subscriptionHistory: [
-      { planId: 'premium', startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), endDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
-      { planId: 'basic', startDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() }
-    ],
     activationLink: 'https://mybinaara.com/activate/ds-elec-9988',
     tempPassword: 'BinaaraStoreTempPass9988!',
     createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
@@ -120,10 +105,6 @@ const BASE_MOCK_STORES: any[] = [
     lng: 39.1558,
     status: 'suspended',
     isActivated: true,
-    subscriptionPlanId: 'basic',
-    subscriptionHistory: [
-      { planId: 'basic', startDate: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString() }
-    ],
     createdAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
     documents: [
       {
@@ -153,12 +134,7 @@ const BASE_MOCK_STORES: any[] = [
     lng: 46.7323,
     status: 'suspended',
     isActivated: true,
-    rejectionReason: 'Subscription expired and not renewed.',
-    subscriptionPlanId: 'premium',
-    subscriptionHistory: [
-      { planId: 'basic', startDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(), endDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
-      { planId: 'premium', startDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() }
-    ],
+    rejectionReason: 'Business license renewal overdue.',
     createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
     documents: [
       {
@@ -188,8 +164,6 @@ const BASE_MOCK_STORES: any[] = [
     lng: 39.8155,
     status: 'pending',
     isActivated: false,
-    subscriptionPlanId: 'basic',
-    subscriptionHistory: [],
     activationLink: 'https://mybinaara.com/activate/hejaz-tools-4433',
     tempPassword: 'BinaaraStoreTempPass4433!',
     createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
@@ -211,14 +185,12 @@ const BASE_MOCK_STORES: any[] = [
 // Generate 94 more stores to reach exactly 100 stores
 const GENERATED_STORES: any[] = [];
 const cities = ['Riyadh', 'Jeddah', 'Dammam', 'Mecca', 'Medina', 'Khobar', 'Jubail', 'Tabuk', 'Abha', 'Buraidah'];
-const plans = ['basic', 'premium', 'enterprise'] as const;
 const statuses = ['active', 'suspended', 'pending'] as const;
 const districts = ['Al-Nafal', 'Al-Malqa', 'Al-Yasmin', 'Al-Rawdah', 'Al-Naeem', 'Al-Safa', 'Al-Hamra', 'Al-Batha'];
 
 for (let i = 7; i <= 100; i++) {
   const city = cities[i % cities.length];
 
-  const plan = plans[i % plans.length];
   const status = statuses[i % statuses.length];
   const district = districts[i % districts.length];
 
@@ -237,13 +209,6 @@ for (let i = 7; i <= 100; i++) {
     lng: 46.7 + (i * 0.003),
     status: status,
     isActivated: status === 'active' || status === 'suspended',
-    subscriptionPlanId: status === 'pending' ? 'basic' : plan,
-    subscriptionHistory: status === 'pending' ? [] : [
-      { planId: 'basic', startDate: new Date(Date.now() - (i % 60) * 24 * 60 * 60 * 1000).toISOString(), endDate: plan !== 'basic' ? new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() : undefined },
-      ...(plan !== 'basic' ? [{ planId: plan, startDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() }] : []),
-      // For some basic stores, simulate they were subscribed in the past to test "unsubscribed" count
-      ...(plan === 'basic' && i % 6 === 0 ? [{ planId: 'premium' as const, startDate: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString(), endDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString() }] : [])
-    ],
     createdAt: new Date(Date.now() - (i % 60) * 24 * 60 * 60 * 1000).toISOString(),
     tempPassword: `TempPassSaudi${i}!`,
     storeLogo: i % 4 === 0 ? `https://picsum.photos/id/${10 + i}/100/100` : undefined,

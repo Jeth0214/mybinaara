@@ -78,11 +78,40 @@ export const routes: Routes = [
           },
           {
             path: 'admins',
-            loadComponent: () =>
-              import('./features/users/admin-users/admin-users.component').then(
-                (m) => m.AdminUsersComponent
-              ),
-            data: { title: 'Admin Users', icon: 'bi-person-gear' },
+            children: [
+              {
+                path: '',
+                loadComponent: () =>
+                  import('./features/users/admin-users/admin-users.component').then(
+                    (m) => m.AdminUsersComponent
+                  ),
+                data: { title: 'Admin Users', icon: 'bi-person-gear' },
+              },
+              {
+                path: 'create',
+                loadComponent: () =>
+                  import('./features/users/admin-user-form/admin-user-form.component').then(
+                    (m) => m.AdminUserFormComponent
+                  ),
+                data: { title: 'Add User', icon: 'bi-plus-circle' },
+              },
+              {
+                path: ':id/edit',
+                loadComponent: () =>
+                  import('./features/users/admin-user-form/admin-user-form.component').then(
+                    (m) => m.AdminUserFormComponent
+                  ),
+                data: { title: 'Edit User', icon: 'bi-pencil' },
+              },
+              {
+                path: ':id',
+                loadComponent: () =>
+                  import('./features/users/admin-user-detail/admin-user-detail.component').then(
+                    (m) => m.AdminUserDetailComponent
+                  ),
+                data: { title: 'User Details', icon: 'bi-person' },
+              },
+            ],
           },
         ],
       },
@@ -155,58 +184,6 @@ export const routes: Routes = [
                 data: { title: 'Category Details', icon: 'bi-tags' },
               },
             ],
-          },
-        ],
-      },
-      // ── Subscriptions ─────────────────────────────────────────────────
-      {
-        path: 'subscriptions',
-        children: [
-          {
-            path: 'plans',
-            loadComponent: () =>
-              import('./features/subscriptions/plan-management/plan-management.component').then(
-                (m) => m.PlanManagementComponent
-              ),
-            data: { title: 'Plans', icon: 'bi-credit-card' },
-          },
-          {
-            path: 'stores',
-            loadComponent: () =>
-              import('./features/subscriptions/store-subscriptions/store-subscriptions.component').then(
-                (m) => m.StoreSubscriptionsComponent
-              ),
-            data: { title: 'Store Subscriptions', icon: 'bi-receipt' },
-          },
-        ],
-      },
-      // ── Support ───────────────────────────────────────────────────────
-      {
-        path: 'support',
-        children: [
-          {
-            path: 'tickets',
-            loadComponent: () =>
-              import('./features/support/ticket-queue/ticket-queue.component').then(
-                (m) => m.TicketQueueComponent
-              ),
-            data: { title: 'Support Tickets', icon: 'bi-ticket' },
-          },
-          {
-            path: 'audit-logs',
-            loadComponent: () =>
-              import('./features/support/audit-logs/audit-logs.component').then(
-                (m) => m.AuditLogsComponent
-              ),
-            data: { title: 'Audit Logs', icon: 'bi-journal-text' },
-          },
-          {
-            path: 'notifications',
-            loadComponent: () =>
-              import('./features/support/notifications/notifications.component').then(
-                (m) => m.NotificationsComponent
-              ),
-            data: { title: 'Notifications', icon: 'bi-bell' },
           },
         ],
       },

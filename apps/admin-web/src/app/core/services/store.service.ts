@@ -17,15 +17,7 @@ export class StoreService {
   readonly stores = this._stores.asReadonly();
   
   // Computed signals for common groupings
-  readonly unsubscribedStores = computed(() => 
-    this._stores().filter(s => 
-      s.subscriptionPlanId === 'basic' && 
-      s.subscriptionHistory && 
-      s.subscriptionHistory.some(h => h.planId === 'premium' || h.planId === 'enterprise')
-    )
-  );
-
-  readonly activeStores = computed(() => 
+  readonly activeStores = computed(() =>
     this._stores().filter(s => s.status === 'active')
   );
 
@@ -102,8 +94,6 @@ export class StoreService {
       },
       status: 'pending',
       isActivated: false,
-      subscriptionPlanId: 'basic',
-      subscriptionHistory: [],
       activationLink,
       tempPassword,
       storeLogo: storeData.storeLogo,
@@ -155,17 +145,11 @@ export class StoreService {
 
         const isActivated = storeStatus === 'active' ? true : (storeStatus === 'pending' ? false : store.isActivated);
 
-        let history = store.subscriptionHistory || [];
-        if (storeStatus === 'active' && store.status === 'pending' && history.length === 0) {
-          history = [{ planId: 'basic', startDate: new Date().toISOString() }];
-        }
-
         return {
           ...store,
           documents: updatedDocs,
           status: storeStatus,
           isActivated,
-          subscriptionHistory: history,
           rejectionReason: finalRejectionReason
         };
       })
@@ -190,52 +174,12 @@ export class StoreService {
 
         const isActivated = status === 'active' ? true : (status === 'pending' ? false : store.isActivated);
 
-        let history = store.subscriptionHistory || [];
-        if (status === 'active' && store.status === 'pending' && history.length === 0) {
-          history = [{ planId: 'basic', startDate: new Date().toISOString() }];
-        }
-
         return {
           ...store,
           status,
           isActivated,
-          subscriptionHistory: history,
           documents: updatedDocs,
           rejectionReason: (status === 'suspended') ? rejectionReason : store.rejectionReason
-        };
-      })
-    );
-  }
-
-  /**
-   * Change Assigned Subscription Plan
-   */
-  assignSubscriptionPlan(storeId: string, planId: 'basic' | 'premium' | 'enterprise'): void {
-    this._stores.update(currentStores =>
-      currentStores.map(store => {
-        if (store.id !== storeId) return store;
-
-        const history = [...(store.subscriptionHistory || [])];
-        const now = new Date().toISOString();
-
-        // 1. Close the current active subscription entry (if any)
-        if (history.length > 0 && !history[history.length - 1].endDate) {
-          history[history.length - 1] = {
-            ...history[history.length - 1],
-            endDate: now
-          };
-        }
-
-        // 2. Add the new plan entry
-        history.push({
-          planId: planId,
-          startDate: now
-        });
-
-        return {
-          ...store,
-          subscriptionPlanId: planId,
-          subscriptionHistory: history
         };
       })
     );

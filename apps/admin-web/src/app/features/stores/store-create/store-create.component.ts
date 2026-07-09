@@ -214,15 +214,6 @@ export class StoreCreateComponent implements OnInit {
 
   onStepChange(event: any): void {
     this.currentStepIndex.set(event.selectedIndex);
-    
-    // Console log the payload of the step we just finished
-    if (event.previouslySelectedIndex === 0) {
-      console.log('Step 1 finished - Business Info payload:', this.step1Form.value);
-    } else if (event.previouslySelectedIndex === 1) {
-      console.log('Step 2 finished - Location & Schedule payload:', this.step2Form.getRawValue());
-    } else if (event.previouslySelectedIndex === 2) {
-      console.log('Step 3 finished - Saudi Registry payload:', this.step3Form.value);
-    }
 
     // In Create mode, step 4 (index 3) generates credentials and creates the record automatically
     if (event.selectedIndex === 3 && !this.isEditMode() && !this.isCreated()) {

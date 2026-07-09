@@ -29,7 +29,6 @@
     [pageIndex]="pageIndex()"
     [loading]="loading()"
     (deleteStore)="deleteStore($event)"
-    (changePlan)="changePlan($event.storeId, $event.event)"
     (pageChange)="pageSize.set($event.pageSize); pageIndex.set($event.pageIndex)"
   />
 </div>

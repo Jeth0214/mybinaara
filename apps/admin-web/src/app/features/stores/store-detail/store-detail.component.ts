@@ -12,7 +12,6 @@ import { StoreConfirmModalComponent } from '../components/store-confirm-modal/st
 import { StoreDetailProfileComponent } from './components/store-detail-profile/store-detail-profile.component';
 import { StoreDetailDocumentsComponent } from './components/store-detail-documents/store-detail-documents.component';
 import { StoreDetailStatusComponent } from './components/store-detail-status/store-detail-status.component';
-import { StoreDetailSubscriptionComponent } from './components/store-detail-subscription/store-detail-subscription.component';
 import { StoreDetailCredentialsComponent } from './components/store-detail-credentials/store-detail-credentials.component';
 import { StoreDetailProductsComponent } from './components/store-detail-products/store-detail-products.component';
 import { StoreDetailScheduleComponent } from './components/store-detail-schedule/store-detail-schedule.component';
@@ -27,7 +26,6 @@ import { StoreDetailScheduleComponent } from './components/store-detail-schedule
     StoreDetailProfileComponent,
     StoreDetailDocumentsComponent,
     StoreDetailStatusComponent,
-    StoreDetailSubscriptionComponent,
     StoreDetailCredentialsComponent,
     StoreDetailProductsComponent,
     StoreDetailScheduleComponent
@@ -249,34 +247,6 @@ export class StoreDetailComponent implements OnInit, OnDestroy {
       this.toast.warning(`Store "${s.name}" is now suspended.`);
       this.loading.set(false);
     }, 600);
-  }
-
-  changePlan(planId: 'basic' | 'premium' | 'enterprise'): void {
-    const s = this.store();
-    if (!s) return;
-
-    const modalRef = this.modalService.open(StoreConfirmModalComponent, { centered: true });
-    modalRef.componentInstance.title.set('Change Subscription Plan');
-    modalRef.componentInstance.message.set(
-      `Are you sure you want to change the subscription plan for <strong>${s.name}</strong> to <strong>${planId.toUpperCase()}</strong>?`
-    );
-    modalRef.componentInstance.confirmText.set('Change Plan');
-    modalRef.componentInstance.cancelText.set('Cancel');
-    modalRef.componentInstance.isDanger.set(false);
-
-    modalRef.result.then(
-      (confirmed) => {
-        if (confirmed) {
-          this.loading.set(true);
-          setTimeout(() => {
-            this.storeService.assignSubscriptionPlan(s.id, planId);
-            this.toast.success(`Subscription plan updated to "${planId.toUpperCase()}".`);
-            this.loading.set(false);
-          }, 600);
-        }
-      },
-      () => {}
-    );
   }
 
   resendCredentials(): void {

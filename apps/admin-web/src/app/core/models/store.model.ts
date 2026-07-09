@@ -36,8 +36,6 @@ export interface Store {
   location: StoreLocation;
   status: StoreStatus;
   isActivated: boolean;
-  subscriptionHistory: SubscriptionHistory[];
-  subscriptionPlanId: 'basic' | 'premium' | 'enterprise';
   activationLink?: string;
   tempPassword?: string;
   storeLogo?: string; // URL or Base64 of store image logo
@@ -56,17 +54,6 @@ export interface StoreDaySchedule {
 }
 
 
-export interface SubscriptionHistory {
-  planId: 'basic' | 'premium' | 'enterprise';
-  startDate: string;
-  endDate?: string;
-}
-
-export interface CategoryOption {
-  value: string;
-  label: string;
-}
-
 export interface CityOption {
   value: string;
   label: string;
@@ -83,25 +70,4 @@ export const SAUDI_CITIES: CityOption[] = [
   { value: 'Tabuk', label: 'Tabuk (تبوك)' },
   { value: 'Abha', label: 'Abha (أبها)' },
   { value: 'Buraidah', label: 'Buraidah (بريدة)' }
-];
-
-export const STORE_CATEGORIES: CategoryOption[] = [
-  { value: 'Building Materials', label: 'Building Materials (مواد البناء)' },
-  { value: 'Cement & Blocks', label: 'Cement & Blocks (الإسمنت والبلك)' },
-  { value: 'Steel & Metal', label: 'Steel & Metal (الحديد والمعادن)' },
-  { value: 'Doors & Windows', label: 'Doors & Windows (الأبواب والنوافذ)' },
-  { value: 'Paint & Finishes', label: 'Paint & Finishes (الدهانات والتشطيبات)' },
-  { value: 'Electrical', label: 'Electrical (الكهرباء)' },
-  { value: 'Plumbing', label: 'Plumbing (السباكة)' },
-  { value: 'HVAC & Air Conditioning', label: 'HVAC & Air Conditioning (التكييف والتبريد)' },
-  { value: 'Wood & Carpentry', label: 'Wood & Carpentry (الخشب والنجارة)' },
-  { value: 'Roofing', label: 'Roofing (الأسقف)' },
-  { value: 'Flooring & Tiles', label: 'Flooring & Tiles (البلاط والأرضيات)' },
-  { value: 'Glass & Aluminum', label: 'Glass & Aluminum (الزجاج والألمنيوم)' },
-  { value: 'Waterproofing', label: 'Waterproofing (عزل المياه)' },
-  { value: 'Tools & Hardware', label: 'Tools & Hardware (الأدوات والمعدات)' },
-  { value: 'Equipment & Machinery', label: 'Equipment & Machinery (المعدات والآلات)' },
-  { value: 'Safety Supplies', label: 'Safety Supplies (أدوات السلامة)' },
-  { value: 'Landscaping', label: 'Landscaping (تنسيق الحدائق)' },
-  { value: 'Miscellaneous', label: 'Miscellaneous (أخرى ومتنوعة)' }
 ];

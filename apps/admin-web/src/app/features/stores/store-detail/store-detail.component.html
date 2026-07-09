@@ -100,19 +100,13 @@
         </div>
       </div>
 
-      <!-- Right Column: Status & Subscription Controls (5/12) -->
+      <!-- Right Column: Status Controls (5/12) -->
       <div class="col-lg-5 col-md-12">
         <!-- Status Panel -->
         <app-store-detail-status
           [store]="s"
           (suspend)="openSuspendModal()"
           (reactivate)="activateStore()"
-        />
-
-        <!-- Subscription Management -->
-        <app-store-detail-subscription
-          [store]="s"
-          (changePlan)="changePlan($event)"
         />
 
         <!-- Dispatched Credentials Card (if pending/newly created) -->

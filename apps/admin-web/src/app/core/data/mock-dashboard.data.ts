@@ -1,20 +1,7 @@
 import {
-  DashboardStats,
   RecentStore,
   StoreActivityItem,
-  GrowthMetric,
 } from '../models/dashboard.model';
-
-export const MOCK_DASHBOARD_STATS: DashboardStats = {
-  totalGmv: 2_450_000,
-  activeStores: 142,
-  totalUsers: 8_320,
-  totalOrders: 12_580,
-  gmvTrend: 12.5,
-  storesTrend: 8.3,
-  usersTrend: 15.2,
-  ordersTrend: 6.7,
-};
 
 export const MOCK_RECENT_STORES: RecentStore[] = [
   {
@@ -140,13 +127,4 @@ export const MOCK_STORE_ACTIVITY: StoreActivityItem[] = [
     icon: 'bi-check-circle',
     type: 'verification',
   },
-];
-
-export const MOCK_GROWTH_METRICS: GrowthMetric[] = [
-  { month: 'Jan', stores: 85,  users: 4200, gmv: 1_200_000 },
-  { month: 'Feb', stores: 92,  users: 4800, gmv: 1_350_000 },
-  { month: 'Mar', stores: 101, users: 5400, gmv: 1_520_000 },
-  { month: 'Apr', stores: 112, users: 6100, gmv: 1_780_000 },
-  { month: 'May', stores: 128, users: 7200, gmv: 2_100_000 },
-  { month: 'Jun', stores: 142, users: 8320, gmv: 2_450_000 },
 ];
