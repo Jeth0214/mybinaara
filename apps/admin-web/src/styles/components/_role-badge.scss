@@ -1,0 +1,19 @@
+// ── Role badge: used on the Admin Users list/detail/form to show Admin vs User ──
+.role-badge {
+  display: inline-block;
+  padding: 0.3rem 0.65rem;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02rem;
+
+  &.role-badge--admin {
+    background-color: #fdecea;
+    color: #8e2b1f;
+  }
+  &.role-badge--user {
+    background-color: #eaf2f8;
+    color: #1a5276;
+  }
+}

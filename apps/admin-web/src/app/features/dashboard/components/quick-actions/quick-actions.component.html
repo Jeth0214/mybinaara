@@ -1,0 +1,16 @@
+<div class="row g-3">
+  @for (action of actions; track action.route) {
+    <div class="col-lg-3 col-md-6 col-12">
+      <a [routerLink]="action.route" class="quick-action-card">
+        <div class="qa-icon" [style.background]="action.bg" [style.color]="action.color">
+          <i class="bi" [class]="action.icon"></i>
+        </div>
+        <div class="qa-info">
+          <span class="qa-label">{{ action.label }}</span>
+          <small class="qa-desc text-muted">{{ action.description }}</small>
+        </div>
+        <i class="bi bi-chevron-right qa-arrow"></i>
+      </a>
+    </div>
+  }
+</div>

@@ -20,7 +20,6 @@ export class StoreListTableComponent {
   readonly pageIndex = input.required<number>();
 
   readonly deleteStore = output<Store>();
-  readonly changePlan = output<{ storeId: string, event: Event }>();
   readonly pageChange = output<PageEvent>();
 
   private readonly catalogService = inject(UserCatalogService);

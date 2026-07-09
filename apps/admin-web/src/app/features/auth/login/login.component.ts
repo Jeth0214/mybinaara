@@ -82,8 +82,8 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   fillDemoCredentials(): void {
     this.form.patchValue({
-      email: 'admin@mybinaara.com',
-      password: 'Admin@123'
+      email: 'bert_llave@mybinaara.com',
+      password: 'Bert@123'
     });
     this.toast.success('Demo credentials filled!');
   }

@@ -24,7 +24,7 @@ export class AuthService {
     }
 
     if (!user.isActive) {
-      return throwError(() => new Error('Account is disabled. Contact super admin.')).pipe(delay(300));
+      return throwError(() => new Error('Account is disabled. Contact an administrator.')).pipe(delay(300));
     }
 
     this.saveUser(user);

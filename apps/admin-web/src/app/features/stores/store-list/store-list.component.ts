@@ -107,38 +107,4 @@ export class StoreListComponent {
       () => {}
     );
   }
-
-  changePlan(storeId: string, event: Event): void {
-    const target = event.target as HTMLSelectElement;
-    const newPlanId = target.value as 'basic' | 'premium' | 'enterprise';
-    
-    const store = this.storeService.getStoreById(storeId);
-    if (!store) return;
-    
-    const oldPlanId = store.subscriptionPlanId;
-    if (oldPlanId === newPlanId) return;
-
-    // Temporarily reset select element visual state to the old value
-    target.value = oldPlanId;
-
-    const modalRef = this.modalService.open(StoreConfirmModalComponent, { centered: true });
-    modalRef.componentInstance.title.set('Change Subscription Plan');
-    modalRef.componentInstance.message.set(
-      `Are you sure you want to change the subscription plan for <strong>${store.name}</strong> from <strong>${oldPlanId.toUpperCase()}</strong> to <strong>${newPlanId.toUpperCase()}</strong>?`
-    );
-    modalRef.componentInstance.confirmText.set('Change Plan');
-    modalRef.componentInstance.cancelText.set('Cancel');
-    modalRef.componentInstance.isDanger.set(false);
-
-    modalRef.result.then(
-      (confirmed) => {
-        if (confirmed) {
-          this.storeService.assignSubscriptionPlan(storeId, newPlanId);
-          this.toast.success(`Plan updated to "${newPlanId.toUpperCase()}" for ${store.name}.`);
-          target.value = newPlanId;
-        }
-      },
-      () => {}
-    );
-  }
 }

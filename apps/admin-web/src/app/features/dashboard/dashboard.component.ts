@@ -3,7 +3,7 @@ import { DatePipe } from '@angular/common';
 import { DashboardService } from '../../core/services/dashboard.service';
 import { StoreService } from '../../core/services/store.service';
 import { UserCatalogService } from '../../core/services/user-catalog.service';
-import { RecentStore, StoreActivityItem } from '../../core/models/dashboard.model';
+import { AdminDashboardStats, RecentStore, StoreActivityItem } from '../../core/models/dashboard.model';
 import { StatsOverviewComponent } from './components/stats-overview/stats-overview.component';
 import { RecentStoresComponent } from './components/recent-stores/recent-stores.component';
 import { StoreActivityComponent } from './components/store-activity/store-activity.component';
@@ -36,12 +36,12 @@ export class DashboardComponent implements OnInit {
   readonly today = new Date();
 
   // Computes dashboard stats reactively using live signals from our services
-  readonly computedStats = computed(() => {
+  readonly computedStats = computed<AdminDashboardStats>(() => {
     return {
       activeStores: this.storeService.activeStores().length,
-      unsubscribedStores: this.storeService.unsubscribedStores().length,
       adminUsers: this.userCatalogService.admins().length,
       catalogProducts: this.userCatalogService.products().length,
+      categories: this.userCatalogService.categories().length,
     };
   });
 

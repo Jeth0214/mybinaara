@@ -1,0 +1,68 @@
+<div class="container py-4" style="max-width: 1200px;">
+  <a
+    [routerLink]="isEditMode() ? ['/users/admins', adminId()] : ['/users/admins']"
+    class="text-decoration-none text-muted fs-7 d-inline-flex align-items-center gap-2 mb-3"
+  >
+    <i class="bi bi-arrow-left"></i> {{ isEditMode() ? 'Back to User Details' : 'Back to Admin Users' }}
+  </a>
+
+  <div class="mb-4">
+    <h4 class="fw-bold mb-1">{{ isEditMode() ? 'Edit User' : 'Add User' }}</h4>
+    <p class="text-muted mb-0">
+      {{ isEditMode() ? 'Update this operator account\'s details and access level' : 'Register a new internal operator account' }}
+    </p>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="card border-0 shadow-sm p-4" style="max-width: 700px;">
+    <div class="mb-3">
+      <label class="form-label fw-semibold fs-8 text-uppercase text-muted">Full Name</label>
+      <input type="text" class="form-control" formControlName="name" />
+      @if (form.get('name')?.touched && form.get('name')?.invalid) {
+        <div class="text-danger fs-8-5 mt-1">Full name is required (min 3 chars).</div>
+      }
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label fw-semibold fs-8 text-uppercase text-muted">Email Address</label>
+      <input type="email" class="form-control" formControlName="email" />
+      @if (form.get('email')?.touched && form.get('email')?.invalid) {
+        <div class="text-danger fs-8-5 mt-1">Please enter a valid email address.</div>
+      }
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label fw-semibold fs-8 text-uppercase text-muted">Phone Number</label>
+      <input type="text" class="form-control" formControlName="phone" placeholder="+9665XXXXXXXX" />
+    </div>
+
+    <div class="mb-4">
+      <label class="form-label fw-semibold fs-8 text-uppercase text-muted">Assigned Role</label>
+      @if (isSelf()) {
+        <div>
+          <span [class]="'role-badge role-badge--' + form.get('role')?.value">{{ form.get('role')?.value }}</span>
+          <div class="text-muted fs-8-5 mt-1">You can't change your own role.</div>
+        </div>
+      } @else {
+        <select class="form-select" formControlName="role">
+          <option value="admin">Admin (Full Access)</option>
+          <option value="user">User (Read-only)</option>
+        </select>
+      }
+      @if (form.get('role')?.touched && form.get('role')?.invalid) {
+        <div class="text-danger fs-8-5 mt-1">Please assign an access role.</div>
+      }
+    </div>
+
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-success px-4 fw-semibold">
+        {{ isEditMode() ? 'Save Changes' : 'Create User' }}
+      </button>
+      <a
+        [routerLink]="isEditMode() ? ['/users/admins', adminId()] : ['/users/admins']"
+        class="btn btn-light"
+      >
+        Cancel
+      </a>
+    </div>
+  </form>
+</div>

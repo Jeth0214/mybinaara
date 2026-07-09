@@ -67,51 +67,61 @@ export class UserCatalogService {
   private readonly _admins = signal<AdminUser[]>([
     {
       id: 'admin-1',
-      name: 'Super Admin User',
-      email: 'super@mybinaara.com',
-      role: 'super admin',
+      name: 'Bert Llave',
+      email: 'bert_llave@mybinaara.com',
+      phone: '+966530577923',
+      role: 'admin',
       status: 'active',
       createdAt: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000).toISOString()
     },
     {
       id: 'admin-2',
-      name: 'Finance Controller',
-      email: 'finance@mybinaara.com',
-      role: 'finance',
+      name: 'Roland Jethro Suyom',
+      email: 'rj_suyom@mybinaara.com',
+      phone: '+966530095815',
+      role: 'admin',
       status: 'active',
       createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString()
     },
     {
       id: 'admin-3',
-      name: 'Operations Specialist',
-      email: 'ops@mybinaara.com',
-      role: 'ops',
+      name: 'My Binaara',
+      email: 'binaara_users@mybinaara.com',
+      phone: '+966502223333',
+      role: 'user',
       status: 'active',
       createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: 'admin-4',
-      name: 'Support Agent 1',
-      email: 'support1@mybinaara.com',
-      role: 'support',
-      status: 'active',
-      createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
     }
   ]);
 
   readonly admins = this._admins.asReadonly();
 
-  addAdminUser(name: string, email: string, role: AdminRole): void {
+  getAdminById(id: string): AdminUser | undefined {
+    return this._admins().find(a => a.id === id);
+  }
+
+  addAdminUser(name: string, email: string, phone: string, role: AdminRole): void {
     const id = `admin-${Date.now()}`;
     const newAdmin: AdminUser = {
       id,
       name,
       email,
+      phone: phone || undefined,
       role,
       status: 'active',
       createdAt: new Date().toISOString()
     };
     this._admins.update(list => [...list, newAdmin]);
+  }
+
+  updateAdminUser(id: string, changes: Partial<AdminUser>): void {
+    this._admins.update(list =>
+      list.map(admin => admin.id === id ? { ...admin, ...changes } : admin)
+    );
+  }
+
+  deleteAdminUser(id: string): void {
+    this._admins.update(list => list.filter(admin => admin.id !== id));
   }
 
   toggleAdminStatus(adminId: string): void {
