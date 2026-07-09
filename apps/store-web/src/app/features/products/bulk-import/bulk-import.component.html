@@ -1,120 +1,55 @@
 <div class="container py-4" style="max-width: 1200px;">
 
-  <!-- CASE 1: LOCKED (Free Plan) -->
-  @if (currentUser()?.subscriptionPlan === 'Free' || !currentUser()?.subscriptionPlan) {
-    <div class="card p-3  p-lg-4 border shadow-sm text-center mx-auto animate__animated animate__fadeIn" style="max-width: 800px; margin-top: 2rem;">
-      <div class="lock-badge mb-4">
-        <i class="bi bi-lock-fill"></i>
-      </div>
-      <h2 class="h4 font-weight-bold text-dark mb-2">Bulk Import is a Premium Feature</h2>
-      <p class="text-muted mx-auto mb-4" style="max-width: 550px; line-height: 1.6;">
-        Upgrade to a premium tier to instantly list dozens of building materials using standard CSV formatting. Save hours of manual entry and keep your warehouse catalog synchronized.
-      </p>
-
-      <!-- Plan Features Comparison Table -->
-      <div class="table-responsive border d-none d-md-block rounded overflow-hidden mb-4 mx-auto" style="max-width: 600px;">
-        <table class="table mb-0 align-middle text-start">
-          <thead>
-            <tr class="table-light">
-              <th>Feature comparison</th>
-              <th class="text-center">Free</th>
-              <th class="text-center text-success">Pro</th>
-              <th class="text-center text-warning">Enterprise</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Products listing limit</td>
-              <td class="text-center">5 products</td>
-              <td class="text-center font-weight-bold">50 products</td>
-              <td class="text-center font-weight-bold">100 products</td>
-            </tr>
-            <tr>
-              <td>Bulk CSV import tools</td>
-              <td class="text-center text-danger"><i class="bi bi-x-circle-fill"></i> Locked</td>
-              <td class="text-center text-success font-weight-bold"><i class="bi bi-check-circle-fill"></i> Unlocked</td>
-              <td class="text-center text-success font-weight-bold"><i class="bi bi-check-circle-fill"></i> Unlocked</td>
-            </tr>
-            <tr>
-              <td>WhatsApp contact button</td>
-              <td class="text-center text-danger"><i class="bi bi-x-circle-fill"></i> No</td>
-              <td class="text-center text-success"><i class="bi bi-check-circle-fill"></i> Yes</td>
-              <td class="text-center text-success"><i class="bi bi-check-circle-fill"></i> Yes</td>
-            </tr>
-            <tr>
-              <td>Search results priority</td>
-              <td class="text-center">Standard</td>
-              <td class="text-center">High</td>
-              <td class="text-center font-weight-bold text-warning"><i class="bi bi-star-fill"></i> Featured</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="d-flex flex-column flex-md-row justify-content-center gap-3">
-        <a class="btn btn-outline-success font-weight-bold px-4 py-2 border" [routerLink]="['/products']">
-          Back to Products
-        </a>
-        <a class="btn btn-success font-weight-bold px-4 py-2 text-white" [routerLink]="['/settings/profile']" [queryParams]="{ tab: 'subscription' }">
-          Upgrade Plan
-        </a>
-      </div>
+  <!-- Page Header -->
+  <div class="d-md-flex justify-content-between align-items-center mb-4 pb-2">
+    <div>
+      <h1 class="h3 font-weight-bold text-dark mb-1">Bulk Import Products</h1>
+      <p class="text-muted small mb-0">Synchronize your store catalog by uploading spreadsheet lists.</p>
     </div>
-  } @else {
-
-    <!-- CASE 2: ACTIVE CSV IMPORT (Pro & Enterprise) -->
-    <!-- Page Header -->
-    <div class="d-md-flex justify-content-between align-items-center mb-4 pb-2">
-      <div>
-        <h1 class="h3 font-weight-bold text-dark mb-1">Bulk Import Products</h1>
-        <p class="text-muted small mb-0">Synchronize your store catalog by uploading spreadsheet lists.</p>
-      </div>
-      <div>
-        <a 
-          class="btn btn-outline-success font-weight-bold px-4 py-2 border d-flex align-items-center gap-2"
-          [routerLink]="loading() ? null : ['/products']"
-          [class.disabled]="loading()"
-          [style.pointer-events]="loading() ? 'none' : 'auto'"
-        >
-          <i class="bi bi-list-ul"></i> View Products
-        </a>
-      </div>
+    <div>
+      <a
+        class="btn btn-outline-success font-weight-bold px-4 py-2 border d-flex align-items-center gap-2"
+        [routerLink]="loading() ? null : ['/products']"
+        [class.disabled]="loading()"
+        [style.pointer-events]="loading() ? 'none' : 'auto'"
+      >
+        <i class="bi bi-list-ul"></i> View Products
+      </a>
     </div>
+  </div>
 
-    <!-- Step Indicators Row -->
-    <app-import-steps [currentStep]="currentStep()"></app-import-steps>
+  <!-- Step Indicators Row -->
+  <app-import-steps [currentStep]="currentStep()"></app-import-steps>
 
-    <!-- STEP 1 VIEW: UPLOAD FILE -->
-    @if (currentStep() === 1) {
-      <app-import-upload
-        [loading]="loading()"
-        (fileSelected)="onFileSelected($event)"
-        (templateDownload)="downloadTemplate()"
-      ></app-import-upload>
-    }
+  <!-- STEP 1 VIEW: UPLOAD FILE -->
+  @if (currentStep() === 1) {
+    <app-import-upload
+      [loading]="loading()"
+      (fileSelected)="onFileSelected($event)"
+      (templateDownload)="downloadTemplate()"
+    ></app-import-upload>
+  }
 
-    <!-- STEP 2 VIEW: REVIEW & VALIDATE -->
-    @else if (currentStep() === 2) {
-      <app-import-validation
-        [selectedFileName]="selectedFileName()"
-        [importRows]="importRows()"
-        [readyCount]="readyCount()"
-        [warningsCount]="warningsCount()"
-        [errorsCount]="errorsCount()"
-        [loading]="loading()"
-        (fixErrors)="resetToStep1()"
-        (confirmImport)="importProducts()"
-      ></app-import-validation>
-    }
+  <!-- STEP 2 VIEW: REVIEW & VALIDATE -->
+  @else if (currentStep() === 2) {
+    <app-import-validation
+      [selectedFileName]="selectedFileName()"
+      [importRows]="importRows()"
+      [readyCount]="readyCount()"
+      [warningsCount]="warningsCount()"
+      [errorsCount]="errorsCount()"
+      [loading]="loading()"
+      (fixErrors)="resetToStep1()"
+      (confirmImport)="importProducts()"
+    ></app-import-validation>
+  }
 
-    <!-- STEP 3 VIEW: SUCCESS CONFIRMATION -->
-    @else if (currentStep() === 3) {
-      <app-import-success
-        [readyCount]="readyCount()"
-        (importAnother)="resetToStep1()"
-      ></app-import-success>
-    }
-
+  <!-- STEP 3 VIEW: SUCCESS CONFIRMATION -->
+  @else if (currentStep() === 3) {
+    <app-import-success
+      [readyCount]="readyCount()"
+      (importAnother)="resetToStep1()"
+    ></app-import-success>
   }
 
 </div>

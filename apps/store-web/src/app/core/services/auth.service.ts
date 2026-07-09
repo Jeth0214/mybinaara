@@ -14,8 +14,6 @@ interface MockAccount {
   city?: string;
   whatsapp?: string;
   workingHours?: StoreSchedule;
-  subscriptionPlan?: 'Free' | 'Pro' | 'Enterprise';
-  subscriptionDate?: string;
   businessId?: string;
   certificateId?: string;
 }
@@ -83,7 +81,6 @@ export class AuthService {
         city: 'Jeddah',
         whatsapp: '+966 55 123 4567',
         workingHours: defaultWorkingHours,
-        subscriptionPlan: 'Free',
         businessId: '1010098765',
         certificateId: 'CRT-2026-8890',
       },
@@ -98,7 +95,6 @@ export class AuthService {
         city: 'Riyadh',
         whatsapp: '+966559876543',
         workingHours: defaultWorkingHours,
-        subscriptionPlan: 'Free',
         businessId: '1010065432',
         certificateId: 'CRT-2026-1122',
       },
@@ -134,8 +130,6 @@ export class AuthService {
       city: account.city,
       whatsapp: account.whatsapp,
       workingHours: account.workingHours,
-      subscriptionPlan: account.subscriptionPlan,
-      subscriptionDate: account.subscriptionDate,
       businessId: account.businessId,
       certificateId: account.certificateId,
     };
@@ -209,8 +203,6 @@ export class AuthService {
       city: account.city,
       whatsapp: account.whatsapp,
       workingHours: account.workingHours,
-      subscriptionPlan: account.subscriptionPlan,
-      subscriptionDate: account.subscriptionDate,
       businessId: account.businessId,
       certificateId: account.certificateId,
     };
@@ -252,8 +244,6 @@ export class AuthService {
       city: account.city,
       whatsapp: account.whatsapp,
       workingHours: account.workingHours,
-      subscriptionPlan: account.subscriptionPlan || 'Free',
-      subscriptionDate: account.subscriptionDate,
       businessId: account.businessId,
       certificateId: account.certificateId,
     };
@@ -276,37 +266,6 @@ export class AuthService {
     account.passwordHash = newPass;
     this.saveAccounts();
     return of(true).pipe(delay(800));
-  }
-
-  upgradeSubscription(userId: string, plan: 'Free' | 'Pro' | 'Enterprise'): Observable<StoreUser> {
-    const accountIndex = this.accounts.findIndex(a => a.id === userId);
-    if (accountIndex === -1) {
-      return throwError(() => new Error('Account not found.'));
-    }
-
-    const account = this.accounts[accountIndex];
-    account.subscriptionPlan = plan;
-    account.subscriptionDate = new Date().toISOString();
-    this.saveAccounts();
-
-    const updatedUser: StoreUser = {
-      id: account.id,
-      email: account.email,
-      phone: account.phone,
-      storeName: account.storeName,
-      isActivated: account.isActivated,
-      logoUrl: account.logoUrl,
-      city: account.city,
-      whatsapp: account.whatsapp,
-      workingHours: account.workingHours,
-      subscriptionPlan: account.subscriptionPlan,
-      subscriptionDate: account.subscriptionDate,
-      businessId: account.businessId,
-      certificateId: account.certificateId,
-    };
-
-    localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(updatedUser));
-    return of(updatedUser).pipe(delay(800));
   }
 
   getCurrentUser(): StoreUser | null {

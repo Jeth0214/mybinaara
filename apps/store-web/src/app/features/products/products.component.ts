@@ -111,19 +111,6 @@ export class ProductsComponent {
     }
   }
 
-  readonly subscriptionPlan = computed(() => this.productService.currentUser()?.subscriptionPlan || 'Free');
-
-  readonly bottomAlertText = computed(() => {
-    const plan = this.subscriptionPlan();
-    if (plan === 'Free') {
-      return "You're on the Free plan — limited to 5 products. Upgrade to Pro for 50 products or Business for 100.";
-    } else if (plan === 'Pro') {
-      return "You're on the Pro plan — limited to 50 products. Upgrade to Enterprise for 100 products.";
-    } else {
-      return "You're on the Enterprise plan — limited to 100 products. Contact support if you need more slots.";
-    }
-  });
-
   getProductSubtext(product: Product): string {
     let brand = 'Local Brand';
     const nameLower = product.name.toLowerCase();

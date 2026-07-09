@@ -11,7 +11,6 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { Store } from '@ngxs/store';
 import { AuthState } from '../../core/state/auth.state';
 import { Logout } from '../../core/state/auth.actions';
-import { ProductService } from '../../core/services/product.service';
 
 interface NavItem {
   label: string;
@@ -41,12 +40,8 @@ export class SidebarComponent {
 
   private store = inject(Store);
   private router = inject(Router);
-  private productService = inject(ProductService);
 
   readonly currentUser = this.store.selectSignal(AuthState.user);
-  readonly productsCount = this.productService.productsCount;
-  readonly productsLimit = this.productService.productsLimit;
-  readonly progressPercent = this.productService.progressPercent;
 
   readonly navGroups = computed<NavGroup[]>(() => [
     {
@@ -62,16 +57,9 @@ export class SidebarComponent {
       ],
     },
     {
-      label: 'ANALYTICS',
-      items: [
-        { label: 'Search insights', icon: 'bi-graph-up', route: '/analytics' },
-      ],
-    },
-    {
       label: 'SETTINGS',
       items: [
         { label: 'Store profile', icon: 'bi-shop', route: '/settings/profile', queryParams: { tab: 'info' } },
-        { label: 'Subscription', icon: 'bi-credit-card', route: '/settings/profile', queryParams: { tab: 'subscription' } },
       ],
     },
   ]);

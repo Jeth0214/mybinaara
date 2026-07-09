@@ -3,8 +3,6 @@ import { CommonModule } from '@angular/common';
 import { ProductService } from '../../core/services/product.service';
 import { DashboardGreetingComponent } from './components/dashboard-greeting/dashboard-greeting.component';
 import { DashboardProductsComponent } from './components/dashboard-products/dashboard-products.component';
-import { DashboardInsightsComponent } from './components/dashboard-insights/dashboard-insights.component';
-import { DashboardSubscriptionComponent } from './components/dashboard-subscription/dashboard-subscription.component';
 import { DashboardFooterComponent } from './components/dashboard-footer/dashboard-footer.component';
 
 @Component({
@@ -14,8 +12,6 @@ import { DashboardFooterComponent } from './components/dashboard-footer/dashboar
     CommonModule,
     DashboardGreetingComponent,
     DashboardProductsComponent,
-    DashboardInsightsComponent,
-    DashboardSubscriptionComponent,
     DashboardFooterComponent,
   ],
   templateUrl: './dashboard.component.html',

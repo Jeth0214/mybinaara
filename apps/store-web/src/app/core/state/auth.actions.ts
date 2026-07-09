@@ -51,8 +51,3 @@ export class ChangePassword {
     }
   ) {}
 }
-
-export class UpgradeSubscription {
-  static readonly type = '[Auth] Upgrade Subscription';
-  constructor(public plan: 'Free' | 'Pro' | 'Enterprise') {}
-}

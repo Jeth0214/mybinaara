@@ -4,7 +4,7 @@
   <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
       <h1 class="page-title h3 mb-1">Store settings</h1>
-      <p class="page-subtitle text-muted mb-0">Manage your store information, security preferences, and subscription plan.</p>
+      <p class="page-subtitle text-muted mb-0">Manage your store information and security preferences.</p>
     </div>
   </div>
 
@@ -33,14 +33,6 @@
     >
       <span class="d-none d-md-inline">Account & </span>Security
     </button>
-    <button
-      type="button"
-      class="tab-pill"
-      [class.active]="activeTab === 'subscription'"
-      (click)="setTab('subscription')"
-    >
-      Subscription
-    </button>
   </div>
 
   <!-- TAB CONTENT -->
@@ -48,8 +40,6 @@
     <app-store-info-tab></app-store-info-tab>
   } @else if (activeTab === 'security') {
     <app-store-security-tab></app-store-security-tab>
-  } @else if (activeTab === 'subscription') {
-    <app-store-subscription-tab></app-store-subscription-tab>
   }
 
 </div>

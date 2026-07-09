@@ -49,24 +49,6 @@
 
   <!-- Footer -->
   <div class="sidebar-footer">
-    @if (expanded) {
-      <div class="plan-card">
-        <span class="plan-label">CURRENT PLAN</span>
-        <span class="plan-name">{{ currentUser()?.subscriptionPlan || 'Free' }}</span>
-        <div class="plan-progress">
-          <div 
-            class="plan-progress-bar" 
-            [style.width.%]="progressPercent()"
-          ></div>
-        </div>
-        <span class="plan-usage">
-          {{ productsCount() }} / {{ productsLimit() }} products used
-        </span>
-        <a class="plan-upgrade" [routerLink]="['/settings/profile']" [queryParams]="{ tab: 'subscription' }">
-          {{ currentUser()?.subscriptionPlan === 'Enterprise' ? 'Manage plan &rarr;' : 'Upgrade plan &rarr;' }}
-        </a>
-      </div>
-    }
     <div class="user-row d-flex align-items-center">
       <div class="user-avatar">{{ getInitials(currentUser()?.storeName) }}</div>
       @if (expanded) {

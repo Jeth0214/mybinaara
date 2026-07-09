@@ -6,6 +6,7 @@ import { AuthState } from '../state/auth.state';
 import { Product } from '../models/product.model';
 
 const STORAGE_PRODUCTS_KEY = 'mybinaara_store_products';
+const PRODUCTS_LIMIT = 50;
 
 @Injectable({
   providedIn: 'root',
@@ -26,11 +27,7 @@ export class ProductService {
   readonly productsCount = computed(() => this.products().length);
 
   readonly productsLimit = computed(() => {
-    const user = this.currentUser();
-    if (!user) return 0;
-    if (user.subscriptionPlan === 'Enterprise') return 100;
-    if (user.subscriptionPlan === 'Pro') return 50;
-    return 5; // Free plan limit
+    return this.currentUser() ? PRODUCTS_LIMIT : 0;
   });
 
   readonly isLimitReached = computed(() => this.productsCount() >= this.productsLimit());
@@ -125,7 +122,7 @@ export class ProductService {
     }
 
     if (this.isLimitReached()) {
-      return throwError(() => new Error('Subscription limit reached. Please upgrade your plan to add more products.'));
+      return throwError(() => new Error(`Product limit reached. You can list up to ${PRODUCTS_LIMIT} products.`));
     }
 
     const newProduct: Product = {
@@ -249,17 +246,12 @@ export class ProductService {
       return throwError(() => new Error('Store user not authenticated.'));
     }
 
-    // Verify user plan allows bulk import
-    if (user.subscriptionPlan === 'Free') {
-      return throwError(() => new Error('Bulk import is a premium feature. Please upgrade your plan to unlock.'));
-    }
-
     const remainingSlots = this.slotsRemaining();
     if (newProductsData.length > remainingSlots) {
       return throwError(
         () =>
           new Error(
-            `Import failed. You are trying to import ${newProductsData.length} products, but you only have ${remainingSlots} slots remaining on your ${user.subscriptionPlan} plan.`
+            `Import failed. You are trying to import ${newProductsData.length} products, but you only have ${remainingSlots} slots remaining.`
           )
       );
     }
