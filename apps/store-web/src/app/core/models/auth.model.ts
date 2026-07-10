@@ -24,8 +24,6 @@ export interface StoreUser {
   city?: string;
   whatsapp?: string;
   workingHours?: StoreSchedule;
-  subscriptionPlan?: 'Free' | 'Pro' | 'Enterprise';
-  subscriptionDate?: string;
   businessId?: string;
   certificateId?: string;
 }

@@ -10,9 +10,9 @@
       <!-- Section 1: Greeting & Operating Hours -->
       <app-dashboard-greeting [user]="user()"></app-dashboard-greeting>
 
-      <!-- Section 2 & 3: Products & Search Insights Grid -->
+      <!-- Section 2: Products -->
       <div class="row g-4 mb-4">
-        <div class="col-lg-6 col-md-12">
+        <div class="col-12">
           <app-dashboard-products
             [productsCount]="productsCount()"
             [productsLimit]="productsLimit()"
@@ -22,23 +22,9 @@
             [outOfStockCount]="outOfStockCount()"
           ></app-dashboard-products>
         </div>
-        
-        <div class="col-lg-6 col-md-12">
-          <app-dashboard-insights></app-dashboard-insights>
-        </div>
       </div>
 
-      <!-- Section 4: Subscription -->
-      <div class="row g-4 mb-4">
-        <div class="col-12">
-          <app-dashboard-subscription
-            [user]="user()"
-            [productsLimit]="productsLimit()"
-          ></app-dashboard-subscription>
-        </div>
-      </div>
-
-      <!-- Section 5: Support Contact & Copyright Footer -->
+      <!-- Section 3: Support Contact & Copyright Footer -->
       <div class="row g-4">
         <div class="col-12">
           <app-dashboard-footer></app-dashboard-footer>

@@ -7,7 +7,6 @@ import { AuthState } from '../../../core/state/auth.state';
 
 import { StoreInfoTabComponent } from './tabs/store-info-tab/store-info-tab.component';
 import { StoreSecurityTabComponent } from './tabs/store-security-tab/store-security-tab.component';
-import { StoreSubscriptionTabComponent } from './tabs/store-subscription-tab/store-subscription-tab.component';
 
 @Component({
   selector: 'app-store-profile',
@@ -15,8 +14,7 @@ import { StoreSubscriptionTabComponent } from './tabs/store-subscription-tab/sto
   imports: [
     CommonModule,
     StoreInfoTabComponent,
-    StoreSecurityTabComponent,
-    StoreSubscriptionTabComponent
+    StoreSecurityTabComponent
   ],
   templateUrl: './store-profile.component.html',
   styleUrl: './store-profile.component.scss',
@@ -28,7 +26,7 @@ export class StoreProfileComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private sub = new Subscription();
 
-  // Selected tab: 'info' | 'security' | 'subscription'
+  // Selected tab: 'info' | 'security'
   activeTab = 'info';
 
   // State Signals
@@ -39,7 +37,7 @@ export class StoreProfileComponent implements OnInit, OnDestroy {
     this.sub.add(
       this.route.queryParams.subscribe((params) => {
         const tab = params['tab'];
-        if (tab && ['info', 'security', 'subscription'].includes(tab)) {
+        if (tab && ['info', 'security'].includes(tab)) {
           this.activeTab = tab;
         } else {
           this.activeTab = 'info';

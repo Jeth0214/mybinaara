@@ -69,14 +69,6 @@ export const routes: Routes = [
         ],
       },
       {
-        path: 'analytics',
-        loadComponent: () =>
-          import('./features/analytics/analytics.component').then(
-            (m) => m.AnalyticsComponent
-          ),
-        data: { title: 'Search Insights', icon: 'bi-graph-up' },
-      },
-      {
         path: 'settings',
         children: [
           {
@@ -86,11 +78,6 @@ export const routes: Routes = [
                 './features/settings/store-profile/store-profile.component'
               ).then((m) => m.StoreProfileComponent),
             data: { title: 'Store Profile', icon: 'bi-shop' },
-          },
-          {
-            path: 'subscription',
-            redirectTo: 'profile',
-            pathMatch: 'full',
           },
         ],
       },

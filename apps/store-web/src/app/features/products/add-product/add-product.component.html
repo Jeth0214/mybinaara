@@ -8,15 +8,12 @@
       </div>
       <h2 class="h4 font-weight-bold text-dark mb-2">Product Limit Reached</h2>
       <p class="text-muted mb-4 fs-6">
-        You are currently on the <strong>{{ currentUser()?.subscriptionPlan || 'Free' }} Plan</strong> and have listed the maximum of <strong>{{ productsLimit() }}</strong> products.<br>
-        To add more items and boost your visibility, please upgrade your subscription plan.
+        You have listed the maximum of <strong>{{ productsLimit() }}</strong> products.<br>
+        Remove or update existing products to add new ones.
       </p>
       <div class="d-flex justify-content-center gap-3">
         <a class="btn btn-outline-success font-weight-bold px-4 py-2 border" [routerLink]="['/products']">
           Back to Products
-        </a>
-        <a class="btn btn-success font-weight-bold px-4 py-2 text-white" [routerLink]="['/settings/profile']" [queryParams]="{ tab: 'subscription' }">
-          Upgrade Plan
         </a>
       </div>
     </div>

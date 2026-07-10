@@ -181,24 +181,6 @@ export class AuthState implements NgxsOnInit {
     );
   }
 
-  @Action(AuthActions.UpgradeSubscription)
-  upgradeSubscription(ctx: StateContext<AuthStateModel>, action: AuthActions.UpgradeSubscription) {
-    const state = ctx.getState();
-    if (!state.user) {
-      return throwError(() => new Error('Not authenticated'));
-    }
-    ctx.patchState({ loading: true, error: null });
-    return this.authService.upgradeSubscription(state.user.id, action.plan).pipe(
-      tap((user) => {
-        ctx.patchState({ user, loading: false });
-      }),
-      catchError((err) => {
-        ctx.patchState({ error: err.message, loading: false });
-        return throwError(() => err);
-      })
-    );
-  }
-
   @Action(AuthActions.Logout)
   logout(ctx: StateContext<AuthStateModel>) {
     this.authService.logout();
