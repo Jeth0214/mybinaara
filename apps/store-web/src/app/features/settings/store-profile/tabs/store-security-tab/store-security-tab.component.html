@@ -14,7 +14,6 @@
         <input
           [type]="currentPassVisible() ? 'text' : 'password'"
           formControlName="currentPass"
-          placeholder="Enter current password"
           class="form-control font-pw"
           [class.is-invalid]="securityForm.get('currentPass')?.invalid && securityForm.get('currentPass')?.touched"
         />
@@ -40,7 +39,6 @@
         <input
           [type]="newPassVisible() ? 'text' : 'password'"
           formControlName="newPass"
-          placeholder="Enter at least 6 characters"
           class="form-control font-pw"
           [class.is-invalid]="securityForm.get('newPass')?.invalid && securityForm.get('newPass')?.touched"
         />
@@ -66,7 +64,6 @@
         <input
           [type]="confirmPassVisible() ? 'text' : 'password'"
           formControlName="confirmPass"
-          placeholder="Repeat your new password"
           class="form-control font-pw"
           [class.is-invalid]="(securityForm.get('confirmPass')?.invalid && securityForm.get('confirmPass')?.touched) || securityForm.hasError('mismatch')"
         />

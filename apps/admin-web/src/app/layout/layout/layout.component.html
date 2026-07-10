@@ -1,0 +1,80 @@
+<div class="app-layout" [class.sidebar-collapsed]="!sidebarExpanded()">
+
+  <!-- Mobile backdrop -->
+  @if (mobileOpen()) {
+    <div class="overlay" (click)="closeMobile()" aria-hidden="true"></div>
+  }
+
+  <!-- Sidebar panel -->
+  <div
+    class="sidebar-panel"
+    [class.collapsed]="!sidebarExpanded()"
+    [class.mobile-open]="mobileOpen()"
+  >
+    <app-sidebar
+      [expanded]="sidebarExpanded()"
+      [mobileOpen]="mobileOpen()"
+      (closeOverlay)="closeMobile()"
+    />
+  </div>
+
+  <!-- Edge toggle: tablet / desktop only -->
+  <button
+    class="sidebar-edge-toggle"
+    (click)="toggleSidebar()"
+    [title]="sidebarExpanded() ? 'Collapse sidebar' : 'Expand sidebar'"
+  >
+    @if (sidebarExpanded()) {
+      <i class="bi bi-chevron-left"></i>
+    } @else {
+      <i class="bi bi-chevron-right"></i>
+    }
+  </button>
+
+  <!-- Main area -->
+  <div class="main-area">
+    <app-topbar
+      [expanded]="sidebarExpanded()"
+      [mobileOpen]="mobileOpen()"
+      (toggleSidebar)="toggleSidebar()"
+      (openMobile)="openMobile()"
+      (closeMobile)="closeMobile()"
+    />
+    <main class="content d-flex flex-column">
+      <div class="flex-grow-1">
+        <router-outlet />
+      </div>
+
+      <!-- Premium Layout Footer -->
+      <footer class="app-footer mt-5 pt-4 pb-3 border-top text-muted fs-8">
+        <div class="container-fluid px-0">
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-shop text-success fs-6"></i>
+              <span class="fw-semibold text-dark">Binaara Portal</span>
+              <span>•</span>
+              <span>Saudi Arabia Industrial Procurement & Vendor Hub</span>
+            </div>
+            
+            <div class="d-flex align-items-center gap-3">
+              <a href="#" class="text-muted text-decoration-none hover-success">Terms & Conditions</a>
+              <a href="#" class="text-muted text-decoration-none hover-success">Privacy Policy</a>
+            </div>
+          </div>
+          
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-2 mt-3 pt-3 border-top border-light-subtle">
+            <div>
+              <span>&copy; {{ currentYear }} Binaara. All rights reserved.</span>
+            </div>
+            <div class="d-flex align-items-center gap-1.5 text-success-emphasis fw-medium">
+              <i class="bi bi-shield-check"></i>
+              <span>Secure Ministry of Commerce Validated Gateway</span>
+              <span>🇸🇦</span>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+</div>

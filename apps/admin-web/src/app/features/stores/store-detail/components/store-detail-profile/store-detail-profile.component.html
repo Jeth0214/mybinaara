@@ -1,0 +1,87 @@
+<div class="profile-tab">
+  <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">Saudi Arabia Business Registry</h6>
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <span class="d-block text-muted fs-8">COMMERCIAL REGISTRATION (CR)</span>
+      <strong class="text-dark font-monospace">{{ store().crNumber }}</strong>
+    </div>
+    <div class="col-md-6">
+      <span class="d-block text-muted fs-8">VAT NUMBER</span>
+      <strong class="text-dark font-monospace">{{ store().vatNumber }}</strong>
+    </div>
+  </div>
+
+  <h6 class="fw-bold text-dark border-bottom pb-2 mb-3 mt-4">Authorized Representative</h6>
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <span class="d-block text-muted fs-8">OWNER / MANAGER</span>
+      <strong class="text-dark">{{ store().ownerName }}</strong>
+    </div>
+    <div class="col-md-3">
+      <span class="d-block text-muted fs-8">MOBILE NUMBER</span>
+      <strong class="text-dark font-monospace">{{ store().ownerPhone }}</strong>
+    </div>
+    <div class="col-md-3">
+      <span class="d-block text-muted fs-8">WHATSAPP NUMBER</span>
+      <strong class="text-dark font-monospace">@if (store().ownerWhatsapp) { {{ store().ownerWhatsapp }} } @else { N/A }</strong>
+      @if (store().ownerWhatsapp) {
+        <div class="mt-1">
+          <a 
+            [href]="getCleanWhatsappLink(store().ownerWhatsapp)" 
+            target="_blank" 
+            class="btn btn-xs btn-outline-success d-inline-flex align-items-center gap-1 py-0.5 px-2 fs-8 text-decoration-none"
+          >
+            <i class="bi bi-whatsapp"></i>
+            <span>Chat</span>
+          </a>
+        </div>
+      }
+    </div>
+    <div class="col-md-12 mt-3">
+      <span class="d-block text-muted fs-8">EMAIL ADDRESS</span>
+      <strong class="text-dark font-monospace">{{ store().ownerEmail }}</strong>
+    </div>
+  </div>
+
+  <h6 class="fw-bold text-dark border-bottom pb-2 mb-3 mt-4">Store Location & Coordinates</h6>
+  <div class="row g-3">
+    <div class="col-md-6">
+      <span class="d-block text-muted fs-8">CITY & DISTRICT</span>
+      <strong class="text-dark">{{ store().location.city || 'N/A' }}@if (store().location.district) { ({{ store().location.district }}) }</strong>
+    </div>
+    <div class="col-md-6">
+      <span class="d-block text-muted fs-8">GPS COORDINATES (LAT, LNG)</span>
+      <strong class="text-dark font-monospace">@if (store().location.latitude && store().location.longitude) { {{ store().location.latitude }}, {{ store().location.longitude }} } @else { N/A }</strong>
+    </div>
+    <div class="col-md-6 mt-3">
+      <span class="d-block text-muted fs-8">STREET ADDRESS</span>
+      <strong class="text-dark">{{ store().location.buildingNumber || '' }} {{ store().location.streetName || '' }}</strong>
+    </div>
+    <div class="col-md-6 mt-3">
+      <span class="d-block text-muted fs-8">POSTAL CODE</span>
+      <strong class="text-dark">{{ store().location.postalCode || 'N/A' }}@if (store().location.additionalNumber) { - {{ store().location.additionalNumber }} }</strong>
+    </div>
+    <div class="col-md-6 mt-3">
+      <span class="d-block text-muted fs-8">COUNTRY</span>
+      <strong class="text-dark">{{ store().location.country || 'Saudi Arabia' }}</strong>
+    </div>
+    <div class="col-md-12 mt-3">
+      <span class="d-block text-muted fs-8">FORMATTED FULL ADDRESS</span>
+      <strong class="text-dark" style="white-space: pre-line;">{{ store().location.fullAddress || 'N/A' }}</strong>
+    </div>
+    @if (store().location.latitude && store().location.longitude) {
+      <div class="col-md-12 mt-3">
+        <a 
+          [href]="'https://www.google.com/maps?q=' + store().location.latitude + ',' + store().location.longitude" 
+          target="_blank" 
+          class="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-2"
+        >
+          <i class="bi bi-map"></i>
+          <span>View on Google Maps</span>
+        </a>
+      </div>
+    }
+  </div>
+
+</div>
+

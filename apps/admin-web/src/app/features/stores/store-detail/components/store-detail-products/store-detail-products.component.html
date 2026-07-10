@@ -1,0 +1,149 @@
+<div class="card border-0 shadow-sm overflow-hidden mt-4">
+  <div class="card-header bg-white py-3 border-bottom-0">
+    <div class="d-flex justify-content-between align-items-center">
+      <h5 class="fw-bold text-dark mb-0">Products Catalog under this Store</h5>
+      <span class="badge bg-success bg-opacity-10 text-success fw-semibold px-2.5 py-1.5 fs-8">
+        {{ store().totalProducts }} Total Products
+      </span>
+    </div>
+  </div>
+  
+  @if (productsLoaded()) {
+    <div class="card-body bg-light border-top border-bottom py-3">
+      <div class="row g-2">
+        <!-- Search Query -->
+        <div class="col-md-5 ">
+          <div class="input-group input-group-sm">
+            <span class="input-group-text bg-white border-end-0 text-muted">
+              <i class="bi bi-search"></i>
+            </span>
+            <input
+              type="text"
+              class="form-control border-start-0 ps-2 fs-7.5"
+              [ngModel]="searchQuery()"
+              (ngModelChange)="onSearchChange($event)"
+            />
+          </div>
+        </div>
+        
+        <!-- Category Filter -->
+        <div class="col-md-4 col-6">
+          <select
+            class="form-select form-select-sm fs-7.5"
+            [ngModel]="categoryFilter()"
+            (ngModelChange)="onCategoryChange($event)"
+          >
+            <option value="all">All Categories</option>
+            @for (cat of categories(); track cat.id) {
+              <option [value]="cat.name">{{ cat.name }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Status Filter -->
+        <div class="col-md-3 col-6">
+          <select
+            class="form-select form-select-sm fs-7.5"
+            [ngModel]="statusFilter()"
+            (ngModelChange)="onStatusChange($event)"
+          >
+            <option value="all">All Statuses</option>
+            <option value="active">Active</option>
+            <option value="suspended">Suspended</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0 custom-table">
+        <thead class="table-light text-uppercase fs-8 fw-semibold text-muted">
+          <tr>
+            <th scope="col" class="ps-4">Product / SKU Details</th>
+            <th scope="col">Category</th>
+            <th scope="col">Brand</th>
+            <th scope="col">Price</th>
+            <th scope="col">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (prod of paginatedProducts(); track prod.id) {
+            <tr>
+              <td class="ps-4 py-3">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="product-thumb bg-light rounded text-muted d-flex align-items-center justify-content-center overflow-hidden p-1">
+                    <img [src]="getCategoryIcon(prod.category)" alt="{{ prod.category }}" style="width: 28px; height: 28px; object-fit: contain;" title="{{ prod.category }}" />
+                  </div>
+                  <div>
+                    <h6 class="mb-0 fw-semibold fs-7-5 text-dark">{{ prod.name }}</h6>
+                    <span class="fs-8 text-muted d-block font-monospace">SKU: {{ prod.sku }}</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="badge bg-light text-dark fw-medium">{{ prod.category }}</span>
+              </td>
+              <td>
+                <span class="text-secondary fw-semibold fs-7-5">{{ prod.brand }}</span>
+              </td>
+              <td>
+                <strong class="text-success fs-7-5">{{ prod.price | number:'1.2-2' }} SAR</strong>
+              </td>
+              <td>
+                <span
+                  [class]="'status-badge status-badge--' + (prod.isSuspended ? 'suspended' : 'active')"
+                  [title]="prod.isSuspended ? prod.suspensionReason : ''"
+                >
+                  {{ prod.isSuspended ? 'Suspended' : 'Active' }}
+                </span>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="text-center py-5 text-muted">
+                <i class="bi bi-box-seam fs-2 d-block mb-3 opacity-30"></i>
+                <p class="mb-0 fw-medium">No products match the filters or are listed under this store.</p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    
+    @if (filteredStoreProducts().length > 0) {
+      <mat-paginator
+        [length]="filteredStoreProducts().length"
+        [pageSize]="pageSize()"
+        [pageSizeOptions]="[5, 10, 25, 50, 100]"
+        [pageIndex]="pageIndex()"
+        (page)="handlePageEvent($event)"
+        aria-label="Select page"
+        class="border-top"
+      />
+    }
+  } @else {
+    <div class="card-body p-4 text-center border-top">
+      <div class="py-4">
+        <i class="bi bi-box-seam text-muted fs-1 mb-3 d-block opacity-40"></i>
+        <h6 class="fw-semibold text-dark mb-1">Products Catalog Not Loaded</h6>
+        <p class="text-muted fs-7-5 mb-3">This store contains {{ store().totalProducts }} products in its catalog.</p>
+        @if (store().status !== 'pending' && store().totalProducts > 0) {
+          <button class="btn btn-success btn-sm px-4 fw-semibold d-inline-flex align-items-center gap-2" (click)="loadProducts()">
+            <i class="bi bi-download"></i>
+            <span>Load Products Catalog</span>
+          </button>
+        } @else if (store().status === 'pending') {
+          <p class="text-muted fs-8 mb-0">
+            <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>
+            Products catalog is unavailable for pending stores.
+          </p>
+        } @else {
+          <p class="text-muted fs-8 mb-0">
+            <i class="bi bi-info-circle-fill text-secondary me-1"></i>
+            No products listed in catalog.
+          </p>
+        }
+      </div>
+    </div>
+  }
+</div>

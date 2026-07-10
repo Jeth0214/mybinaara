@@ -1,0 +1,152 @@
+<div class="page">
+  <!-- LEFT: Brand Panel -->
+  <div class="brand-panel">
+    <div class="corner corner-tl"></div>
+    <div class="corner corner-br"></div>
+    <!-- Desktop Brand Content -->
+    <div class="brand-desktop-content">
+      <img
+        src="images/brand/splash_screen-logo.png"
+        alt="MyBinaara — Find Materials. Connect. Build."
+      />
+    </div>
+
+    <!-- Mobile Brand Content (Horizontal Logo & Text) -->
+    <div class="brand-mobile-content">
+      <div class="brand-block-content">
+        <img
+          src="/images/logo/logo.png"
+          alt="MyBinaara"
+          class="brand-logo-img"
+        />
+        <div class="brand-text-block">
+          <span class="brand-title">MyBinaara</span>
+          <span class="brand-tagline">Find Materials. Connect. Build</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Login Form -->
+  <div class="form-panel">
+    <div class="form-inner">
+      <p class="eyebrow">Admin Portal</p>
+      <h1>Welcome back</h1>
+      <p class="subtitle">Sign in with your admin credentials to continue.</p>
+      <div class="divider"></div>
+
+      @if (errorMsg()) {
+        <div class="error-banner">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <span>{{ errorMsg() }}</span>
+        </div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="onLogin()" novalidate>
+        <!-- Email -->
+        <div
+          class="field"
+          [class.has-error]="form.get('email')?.invalid && form.get('email')?.touched"
+        >
+          <label for="email">Email address</label>
+          <div class="input-wrap">
+            <i class="bi bi-envelope"></i>
+            <input
+              type="email"
+              id="email"
+              formControlName="email"
+              autocomplete="email"
+            />
+          </div>
+          @if (form.get("email")?.hasError("required") && form.get("email")?.touched) {
+            <p class="field-error">Please enter a valid email address.</p>
+          } @else if (form.get("email")?.hasError("email") && form.get("email")?.touched) {
+            <p class="field-error">Please enter a valid email address.</p>
+          }
+        </div>
+
+        <!-- Password -->
+        <div
+          class="field"
+          [class.has-error]="form.get('password')?.invalid && form.get('password')?.touched"
+        >
+          <label for="password">Password</label>
+          <div class="input-wrap">
+            <i class="bi bi-lock"></i>
+            <input
+              [type]="passwordVisible() ? 'text' : 'password'"
+              id="password"
+              formControlName="password"
+              autocomplete="current-password"
+            />
+            <button
+              type="button"
+              class="toggle-pw"
+              (click)="togglePassword()"
+              aria-label="Toggle password visibility"
+            >
+              <i [class]="passwordVisible() ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+            </button>
+          </div>
+          @if (form.get("password")?.hasError("required") && form.get("password")?.touched) {
+            <p class="field-error">Password cannot be empty.</p>
+          }
+        </div>
+
+        <!-- Remember me -->
+        <div class="row-meta">
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="remember" />
+            Keep me signed in
+          </label>
+        </div>
+
+        <!-- Sign In button -->
+        <button
+          type="submit"
+          class="btn-signin"
+          [class.loading]="loading()"
+          [disabled]="loading()"
+        >
+          <span>{{ loading() ? "Signing in…" : "Sign In" }}</span>
+          @if (!loading()) {
+            <i class="bi bi-arrow-right"></i>
+          }
+        </button>
+      </form>
+
+      <!-- Info banner for demo credentials -->
+      <div class="info-banner mt-4">
+        <i class="bi bi-info-circle"></i>
+        <div class="demo-container">
+          <div class="demo-header">
+            <strong>Demo credentials:</strong>
+            <button type="button" class="btn-fill-demo" (click)="fillDemoCredentials()">Use Demo</button>
+          </div>
+          <div class="demo-cred-row">
+            <span class="cred-label">Email:</span>
+            <code class="copyable-code" (click)="copyText('bert_llave@mybinaara.com', 'Email')">
+              bert_llave@mybinaara.com
+              <i class="bi bi-clipboard"></i>
+            </code>
+          </div>
+          <div class="demo-cred-row">
+            <span class="cred-label">Password:</span>
+            <code class="copyable-code" (click)="copyText('Bert@123', 'Password')">
+              Bert@123
+              <i class="bi bi-clipboard"></i>
+            </code>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="form-footer">
+        <p>
+          Need help? Contact us at
+          <a href="mailto:mybinaaraapp@gmail.com">mybinaaraapp&#64;gmail.com</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

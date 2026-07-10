@@ -1,0 +1,28 @@
+<header class="topbar d-flex align-items-center px-3 px-md-4">
+
+  <!-- Mobile: logo on the left, links to dashboard -->
+  <a class="topbar-logo d-flex d-md-none" routerLink="/dashboard">
+    <img src="/images/logo/logo.png" alt="myBinaara" />
+  </a>
+
+  <!-- Spacer to push items to the right -->
+  <div class="flex-grow-1"></div>
+
+  <!-- Desktop / tablet: date + bell -->
+  <span class="topbar-date d-none d-md-block me-3">{{ currentDate() }}</span>
+  <button class="topbar-btn d-none d-md-flex" title="Notifications">
+    <i class="bi bi-bell"></i>
+  </button>
+
+  <!-- Mobile: hamburger (closed) or X (open) on the right -->
+  @if (mobileOpen()) {
+    <button class="topbar-btn d-flex d-md-none ms-auto" (click)="closeMobile.emit()" title="Close menu">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  } @else {
+    <button class="topbar-btn d-flex d-md-none ms-auto" (click)="openMobile.emit()" title="Open menu">
+      <i class="bi bi-list fs-4"></i>
+    </button>
+  }
+
+</header>
