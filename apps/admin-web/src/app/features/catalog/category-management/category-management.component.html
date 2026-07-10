@@ -1,0 +1,109 @@
+<div class="container py-4" style="max-width: 1200px;">
+  <!-- Header -->
+  <div class="mb-4">
+    <h4 class="fw-bold mb-1">Category Configuration</h4>
+    <p class="text-muted mb-0">Configure master taxonomy and descriptions for products</p>
+  </div>
+
+  <!-- Categories Card -->
+  <div class="row g-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+          <h6 class="fw-bold text-dark mb-0">Product Categories</h6>
+          <a routerLink="/catalog/categories/create" class="btn btn-success btn-sm fs-8 fw-semibold">
+            Create Category
+          </a>
+        </div>
+
+        <!-- Categories Table -->
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0 custom-table">
+            <thead class="table-light text-uppercase fs-8-5 fw-semibold text-muted">
+              <tr>
+                <th scope="col" class="ps-3">Image</th>
+                <th scope="col">Name / Slug</th>
+                <th scope="col">Description</th>
+                <th scope="col" class="text-center">Products</th>
+                <th scope="col">Status</th>
+                <th scope="col" class="text-end pe-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (cat of categories(); track cat.id) {
+                <tr>
+                  <td class="ps-3 py-2.5">
+                    @if (cat.image) {
+                      <img [src]="cat.image" [alt]="cat.name" class="category-image-thumb" />
+                    } @else {
+                      <div class="category-image-thumb category-image-thumb--empty"></div>
+                    }
+                  </td>
+                  <td class="py-2.5">
+                    <div class="fw-semibold text-dark fs-7-5">
+                      <a
+                        [routerLink]="['/catalog/categories', cat.id]"
+                        class="text-decoration-none text-dark hover-success"
+                      >
+                        {{ cat.name }}
+                      </a>
+                    </div>
+                    <code class="text-muted fs-8 font-monospace">/{{ cat.slug }}</code>
+                  </td>
+                  <td>
+                    <p class="text-muted mb-0 fs-8 text-truncate-2" style="max-width: 260px;">
+                      {{ cat.description }}
+                    </p>
+                  </td>
+                  <td class="text-center fw-bold fs-7-5 text-secondary">
+                    {{ cat.productCount }}
+                  </td>
+                  <td>
+                    <span [class]="'status-badge status-badge--' + (cat.isActive ? 'active' : 'suspended')">
+                      {{ cat.isActive ? 'Active' : 'Disabled' }}
+                    </span>
+                  </td>
+                  <td class="text-end pe-3">
+                    <div ngbDropdown class="d-inline-block" container="body">
+                      <button
+                        class="btn btn-icon-ellipsis border-0 bg-transparent"
+                        ngbDropdownToggle
+                        [id]="'categoryActionsDropdown-' + cat.id"
+                        aria-label="Category actions"
+                      >
+                        <i class="bi bi-three-dots-vertical"></i>
+                      </button>
+                      <div
+                        ngbDropdownMenu
+                        [attr.aria-labelledby]="'categoryActionsDropdown-' + cat.id"
+                        class="dropdown-menu-custom shadow border"
+                      >
+                        <!-- View Details -->
+                        <a ngbDropdownItem [routerLink]="['/catalog/categories', cat.id]">
+                          <i class="bi bi-eye me-2 text-muted"></i> View Details
+                        </a>
+                        <!-- Edit Category -->
+                        <a ngbDropdownItem [routerLink]="['/catalog/categories', cat.id, 'edit']">
+                          <i class="bi bi-pencil me-2 text-muted"></i> Edit Category
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <!-- Delete Category -->
+                        <button
+                          ngbDropdownItem
+                          class="text-danger"
+                          (click)="deleteCategory(cat)"
+                        >
+                          <i class="bi bi-trash me-2"></i> Delete Category
+                        </button>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

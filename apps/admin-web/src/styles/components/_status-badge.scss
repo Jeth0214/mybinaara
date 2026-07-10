@@ -1,0 +1,92 @@
+// ── Status badge: colored pills for store/user/ticket status ─────────────────
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+
+  &::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  &.status--active,
+  &.status-badge--active {
+    background: rgba(45, 122, 79, 0.1);
+    color: var(--brand-green);
+
+    &::before {
+      background: var(--brand-green);
+    }
+  }
+
+  &.status--pending,
+  &.status-badge--pending {
+    background: rgba(217, 146, 1, 0.1);
+    color: var(--brand-gold);
+
+    &::before {
+      background: var(--brand-gold);
+    }
+  }
+
+  &.status--suspended,
+  &.status-badge--suspended {
+    background: rgba(192, 57, 43, 0.1);
+    color: var(--brand-error);
+
+    &::before {
+      background: var(--brand-error);
+    }
+  }
+
+  &.status--rejected,
+  &.status-badge--rejected {
+    background: rgba(192, 57, 43, 0.08);
+    color: #8e2b1f;
+
+    &::before {
+      background: #8e2b1f;
+    }
+  }
+
+  &.status--approved,
+  &.status-badge--approved {
+    background: rgba(45, 122, 79, 0.08);
+    color: #1a5c35;
+
+    &::before {
+      background: #1a5c35;
+    }
+  }
+
+  &.status--unsubscribed,
+  &.status-badge--unsubscribed,
+  &.status--overdue,
+  &.status-badge--overdue {
+    background: rgba(192, 57, 43, 0.12);
+    color: var(--brand-error);
+
+    &::before {
+      background: var(--brand-error);
+    }
+  }
+
+  &.status--info,
+  &.status-badge--info {
+    background: rgba(41, 128, 185, 0.1);
+    color: var(--brand-info);
+
+    &::before {
+      background: var(--brand-info);
+    }
+  }
+}

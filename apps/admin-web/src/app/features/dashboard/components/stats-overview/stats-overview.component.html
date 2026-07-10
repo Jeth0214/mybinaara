@@ -1,0 +1,17 @@
+<div class="row g-3">
+  @for (card of statCards(); track card.label) {
+    <div class="col-xl-3 col-md-6 col-12">
+      <div class="stat-card">
+        <div class="stat-icon" [class]="'stat-icon stat-icon--' + card.color">
+          <i class="bi" [class]="card.icon"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">{{ card.label }}</div>
+          <div class="stat-value">
+            {{ card.value | number }}
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>
