@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->string('phone', 13);
+            $table->string('whatsapp', 13)->nullable();
             $table->string('password');
             $table->string('avatar_url', 2048)->nullable();
             $table->string('status')->default('active');

@@ -35,4 +35,6 @@ return [
         ],
     ],
 
+    'store_web_url' => env('STORE_WEB_URL', 'http://localhost:4201'),
+
 ];
