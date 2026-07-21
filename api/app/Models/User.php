@@ -10,16 +10,18 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'password', 'user_type', 'phone', 'avatar_url', 'status'])]
+#[Fillable(['name', 'email', 'password', 'user_type', 'phone', 'whatsapp', 'avatar_url', 'status'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * Get the attributes that should be cast.
@@ -45,5 +47,15 @@ class User extends Authenticatable
     public function createdStores(): HasMany
     {
         return $this->hasMany(Store::class, 'created_by');
+    }
+
+    public function stores(): BelongsToMany
+    {
+        return $this->belongsToMany(Store::class, 'store_user');
+    }
+
+    public function hasPermission(string $key): bool
+    {
+        return $this->role !== null && $this->role->permissions()->where('key', $key)->exists();
     }
 }

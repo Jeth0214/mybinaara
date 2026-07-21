@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Enums\UserType;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -19,18 +20,24 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RoleSeeder::class,
             PermissionSeeder::class,
+            RolePermissionSeeder::class,
             RegionSeeder::class,
             CategorySeeder::class,
         ]);
 
         // User::factory(10)->create();
 
-        User::factory()->create([
+        $admin = User::factory()->create([
             'user_type' => UserType::Admin,
             'name' => 'Roland Jethro Suyom',
             'email' => 'rjSuyom@myBinaara.com',
             'phone' => '0530095815',
+            'whatsapp' => '0530095815',
             'password' => bcrypt('myBinaara@2026'),
         ]);
+
+        $admin->forceFill([
+            'role_id' => Role::query()->where('name', 'admin')->value('id'),
+        ])->save();
     }
 }
