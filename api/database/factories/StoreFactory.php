@@ -52,4 +52,21 @@ class StoreFactory extends Factory
             'is_activated' => false,
         ]);
     }
+
+    /**
+     * Attaches a full 7-day schedule after creation, for tests that assert on `data.schedule`.
+     */
+    public function withSchedule(): static
+    {
+        return $this->afterCreating(function (Store $store) {
+            foreach (['sat', 'sun', 'mon', 'tue', 'wed', 'thu', 'fri'] as $day) {
+                $store->schedules()->create([
+                    'day' => $day,
+                    'open_time' => '08:00 AM',
+                    'close_time' => '10:00 PM',
+                    'is_off' => false,
+                ]);
+            }
+        });
+    }
 }

@@ -9,16 +9,22 @@ use App\Enums\StoreUserRole;
 use App\Enums\UserStatus;
 use App\Enums\UserType;
 use App\Mail\StoreActivationMail;
+use App\Models\City;
+use App\Models\District;
 use App\Models\Store;
 use App\Models\StoreActivationToken;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class StoreService
 {
+    public function __construct(private readonly StoreScheduleService $schedules) {}
+
     /**
      * @param  array{status?: string, search?: string}  $filters
      */
@@ -76,8 +82,23 @@ class StoreService
 
             Mail::to($owner->email)->send(new StoreActivationMail($store, $owner, $temporaryPassword, $activationUrl));
 
-            return $store->fresh(['owners', 'creator']);
+            if (! empty($data['location'])) {
+                $this->updateLocation($store, $data['location']);
+            }
+
+            $this->schedules->replace($store, $data['schedule']);
+
+            if (! empty($data['logo'])) {
+                $this->updateLogo($store, $data['logo']);
+            }
+
+            return $store->fresh(['owners', 'creator', 'schedules']);
         });
+    }
+
+    public function findForUser(User $user): ?Store
+    {
+        return $user->stores()->with(['owners', 'creator', 'schedules'])->first();
     }
 
     /**
@@ -93,6 +114,38 @@ class StoreService
     public function delete(Store $store): void
     {
         $store->delete();
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function updateLocation(Store $store, array $data): Store
+    {
+        if (! empty($data['city_id'])) {
+            $data['city'] = City::query()->find($data['city_id'])?->name_en ?? $data['city'] ?? null;
+        }
+        if (! empty($data['district_id'])) {
+            $data['district'] = District::query()->find($data['district_id'])?->name_en ?? $data['district'] ?? null;
+        }
+
+        $store->update($data);
+
+        return $store;
+    }
+
+    public function updateLogo(Store $store, UploadedFile $file): Store
+    {
+        $oldPath = $store->logo_url ? Str::after($store->logo_url, Storage::disk('public')->url('')) : null;
+
+        $path = $file->store('stores/logos', 'public');
+
+        $store->update(['logo_url' => Storage::disk('public')->url($path)]);
+
+        if ($oldPath && Str::startsWith($oldPath, 'stores/logos/')) {
+            Storage::disk('public')->delete($oldPath);
+        }
+
+        return $store;
     }
 
     public function updateStatus(Store $store, StoreStatus $status, ?string $rejectionReason = null): Store
