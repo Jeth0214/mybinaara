@@ -17,7 +17,11 @@ class StorePolicy
 
     public function view(User $user, Store $store): bool
     {
-        return $user->user_type === UserType::Admin && $user->hasPermission('stores.view');
+        if ($user->user_type === UserType::Admin) {
+            return $user->hasPermission('stores.view');
+        }
+
+        return $this->isOwnerOrStaffOf($user, $store);
     }
 
     public function create(User $user): bool
@@ -38,5 +42,31 @@ class StorePolicy
     public function verify(User $user, Store $store): bool
     {
         return $user->user_type === UserType::Admin && $user->hasPermission('stores.verify');
+    }
+
+    public function updateSchedule(User $user, Store $store): bool
+    {
+        return $this->isAdminEditor($user) || $this->isOwnerOrStaffOf($user, $store);
+    }
+
+    public function updateLocation(User $user, Store $store): bool
+    {
+        return $this->isAdminEditor($user) || $this->isOwnerOrStaffOf($user, $store);
+    }
+
+    public function updateLogo(User $user, Store $store): bool
+    {
+        return $this->isAdminEditor($user) || $this->isOwnerOrStaffOf($user, $store);
+    }
+
+    private function isAdminEditor(User $user): bool
+    {
+        return $user->user_type === UserType::Admin && $user->hasPermission('stores.edit');
+    }
+
+    private function isOwnerOrStaffOf(User $user, Store $store): bool
+    {
+        return in_array($user->user_type, [UserType::StoreOwner, UserType::StoreStaff], true)
+            && $store->users()->where('users.id', $user->id)->exists();
     }
 }

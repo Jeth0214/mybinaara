@@ -33,4 +33,15 @@ class UpdateStoreRequest extends FormRequest
             'logo_url' => ['nullable', 'string', 'max:2048'],
         ];
     }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'cr_number.unique' => 'This CR number is already registered to another store.',
+            'vat_number.unique' => 'This VAT number is already registered to another store.',
+        ];
+    }
 }

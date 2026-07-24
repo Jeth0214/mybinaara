@@ -27,6 +27,22 @@ class StoreResource extends JsonResource
             'is_activated' => $this->is_activated,
             'logo_url' => $this->logo_url,
             'rejection_reason' => $this->rejection_reason,
+            'location' => [
+                'full_address' => $this->full_address,
+                'building_number' => $this->building_number,
+                'street_name' => $this->street_name,
+                'district' => $this->district,
+                'district_id' => $this->district_id,
+                'city' => $this->city,
+                'city_id' => $this->city_id,
+                'postal_code' => $this->postal_code,
+                'additional_number' => $this->additional_number,
+                'country' => $this->country,
+                'latitude' => $this->latitude === null ? null : (float) $this->latitude,
+                'longitude' => $this->longitude === null ? null : (float) $this->longitude,
+                'plus_code' => $this->plus_code,
+            ],
+            'schedule' => StoreScheduleResource::collection($this->whenLoaded('schedules')),
             'owner' => $this->whenLoaded('owners', function () {
                 $owner = $this->owners->first();
 
