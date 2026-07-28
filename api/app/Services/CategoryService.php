@@ -6,6 +6,9 @@ namespace App\Services;
 
 use App\Models\Category;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class CategoryService
 {
@@ -24,19 +27,50 @@ class CategoryService
     /**
      * @param  array<string, mixed>  $data
      */
-    public function create(array $data): Category
+    public function create(array $data, ?UploadedFile $image = null): Category
     {
+        unset($data['image']);
+
+        if ($image) {
+            $data['image_url'] = $this->storeImage($image);
+        }
+
         return Category::query()->create($data);
     }
 
     /**
      * @param  array<string, mixed>  $data
      */
-    public function update(Category $category, array $data): Category
+    public function update(Category $category, array $data, ?UploadedFile $image = null): Category
     {
+        unset($data['image']);
+
+        if ($image) {
+            $this->deleteImage($category->image_url);
+            $data['image_url'] = $this->storeImage($image);
+        }
+
         $category->update($data);
 
         return $category;
+    }
+
+    private function storeImage(UploadedFile $image): string
+    {
+        return Storage::disk('public')->url($image->store('categories', 'public'));
+    }
+
+    private function deleteImage(?string $url): void
+    {
+        if (! $url) {
+            return;
+        }
+
+        $path = Str::after($url, Storage::disk('public')->url(''));
+
+        if (Str::startsWith($path, 'categories/')) {
+            Storage::disk('public')->delete($path);
+        }
     }
 
     public function delete(Category $category): void

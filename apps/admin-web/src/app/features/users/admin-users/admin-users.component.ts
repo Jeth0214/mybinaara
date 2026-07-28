@@ -7,7 +7,7 @@ import { NgbDropdownModule, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { Store } from '@ngxs/store';
 import { EMPTY, Subject } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, skip, switchMap } from 'rxjs/operators';
 import { StaffService } from '../../../core/services/staff.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { StaffMember, PaginationMeta } from '../../../core/models/staff.model';
@@ -70,7 +70,7 @@ export class AdminUsersComponent {
       });
 
     toObservable(this.searchQuery)
-      .pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed())
+      .pipe(skip(1), debounceTime(300), distinctUntilChanged(), takeUntilDestroyed())
       .subscribe(() => this.loadStaff(1));
 
     this.loadStaff(1);
