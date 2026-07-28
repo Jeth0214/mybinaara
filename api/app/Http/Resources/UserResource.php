@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources;
 
+use App\Models\Permission;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -27,7 +28,11 @@ class UserResource extends JsonResource
             'user_type' => $this->user_type,
             'avatar_url' => $this->avatar_url,
             'status' => $this->status,
-            'permissions' => $this->role?->permissions->pluck('key')->values() ?? [],
+            'role' => $this->role?->name,
+            'is_administrator' => $this->role?->name === 'administrator',
+            'permissions' => $this->role?->name === 'administrator'
+                ? Permission::query()->pluck('key')->values()
+                : $this->permissions->pluck('key')->values(),
             'created_at' => $this->created_at?->toIso8601String(),
         ];
     }

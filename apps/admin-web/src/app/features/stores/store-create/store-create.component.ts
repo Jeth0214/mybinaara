@@ -6,6 +6,7 @@ import { MatStepperModule } from '@angular/material/stepper';
 import { StoreService } from '../../../core/services/store.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { StoreDaySchedule } from '../../../core/models/store.model';
+import { SAUDI_PHONE_PATTERN } from '../../../core/validators/phone.validator';
 
 import { StoreStepBusinessComponent } from './components/store-step-business/store-step-business.component';
 import { StoreStepLocationScheduleComponent } from './components/store-step-location-schedule/store-step-location-schedule.component';
@@ -57,8 +58,8 @@ export class StoreCreateComponent implements OnInit {
     isActivated: [false],
     ownerName: ['', [Validators.required, Validators.minLength(3)]],
     ownerEmail: ['', [Validators.required, Validators.email]],
-    ownerPhone: ['', [Validators.required, Validators.pattern('^(?:\\+966|0)?5[0-9]{8}$')]],
-    ownerWhatsapp: ['', [Validators.required, Validators.pattern('^(?:\\+966|0)?5[0-9]{8}$')]]
+    ownerPhone: ['', [Validators.required, Validators.pattern(SAUDI_PHONE_PATTERN)]],
+    ownerWhatsapp: ['', [Validators.required, Validators.pattern(SAUDI_PHONE_PATTERN)]]
   });
   // Step 2: Location and Schedule (Operational parameters)
   readonly step2Form = this.fb.group({

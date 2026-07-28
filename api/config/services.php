@@ -37,4 +37,6 @@ return [
 
     'store_web_url' => env('STORE_WEB_URL', 'http://localhost:4201'),
 
+    'admin_web_url' => env('ADMIN_WEB_URL', 'http://localhost:4202'),
+
 ];

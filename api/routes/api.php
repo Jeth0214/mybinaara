@@ -4,9 +4,14 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CityController;
 use App\Http\Controllers\Api\DistrictController;
+use App\Http\Controllers\Api\PermissionController;
+use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\RegionController;
+use App\Http\Controllers\Api\StaffController;
+use App\Http\Controllers\Api\StaffInvitationController;
 use App\Http\Controllers\Api\StoreActivationController;
 use App\Http\Controllers\Api\StoreController;
+use App\Http\Controllers\Api\UserLockController;
 use App\Http\Middleware\EnsureAccountIsActive;
 use App\Http\Middleware\EnsureVendorStoreIsActive;
 use Illuminate\Http\Request;
@@ -35,6 +40,7 @@ Route::get('/districts', [DistrictController::class, 'index']);
 Route::get('/districts/{district}', [DistrictController::class, 'show']);
 
 Route::post('/stores/activate', [StoreActivationController::class, 'activate']);
+Route::post('/staff/accept-invite', [StaffInvitationController::class, 'accept']);
 
 Route::middleware(['auth:sanctum', EnsureAccountIsActive::class, EnsureVendorStoreIsActive::class])->group(function () {
     Route::post('/categories', [CategoryController::class, 'store']);
@@ -52,4 +58,17 @@ Route::middleware(['auth:sanctum', EnsureAccountIsActive::class, EnsureVendorSto
     Route::patch('/stores/{store}/location', [StoreController::class, 'updateLocation']);
     Route::post('/stores/{store}/logo', [StoreController::class, 'updateLogo']);
     Route::put('/stores/{store}/schedule', [StoreController::class, 'updateSchedule']);
+
+    Route::get('/staff', [StaffController::class, 'index']);
+    Route::get('/staff/{staff}', [StaffController::class, 'show']);
+    Route::post('/staff', [StaffController::class, 'store']);
+    Route::patch('/staff/{staff}', [StaffController::class, 'update']);
+    Route::patch('/staff/{staff}/status', [StaffController::class, 'updateStatus']);
+    Route::delete('/staff/{staff}', [StaffController::class, 'destroy']);
+
+    Route::get('/permissions', [PermissionController::class, 'index']);
+
+    Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar']);
+
+    Route::patch('/users/{user}/unlock', [UserLockController::class, 'unlock']);
 });

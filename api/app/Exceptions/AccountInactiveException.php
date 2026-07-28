@@ -8,12 +8,12 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use RuntimeException;
 
-class AccountSuspendedException extends RuntimeException
+class AccountInactiveException extends RuntimeException
 {
     public function render(Request $request): JsonResponse
     {
         return response()->json([
-            'message' => 'This account has been suspended.',
+            'message' => 'This account is inactive.',
         ], 403);
     }
 }

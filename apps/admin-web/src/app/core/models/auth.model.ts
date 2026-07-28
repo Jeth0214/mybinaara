@@ -1,14 +1,29 @@
 export type AdminRole = 'admin' | 'user';
 
+/** account types the API returns; user_type is 'admin' for both Administrator and Staff */
+export type ApiUserType = 'customer' | 'store_owner' | 'store_staff' | 'admin';
+
+/** role.name from the backend — null for customers, 'vendor' for store accounts */
+export type AccountRole = 'administrator' | 'staff' | 'vendor' | null;
+
 export interface AdminUser {
-  id: string;
-  email: string;
+  id: number;
   name: string;
-  role: AdminRole;
-  avatar?: string;
-  lastLogin?: string;
-  isActive: boolean;
+  email: string;
+  phone: string | null;
+  whatsapp: string | null;
+  user_type: ApiUserType;
+  avatar_url: string | null;
+  status: 'active' | 'inactive';
+  role: AccountRole;
+  is_administrator: boolean;
   permissions: string[];
+  created_at: string | null;
+}
+
+export interface LoginResponse {
+  token: string;
+  user: AdminUser;
 }
 
 export interface AdminAuthStateModel {

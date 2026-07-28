@@ -11,6 +11,7 @@ use App\Enums\UserType;
 use App\Mail\StoreActivationMail;
 use App\Models\City;
 use App\Models\District;
+use App\Models\Role;
 use App\Models\Store;
 use App\Models\StoreActivationToken;
 use App\Models\User;
@@ -58,6 +59,10 @@ class StoreService
                 'password' => $temporaryPassword,
                 'status' => UserStatus::Active,
             ]);
+
+            $owner->forceFill([
+                'role_id' => Role::query()->where('name', 'vendor')->value('id'),
+            ])->save();
 
             $store = Store::query()->create([
                 'name' => $data['name'],

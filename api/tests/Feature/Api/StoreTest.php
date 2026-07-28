@@ -7,6 +7,7 @@ namespace Tests\Feature\Api;
 use App\Enums\StoreUserRole;
 use App\Enums\UserType;
 use App\Mail\StoreActivationMail;
+use App\Models\Permission;
 use App\Models\Store;
 use App\Models\StoreActivationToken;
 use App\Models\User;
@@ -90,7 +91,7 @@ class StoreTest extends TestCase
     public function test_store_staff_can_view_their_own_store(): void
     {
         $store = Store::factory()->active()->create();
-        $staff = User::factory()->create(['user_type' => UserType::StoreStaff]);
+        $staff = User::factory()->create(['user_type' => UserType::VendorStaff]);
         $store->users()->attach($staff->id, ['role' => StoreUserRole::Staff->value]);
 
         $this->actingAs($staff, 'sanctum')
@@ -315,12 +316,13 @@ class StoreTest extends TestCase
 
     /**
      * Proves store writes are gated on the specific stores.* permissions, not
-     * just user_type === admin: the limited "user" admin role only has
-     * stores.view, so every write action here must still be rejected.
+     * just user_type === admin: this staff account is only granted stores.view,
+     * so every write action here must still be rejected.
      */
     public function test_admin_with_limited_role_cannot_write_stores(): void
     {
-        $limitedAdmin = User::factory()->admin()->withRole('user')->create();
+        $limitedAdmin = User::factory()->admin()->withRole('staff')->create();
+        $limitedAdmin->permissions()->sync(Permission::query()->where('key', 'stores.view')->pluck('id'));
         $store = Store::factory()->create();
 
         $this->actingAs($limitedAdmin, 'sanctum')

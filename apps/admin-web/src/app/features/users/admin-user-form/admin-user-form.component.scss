@@ -2,3 +2,15 @@
   font-size: 0.72rem;
   letter-spacing: 0.02rem;
 }
+
+.permissions-group {
+  border: 1px solid var(--bs-border-color, #e5e7eb);
+  border-radius: 0.5rem;
+  padding: 0.85rem 1rem;
+}
+
+.permissions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.5rem 1rem;
+}

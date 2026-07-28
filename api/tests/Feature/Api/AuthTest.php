@@ -9,6 +9,9 @@ use App\Enums\StoreUserRole;
 use App\Enums\UserType;
 use App\Models\Store;
 use App\Models\User;
+use Database\Seeders\PermissionSeeder;
+use Database\Seeders\RolePermissionSeeder;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
@@ -56,9 +59,9 @@ class AuthTest extends TestCase
         $response->assertStatus(401);
     }
 
-    public function test_suspended_user_cannot_login(): void
+    public function test_inactive_user_cannot_login(): void
     {
-        $user = User::factory()->suspended()->create(['password' => Hash::make('correct-password')]);
+        $user = User::factory()->inactive()->create(['password' => Hash::make('correct-password')]);
 
         $response = $this->postJson('/api/login', [
             'email' => $user->email,
@@ -67,6 +70,38 @@ class AuthTest extends TestCase
         ]);
 
         $response->assertStatus(403);
+    }
+
+    public function test_login_response_exposes_role_and_is_administrator_for_an_administrator(): void
+    {
+        $this->seed([RoleSeeder::class, PermissionSeeder::class, RolePermissionSeeder::class]);
+        $admin = User::factory()->admin()->create(['password' => Hash::make('correct-password')]);
+
+        $response = $this->postJson('/api/login', [
+            'email' => $admin->email,
+            'password' => 'correct-password',
+            'device_name' => 'phpunit',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('user.role', 'administrator')
+            ->assertJsonPath('user.is_administrator', true);
+    }
+
+    public function test_login_response_exposes_role_and_is_administrator_for_staff(): void
+    {
+        $this->seed([RoleSeeder::class, PermissionSeeder::class, RolePermissionSeeder::class]);
+        $staff = User::factory()->admin()->withRole('staff')->create(['password' => Hash::make('correct-password')]);
+
+        $response = $this->postJson('/api/login', [
+            'email' => $staff->email,
+            'password' => 'correct-password',
+            'device_name' => 'phpunit',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('user.role', 'staff')
+            ->assertJsonPath('user.is_administrator', false);
     }
 
     public function test_login_requires_email_password_and_device_name(): void

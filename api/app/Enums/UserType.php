@@ -8,6 +8,6 @@ enum UserType: string
 {
     case Customer = 'customer';
     case StoreOwner = 'store_owner';
-    case StoreStaff = 'store_staff';
+    case VendorStaff = 'vendor_staff';
     case Admin = 'admin';
 }

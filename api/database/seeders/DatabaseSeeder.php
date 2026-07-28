@@ -39,7 +39,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $admin->forceFill([
-            'role_id' => Role::query()->where('name', 'admin')->value('id'),
+            'role_id' => Role::query()->where('name', 'administrator')->value('id'),
         ])->save();
     }
 }

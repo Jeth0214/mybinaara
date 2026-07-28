@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Api;
 
 use App\Models\Category;
+use App\Models\Permission;
 use App\Models\User;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RolePermissionSeeder;
@@ -175,12 +176,13 @@ class CategoryTest extends TestCase
 
     /**
      * Proves category writes are gated on the catalog.manage permission, not
-     * just user_type === admin: admin-web's own "user" admin role is
-     * read-only (catalog.view only) and must still be rejected here.
+     * just user_type === admin: this staff account is only granted
+     * catalog.view and must still be rejected here.
      */
     public function test_admin_with_limited_role_cannot_write_categories(): void
     {
-        $limitedAdmin = User::factory()->admin()->withRole('user')->create();
+        $limitedAdmin = User::factory()->admin()->withRole('staff')->create();
+        $limitedAdmin->permissions()->sync(Permission::query()->where('key', 'catalog.view')->pluck('id'));
         $category = Category::factory()->create(['is_active' => true]);
 
         $this->actingAs($limitedAdmin, 'sanctum')
