@@ -1,69 +1,61 @@
 <div class="container py-4" style="max-width: 1200px;">
-  @if (isEditMode() && !category()) {
-    <div class="text-center py-5 my-5">
-      <i class="bi bi-tags fs-1 text-muted opacity-40"></i>
-      <h5 class="text-muted mt-3">Category record not found</h5>
-      <a routerLink="/catalog/categories" class="btn btn-success mt-3 btn-sm">Back to Categories</a>
+  <a
+    [routerLink]="isEditMode() ? ['/catalog/categories', categoryId()] : ['/catalog/categories']"
+    class="text-decoration-none text-muted fs-7 d-inline-flex align-items-center gap-2 mb-3"
+  >
+    <i class="bi bi-arrow-left"></i> {{ isEditMode() ? 'Back to Category Details' : 'Back to Categories' }}
+  </a>
+
+  <div class="mb-4">
+    <h4 class="fw-bold mb-1">{{ isEditMode() ? 'Edit Category' : 'Create Category' }}</h4>
+    <p class="text-muted mb-0">
+      {{ isEditMode() ? 'Update taxonomy details for this category' : 'Add a new product category to the master taxonomy' }}
+    </p>
+  </div>
+
+  @if (loading()) {
+    <div class="card border-0 shadow-sm p-4 d-flex flex-row align-items-center gap-2 text-muted" style="max-width: 700px;">
+      <div class="spinner-border spinner-border-sm text-success" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      Loading category...
+    </div>
+  } @else if (loadError()) {
+    <div class="card border-0 shadow-sm p-4" style="max-width: 700px;">
+      <div class="text-danger fs-8-5 mb-2">{{ loadError() }}</div>
+      <button type="button" class="btn btn-light align-self-start" (click)="fetchCategory(+categoryId()!)">Retry</button>
     </div>
   } @else {
-    @let cat = category();
-
-    <a
-      [routerLink]="isEditMode() && cat ? ['/catalog/categories', cat.id] : ['/catalog/categories']"
-      class="text-decoration-none text-muted fs-7 d-inline-flex align-items-center gap-2 mb-3"
-    >
-      <i class="bi bi-arrow-left"></i> {{ isEditMode() ? 'Back to Category Details' : 'Back to Categories' }}
-    </a>
-
-    <div class="mb-4">
-      <h4 class="fw-bold mb-1">{{ isEditMode() ? 'Edit Category' : 'Create Category' }}</h4>
-      <p class="text-muted mb-0">
-        {{ isEditMode() ? ('Update taxonomy details for ' + cat!.name) : 'Add a new product category to the master taxonomy' }}
-      </p>
-    </div>
-
-    <form [formGroup]="editForm" (ngSubmit)="submit()" class="card border-0 shadow-sm p-4" style="max-width: 700px;">
+    <form [formGroup]="form" (ngSubmit)="submit()" class="card border-0 shadow-sm p-4" style="max-width: 700px;">
       <div class="mb-3">
         <label class="form-label fw-semibold fs-8 text-uppercase text-muted">Category Name</label>
         <input type="text" class="form-control" formControlName="name" />
-        @if (editForm.get('name')?.touched && editForm.get('name')?.invalid) {
-          <div class="text-danger fs-8-5 mt-1">Name is required (min 3 chars).</div>
+        @if (form.get('name')?.touched && form.get('name')?.invalid) {
+          <div class="text-danger fs-8-5 mt-1">Name is required (max 100 characters).</div>
         }
       </div>
 
-      @if (isEditMode() && cat) {
-        <div class="mb-3">
-          <label class="form-label fw-semibold fs-8 text-uppercase text-muted">Slug</label>
-          <input type="text" class="form-control" [value]="'/' + cat.slug" disabled />
-          <div class="fs-8-5 text-muted mt-1">Slug cannot be changed after creation.</div>
-        </div>
-      }
+      <div class="mb-3">
+        <label class="form-label fw-semibold fs-8 text-uppercase text-muted">Slug</label>
+        <input type="text" class="form-control" formControlName="slug" placeholder="e.g. power-tools" />
+        @if (form.get('slug')?.touched && form.get('slug')?.hasError('required')) {
+          <div class="text-danger fs-8-5 mt-1">Slug is required.</div>
+        } @else if (form.get('slug')?.touched && form.get('slug')?.hasError('pattern')) {
+          <div class="text-danger fs-8-5 mt-1">Use lowercase letters, numbers and hyphens only.</div>
+        }
+      </div>
 
       <div class="mb-3">
-        <label class="form-label fw-semibold fs-8 text-uppercase text-muted">Category Image <span class="text-danger">*</span></label>
+        <label class="form-label fw-semibold fs-8 text-uppercase text-muted">Category Image</label>
 
-        @if (categoryImageUploading()) {
-          <div class="d-flex align-items-center gap-3 p-4 border border-dashed rounded-3 bg-white justify-content-center">
-            <div class="spinner-border text-success" role="status" style="width: 1.25rem; height: 1.25rem;">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-            <span class="text-success fw-semibold fs-8">Uploading image...</span>
-          </div>
-        } @else if (editForm.get('image')?.value; as imageData) {
+        @if (imagePreviewUrl(); as preview) {
           <div class="d-flex align-items-center gap-3 p-3 bg-white border rounded-3">
-            <div class="avatar avatar--circle overflow-hidden border border-success border-opacity-50 bg-white d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; flex-shrink: 0;">
-              <img [src]="imageData" alt="Category preview" style="width: 100%; height: 100%; object-fit: contain;" />
+            <div class="avatar avatar--circle overflow-hidden border bg-white d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; flex-shrink: 0;">
+              <img [src]="preview" alt="Category preview" style="width: 100%; height: 100%; object-fit: contain;" />
             </div>
             <div>
-              <span class="d-block text-success fw-semibold fs-8 mb-1"><i class="bi bi-patch-check-fill me-1"></i> Image Uploaded</span>
-              <input
-                #catImageFileInputEdit
-                type="file"
-                class="d-none"
-                accept="image/*,.svg"
-                (change)="onCategoryImageSelect($event)"
-              />
-              <button type="button" class="btn btn-xs btn-outline-success py-1 px-2 fs-8 d-flex align-items-center gap-1.5" (click)="catImageFileInputEdit.click()">
+              <input #catImageFileInput type="file" class="d-none" accept="image/*" (change)="onImageSelect($event)" />
+              <button type="button" class="btn btn-xs btn-outline-success py-1 px-2 fs-8 d-flex align-items-center gap-1.5" (click)="catImageFileInput.click()">
                 <i class="bi bi-pencil-square"></i> Change Image
               </button>
             </div>
@@ -73,41 +65,47 @@
             class="border border-dashed rounded-3 p-4 text-center cursor-pointer bg-white hover-bg-light"
             (click)="catImageFileInput.click()"
           >
-            <input
-              #catImageFileInput
-              type="file"
-              class="d-none"
-              accept="image/*,.svg"
-              (change)="onCategoryImageSelect($event)"
-            />
+            <input #catImageFileInput type="file" class="d-none" accept="image/*" (change)="onImageSelect($event)" />
             <i class="bi bi-cloud-arrow-up text-success display-6 mb-2 d-block opacity-75"></i>
             <span class="d-block fw-semibold text-dark fs-8">Click to upload Category Image</span>
-            <span class="text-muted fs-8-5 mt-1 d-block">Supported: PNG, JPG, JPEG, WEBP, SVG. Max: 2MB.</span>
+            <span class="text-muted fs-8-5 mt-1 d-block">Supported: PNG, JPG, WEBP. Max: 2MB.</span>
           </div>
         }
 
-        @if (categoryImageError(); as err) {
+        @if (imageError(); as err) {
           <div class="alert alert-danger d-flex align-items-center gap-2 py-2 px-3 mt-2 fs-8 border-0">
             <i class="bi bi-exclamation-triangle-fill"></i>
             <span>{{ err }}</span>
           </div>
-        }
-        @if (editForm.get('image')?.touched && editForm.get('image')?.invalid && !categoryImageError()) {
-          <div class="text-danger fs-8-5 mt-1"><i class="bi bi-exclamation-circle me-2"></i> A category image is required.</div>
         }
       </div>
 
       <div class="mb-4">
         <label class="form-label fw-semibold fs-8 text-uppercase text-muted">Brief Description</label>
         <textarea class="form-control" rows="4" formControlName="description"></textarea>
-        @if (editForm.get('description')?.touched && editForm.get('description')?.invalid) {
-          <div class="text-danger fs-8-5 mt-1">Description is required (min 5 chars).</div>
+        @if (form.get('description')?.touched && form.get('description')?.invalid) {
+          <div class="text-danger fs-8-5 mt-1">Description must be under 500 characters.</div>
         }
       </div>
 
       <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-success px-4 fw-semibold">{{ isEditMode() ? 'Save Changes' : 'Create Category' }}</button>
-        <a [routerLink]="isEditMode() && cat ? ['/catalog/categories', cat.id] : ['/catalog/categories']" class="btn btn-light">Cancel</a>
+        <button type="submit" class="btn btn-success px-4 fw-semibold d-inline-flex align-items-center gap-2" [disabled]="busy()">
+          @if (submitting()) {
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            Uploading...
+          } @else {
+            {{ isEditMode() ? 'Save Changes' : 'Create Category' }}
+          }
+        </button>
+        <a
+          [routerLink]="isEditMode() ? ['/catalog/categories', categoryId()] : ['/catalog/categories']"
+          class="btn btn-light"
+          [class.disabled]="busy()"
+          [attr.aria-disabled]="busy()"
+          (click)="busy() && $event.preventDefault()"
+        >
+          Cancel
+        </a>
       </div>
     </form>
   }

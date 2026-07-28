@@ -6,6 +6,7 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Storage;
 
 class CategorySeeder extends Seeder
 {
@@ -15,31 +16,54 @@ class CategorySeeder extends Seeder
         // Slugs are set explicitly rather than via Str::slug(), which drops "&"
         // instead of expanding it to "and" and would otherwise mismatch the icon filenames.
         $categories = [
-            ['name' => 'Building Materials', 'slug' => 'building-materials', 'image_url' => 'categories/building-materials.svg'],
-            ['name' => 'Cement & Blocks', 'slug' => 'cement-and-blocks', 'image_url' => 'categories/cement-and-blocks.svg'],
-            ['name' => 'Steel & Metal', 'slug' => 'steel-and-metal', 'image_url' => 'categories/steel-and-metal.svg'],
-            ['name' => 'Doors & Windows', 'slug' => 'doors-and-windows', 'image_url' => 'categories/doors-and-windows.svg'],
-            ['name' => 'Paint & Finishes', 'slug' => 'paints-and-finishes', 'image_url' => 'categories/paints-and-finishes.svg'],
-            ['name' => 'Electrical', 'slug' => 'electrical', 'image_url' => 'categories/electrical.svg'],
-            ['name' => 'Plumbing', 'slug' => 'plumbing', 'image_url' => 'categories/plumbing.svg'],
-            ['name' => 'HVAC & Air Conditioning', 'slug' => 'hvac-and-air-conditioning', 'image_url' => 'categories/hvac-and-air-conditioning.svg'],
-            ['name' => 'Wood & Carpentry', 'slug' => 'wood-and-carpentry', 'image_url' => 'categories/wood-and-carpentry.svg'],
-            ['name' => 'Roofing', 'slug' => 'roofing', 'image_url' => 'categories/roofing.svg'],
-            ['name' => 'Flooring & Tiles', 'slug' => 'flooring-and-tiles', 'image_url' => 'categories/flooring-and-tiles.svg'],
-            ['name' => 'Glass & Aluminum', 'slug' => 'glass-and-aluminum', 'image_url' => 'categories/glass-and-aluminum.svg'],
-            ['name' => 'Waterproofing', 'slug' => 'waterproofing', 'image_url' => 'categories/waterproofing.svg'],
-            ['name' => 'Tools & Hardware', 'slug' => 'tools-and-hardware', 'image_url' => 'categories/tools-and-hardware.svg'],
-            ['name' => 'Equipment & Machinery', 'slug' => 'equipment-and-machinery', 'image_url' => 'categories/equipments-and-machinery.svg'],
-            ['name' => 'Safety Supplies', 'slug' => 'safety-supplies', 'image_url' => 'categories/safety-supplies.svg'],
-            ['name' => 'Landscaping', 'slug' => 'landscaping', 'image_url' => 'categories/landscaping.svg'],
-            ['name' => 'Miscellaneous', 'slug' => 'miscellaneous', 'image_url' => 'categories/miscellaneous.svg'],
+            ['name' => 'Building Materials', 'slug' => 'building-materials', 'icon' => 'building-materials.svg', 'description' => 'Basic building raw materials, cement bases, and structural elements'],
+            ['name' => 'Cement & Blocks', 'slug' => 'cement-and-blocks', 'icon' => 'cement-and-blocks.svg', 'description' => 'Portland cement bags, lightweight blocks, hollow concrete blocks'],
+            ['name' => 'Steel & Metal', 'slug' => 'steel-and-metal', 'icon' => 'steel-and-metal.svg', 'description' => 'Rebars, steel beams, structural metal elements, wires, and sheets'],
+            ['name' => 'Doors & Windows', 'slug' => 'doors-and-windows', 'icon' => 'doors-and-windows.svg', 'description' => 'Wooden doors, aluminum windows, safety panels, frames, and locks'],
+            ['name' => 'Paint & Finishes', 'slug' => 'paints-and-finishes', 'icon' => 'paints-and-finishes.svg', 'description' => 'Interior and exterior paints, varnishes, primers, and brushes'],
+            ['name' => 'Electrical', 'slug' => 'electrical', 'icon' => 'electrical.svg', 'description' => 'Wires, cables, breaker boxes, sockets, switches, lighting systems'],
+            ['name' => 'Plumbing', 'slug' => 'plumbing', 'icon' => 'plumbing.svg', 'description' => 'Pipes, joints, drains, water tanks, pumps, valves, and fixtures'],
+            ['name' => 'HVAC & Air Conditioning', 'slug' => 'hvac-and-air-conditioning', 'icon' => 'hvac-and-air-conditioning.svg', 'description' => 'Central AC systems, split units, ventilation fans, and ductworks'],
+            ['name' => 'Wood & Carpentry', 'slug' => 'wood-and-carpentry', 'icon' => 'wood-and-carpentry.svg', 'description' => 'Plywood, hardwood panels, timber beams, frames, and carpenters tools'],
+            ['name' => 'Roofing', 'slug' => 'roofing', 'icon' => 'roofing.svg', 'description' => 'Corrugated roof sheets, tiles, roof frames, panels, and rain gutters'],
+            ['name' => 'Flooring & Tiles', 'slug' => 'flooring-and-tiles', 'icon' => 'flooring-and-tiles.svg', 'description' => 'Ceramic tiles, porcelain, marble slabs, wooden parquet, floor finishes'],
+            ['name' => 'Glass & Aluminum', 'slug' => 'glass-and-aluminum', 'icon' => 'glass-and-aluminum.svg', 'description' => 'Glass panels, double glazing windows, aluminum profiles, and facades'],
+            ['name' => 'Waterproofing', 'slug' => 'waterproofing', 'icon' => 'waterproofing.svg', 'description' => 'Waterproofing membranes, sealants, chemical coatings, and rolls'],
+            ['name' => 'Tools & Hardware', 'slug' => 'tools-and-hardware', 'icon' => 'tools-and-hardware.svg', 'description' => 'Hand tools, power tools, nails, screws, hinges, and hardware boxes'],
+            ['name' => 'Equipment & Machinery', 'slug' => 'equipment-and-machinery', 'icon' => 'equipments-and-machinery.svg', 'description' => 'Concrete mixers, generators, scaffolding lifts, compactors, machinery'],
+            ['name' => 'Safety Supplies', 'slug' => 'safety-supplies', 'icon' => 'safety-supplies.svg', 'description' => 'Helmets, safety vests, gloves, boots, signs, and first aid kits'],
+            ['name' => 'Landscaping', 'slug' => 'landscaping', 'icon' => 'landscaping.svg', 'description' => 'Outdoor pavers, soil, decorative rocks, artificial grass, garden pipes'],
+            ['name' => 'Miscellaneous', 'slug' => 'miscellaneous', 'icon' => 'miscellaneous.svg', 'description' => 'General building supplies, auxiliary accessories, non-categorized items'],
         ];
 
+        $iconSourceDir = base_path('../lib/shared-assets/images/category-icons');
+
         foreach ($categories as $category) {
-            Category::query()->firstOrCreate(
+            $imageUrl = $this->publishIcon($iconSourceDir, $category['icon']);
+
+            Category::query()->updateOrCreate(
                 ['slug' => $category['slug']],
-                ['name' => $category['name'], 'image_url' => $category['image_url'], 'is_active' => true],
+                [
+                    'name' => $category['name'],
+                    'description' => $category['description'],
+                    'image_url' => $imageUrl,
+                    'is_active' => true,
+                ],
             );
         }
+    }
+
+    private function publishIcon(string $sourceDir, string $filename): ?string
+    {
+        $sourcePath = $sourceDir.DIRECTORY_SEPARATOR.$filename;
+
+        if (! is_file($sourcePath)) {
+            return null;
+        }
+
+        $storagePath = 'categories/'.$filename;
+        Storage::disk('public')->put($storagePath, file_get_contents($sourcePath));
+
+        return Storage::disk('public')->url($storagePath);
     }
 }

@@ -14,7 +14,9 @@ export interface Product {
   suspensionReason?: string;
 }
 
-export interface Category {
+/** Mock product-category taxonomy used only for product filters/dashboard stats.
+ *  Unrelated to the real `Category` API model in `core/models/category.model.ts`. */
+export interface ProductCategoryOption {
   id: string;
   name: string;
   slug: string;

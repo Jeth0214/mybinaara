@@ -1,10 +1,19 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, signal, computed, effect, untracked, OnInit, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, computed, effect, untracked, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { UserCatalogService } from '../../../core/services/user-catalog.service';
+import { CategoryService } from '../../../core/services/category.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { Category } from '../../../core/models/category.model';
+
+function slugify(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
 
 @Component({
   selector: 'app-category-form',
@@ -17,117 +26,176 @@ import { ToastService } from '../../../core/services/toast.service';
 export class CategoryFormComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly userCatalogService = inject(UserCatalogService);
+  private readonly categoryService = inject(CategoryService);
   private readonly toast = inject(ToastService);
   private readonly fb = inject(FormBuilder);
-  private readonly cdr = inject(ChangeDetectorRef);
   private sub = new Subscription();
 
-  readonly isEditMode = signal(false);
   readonly categoryId = signal<string | null>(null);
+  readonly isEditMode = computed(() => !!this.categoryId());
 
-  readonly categoryImageError = signal<string | null>(null);
-  readonly categoryImageUploading = signal<boolean>(false);
+  readonly loadedCategory = signal<Category | null>(null);
+  readonly loading = signal(false);
+  readonly loadError = signal<string | null>(null);
+  readonly submitting = signal(false);
+  readonly busy = computed(() => this.loading() || this.submitting());
 
-  readonly category = computed(() => {
-    const id = this.categoryId();
-    return id ? this.userCatalogService.categories().find(c => c.id === id) : null;
-  });
+  private slugTouched = false;
 
-  readonly editForm = this.fb.group({
-    name: ['', [Validators.required, Validators.minLength(3)]],
-    description: ['', [Validators.required, Validators.minLength(5)]],
-    image: ['', [Validators.required]]
+  readonly selectedImageFile = signal<File | null>(null);
+  readonly imagePreviewUrl = signal<string | null>(null);
+  readonly imageError = signal<string | null>(null);
+  private objectUrl: string | null = null;
+
+  readonly form = this.fb.group({
+    name: ['', [Validators.required, Validators.maxLength(100)]],
+    slug: ['', [Validators.required, Validators.maxLength(120), Validators.pattern(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)]],
+    description: ['', [Validators.maxLength(500)]],
   });
 
   constructor() {
-    // Patch the form once the resolved category becomes available (edit mode only)
     effect(() => {
-      const cat = this.category();
-      if (cat) {
+      const isBusy = this.busy();
+      untracked(() => {
+        if (isBusy) {
+          this.form.disable({ emitEvent: false });
+        } else {
+          this.form.enable({ emitEvent: false });
+        }
+      });
+    });
+
+    // Patch the form once the fetched category becomes available (edit mode only)
+    effect(() => {
+      const category = this.loadedCategory();
+      if (category) {
         untracked(() => {
-          this.editForm.patchValue({
-            name: cat.name,
-            description: cat.description,
-            image: cat.image
+          this.form.patchValue({
+            name: category.name,
+            slug: category.slug,
+            description: category.description ?? '',
           });
+          this.slugTouched = true;
+          this.imagePreviewUrl.set(category.image_url);
         });
       }
     });
   }
 
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.isEditMode.set(true);
-      this.categoryId.set(id);
-    }
+    this.sub.add(
+      this.route.params.subscribe(params => {
+        const id = params['id'] || null;
+        this.categoryId.set(id);
+        if (id) {
+          this.fetchCategory(+id);
+        }
+      })
+    );
+
+    this.sub.add(
+      this.form.get('name')?.valueChanges.subscribe((name) => {
+        if (!this.slugTouched) {
+          this.form.get('slug')?.setValue(slugify(name ?? ''), { emitEvent: false });
+        }
+      })
+    );
+
+    this.sub.add(
+      this.form.get('slug')?.valueChanges.subscribe(() => {
+        this.slugTouched = true;
+      })
+    );
   }
 
   ngOnDestroy(): void {
     this.sub.unsubscribe();
+    this.revokeObjectUrl();
   }
 
-  onCategoryImageSelect(event: Event): void {
+  fetchCategory(id: number): void {
+    this.loading.set(true);
+    this.loadError.set(null);
+
+    this.categoryService.getCategory(id).subscribe({
+      next: (category) => {
+        this.loading.set(false);
+        this.loadedCategory.set(category);
+      },
+      error: (err) => {
+        this.loading.set(false);
+        this.loadError.set(err?.message ?? 'Failed to load this category.');
+      },
+    });
+  }
+
+  onImageSelect(event: Event): void {
     const inputEl = event.target as HTMLInputElement;
     if (!inputEl.files || inputEl.files.length === 0) return;
 
     const file = inputEl.files[0];
-    const control = this.editForm.get('image');
-
-    this.categoryImageError.set(null);
-    this.categoryImageUploading.set(true);
+    this.imageError.set(null);
 
     if (!file.type.startsWith('image/')) {
-      this.categoryImageError.set('Only image files (PNG, JPG, WEBP, SVG) are allowed.');
-      this.categoryImageUploading.set(false);
-      this.cdr.markForCheck();
+      this.imageError.set('Only image files (PNG, JPG, WEBP) are allowed.');
       return;
     }
 
     const maxSize = 2 * 1024 * 1024;
     if (file.size > maxSize) {
-      this.categoryImageError.set('File size exceeds 2MB limit. Please upload a smaller image.');
-      this.categoryImageUploading.set(false);
-      this.cdr.markForCheck();
+      this.imageError.set('File size exceeds 2MB limit. Please upload a smaller image.');
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e: any) => {
-      control?.setValue(e.target.result);
-      control?.markAsTouched();
-      control?.updateValueAndValidity();
-      this.categoryImageUploading.set(false);
-      this.cdr.markForCheck();
-    };
-    reader.onerror = () => {
-      this.categoryImageError.set('Failed to read image file content.');
-      this.categoryImageUploading.set(false);
-      this.cdr.markForCheck();
-    };
-    reader.readAsDataURL(file);
+    this.revokeObjectUrl();
+    this.objectUrl = URL.createObjectURL(file);
+    this.selectedImageFile.set(file);
+    this.imagePreviewUrl.set(this.objectUrl);
+  }
+
+  private revokeObjectUrl(): void {
+    if (this.objectUrl) {
+      URL.revokeObjectURL(this.objectUrl);
+      this.objectUrl = null;
+    }
   }
 
   submit(): void {
-    if (this.editForm.invalid) {
-      this.editForm.markAllAsTouched();
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
       return;
     }
 
-    const { name, description, image } = this.editForm.value;
+    const { name, slug, description } = this.form.getRawValue();
 
-    if (this.isEditMode()) {
-      const cat = this.category();
-      if (!cat) return;
-
-      this.userCatalogService.updateCategory(cat.id, { name: name!, description: description!, image: image! });
-      this.toast.success(`Category "${name}" updated successfully.`);
-      this.router.navigate(['/catalog/categories', cat.id]);
-    } else {
-      this.userCatalogService.addCategory(name!, description!, image!);
-      this.toast.success(`Category "${name}" created successfully.`);
-      this.router.navigate(['/catalog/categories']);
+    const formData = new FormData();
+    formData.append('name', name!);
+    formData.append('slug', slug!);
+    if (description) {
+      formData.append('description', description);
     }
+    const file = this.selectedImageFile();
+    if (file) {
+      formData.append('image', file, file.name);
+    }
+
+    const id = this.categoryId();
+    this.submitting.set(true);
+
+    const request$ = id
+      ? this.categoryService.updateCategory(+id, formData)
+      : this.categoryService.createCategory(formData);
+
+    request$.subscribe({
+      next: (category) => {
+        this.submitting.set(false);
+        this.toast.success(`Category "${category.name}" ${id ? 'updated' : 'created'} successfully.`);
+        this.router.navigate(id ? ['/catalog/categories', category.id] : ['/catalog/categories']);
+      },
+      error: (err) => {
+        this.submitting.set(false);
+        this.toast.error(err?.message ?? 'Something went wrong. Please try again.');
+      },
+    });
   }
 }

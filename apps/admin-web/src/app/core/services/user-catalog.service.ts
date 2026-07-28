@@ -1,6 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { CustomerAccount, AdminUser, UserStatus, AdminRole } from '../models/user.model';
-import { Product, Category } from '../models/catalog.model';
+import { Product, ProductCategoryOption } from '../models/catalog.model';
 import { MOCK_STORES } from '../data/mock-stores.data';
 
 @Injectable({
@@ -267,8 +267,8 @@ export class UserCatalogService {
     this._products.update(list => list.filter(p => p.id !== productId));
   }
 
-  // ── CATEGORIES STATE ────────────────────────────────────────────────────
-  private readonly _categories = signal<Category[]>([
+  // ── PRODUCT-CATEGORY TAXONOMY (mock, used only for product filters/dashboard) ──
+  private readonly _categories = signal<ProductCategoryOption[]>([
     { id: 'cat-1', name: 'Building Materials', slug: 'building-materials', description: 'Basic building raw materials, cement bases, and structural elements', productCount: 45, isActive: true, image: '/images/category-icons/building-materials.svg' },
     { id: 'cat-2', name: 'Cement & Blocks', slug: 'cement-blocks', description: 'Portland cement bags, lightweight blocks, hollow concrete blocks', productCount: 28, isActive: true, image: '/images/category-icons/cement-and-blocks.svg' },
     { id: 'cat-3', name: 'Steel & Metal', slug: 'steel-metal', description: 'Rebars, steel beams, structural metal elements, wires, and sheets', productCount: 34, isActive: true, image: '/images/category-icons/steel-and-metal.svg' },
@@ -290,35 +290,4 @@ export class UserCatalogService {
   ]);
 
   readonly categories = this._categories.asReadonly();
-
-  addCategory(name: string, description: string, image: string): void {
-    const id = `cat-${Date.now()}`;
-    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    const newCat: Category = {
-      id,
-      name,
-      slug,
-      description,
-      productCount: 0,
-      isActive: true,
-      image
-    };
-    this._categories.update(list => [...list, newCat]);
-  }
-
-  toggleCategoryStatus(catId: string): void {
-    this._categories.update(list =>
-      list.map(c => c.id === catId ? { ...c, isActive: !c.isActive } : c)
-    );
-  }
-
-  updateCategory(categoryId: string, changes: Partial<Category>): void {
-    this._categories.update(list =>
-      list.map(c => c.id === categoryId ? { ...c, ...changes } : c)
-    );
-  }
-
-  deleteCategory(categoryId: string): void {
-    this._categories.update(list => list.filter(c => c.id !== categoryId));
-  }
 }

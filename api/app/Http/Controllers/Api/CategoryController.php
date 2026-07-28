@@ -36,14 +36,14 @@ class CategoryController extends Controller
 
     public function store(StoreCategoryRequest $request): JsonResponse
     {
-        $category = $this->categories->create($request->validated());
+        $category = $this->categories->create($request->validated(), $request->file('image'));
 
         return (new CategoryResource($category))->response()->setStatusCode(201);
     }
 
     public function update(UpdateCategoryRequest $request, Category $category): JsonResponse
     {
-        $category = $this->categories->update($category, $request->validated());
+        $category = $this->categories->update($category, $request->validated(), $request->file('image'));
 
         return (new CategoryResource($category))->response();
     }
