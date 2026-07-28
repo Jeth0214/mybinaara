@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { State, Action, StateContext, Selector, NgxsOnInit } from '@ngxs/store';
 import { tap, catchError } from 'rxjs/operators';
-import { throwError } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { AdminAuthStateModel, AdminUser } from '../models/auth.model';
 import { AdminLogin, AdminLogout, ClearAdminAuthError } from './auth.actions';
@@ -81,8 +81,8 @@ export class AdminAuthState implements NgxsOnInit {
   }
 
   @Action(AdminLogout)
-  logout(ctx: StateContext<AdminAuthStateModel>): void {
-    this.authService.logout();
+  logout(ctx: StateContext<AdminAuthStateModel>) {
     ctx.setState(defaultState);
+    return this.authService.logout().pipe(catchError(() => of(void 0)));
   }
 }

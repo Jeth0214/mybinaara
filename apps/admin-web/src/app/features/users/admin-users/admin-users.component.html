@@ -6,193 +6,198 @@
       <p class="text-muted mb-0">Manage internal operator accounts and access levels</p>
     </div>
     @if (canManage()) {
-      <a routerLink="/users/admins/create" class="btn btn-success d-flex align-items-center gap-2">
+      <a
+        routerLink="/users/admins/create"
+        class="btn btn-success d-flex align-items-center gap-2"
+        [class.disabled]="busy()"
+        [attr.aria-disabled]="busy()"
+        (click)="busy() && $event.preventDefault()"
+      >
         <i class="bi bi-plus-circle"></i> Add User
       </a>
     }
   </div>
 
-  <!-- Filters Card -->
+  <!-- Search Card -->
   <div class="card border-0 shadow-sm mb-4">
     <div class="card-body p-3">
-      <div class="row g-3">
-        <!-- Search -->
-        <div class="col-lg-6 col-md-6">
-          <div class="input-group">
-            <span class="input-group-text bg-transparent border-end-0 text-muted">
-              <i class="bi bi-search"></i>
-            </span>
-            <input
-              type="text"
-              class="form-control border-start-0 ps-2"
-              placeholder="Search by name or email..."
-              [ngModel]="searchQuery()"
-              (ngModelChange)="searchQuery.set($event)"
-            />
-          </div>
-        </div>
-
-        <!-- Role Filter -->
-        <div class="col-lg-3 col-md-3 col-6">
-          <select
-            class="form-select"
-            [ngModel]="roleFilter()"
-            (ngModelChange)="roleFilter.set($event)"
-          >
-            <option value="all">All Roles</option>
-            <option value="admin">Admin</option>
-            <option value="user">User</option>
-          </select>
-        </div>
-
-        <!-- Status Filter -->
-        <div class="col-lg-3 col-md-3 col-6">
-          <select
-            class="form-select"
-            [ngModel]="statusFilter()"
-            (ngModelChange)="statusFilter.set($event)"
-          >
-            <option value="all">All Statuses</option>
-            <option value="active">Active</option>
-            <option value="suspended">Suspended</option>
-          </select>
-        </div>
+      <div class="input-group" style="max-width: 420px;">
+        <span class="input-group-text bg-transparent border-end-0 text-muted">
+          <i class="bi bi-search"></i>
+        </span>
+        <input
+          type="text"
+          class="form-control border-start-0 ps-2"
+          placeholder="Search by name..."
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event)"
+          [disabled]="busy()"
+        />
       </div>
     </div>
   </div>
 
   <!-- Table Card -->
   <div class="card border-0 shadow-sm overflow-hidden">
-    <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0 custom-table">
-        <thead class="table-light text-uppercase fs-8 fw-semibold text-muted">
-          <tr>
-            <th scope="col" class="ps-4">User Details</th>
-            <th scope="col">Phone</th>
-            <th scope="col">Role</th>
-            <th scope="col">Status</th>
-            <th scope="col" class="text-end pe-4">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (admin of paginatedAdmins(); track admin.id) {
+    @if (loading()) {
+      <div class="d-flex align-items-center justify-content-center gap-2 text-muted py-5">
+        <div class="spinner-border spinner-border-sm text-success" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        Loading users...
+      </div>
+    } @else if (loadError()) {
+      <div class="text-center py-5">
+        <div class="text-danger fs-7-5 mb-3">{{ loadError() }}</div>
+        <button type="button" class="btn btn-light btn-sm" (click)="loadStaff(meta()?.current_page ?? 1)">Retry</button>
+      </div>
+    } @else {
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 custom-table">
+          <thead class="table-light text-uppercase fs-8 fw-semibold text-muted">
             <tr>
-              <td class="ps-4 py-3">
-                <div class="d-flex align-items-center gap-3">
-                  <div class="user-avatar">
-                    {{ getInitials(admin.name) }}
-                  </div>
-                  <div>
-                    <h6 class="mb-0 fw-semibold fs-7-5 d-flex align-items-center gap-2">
-                      <a
-                        [routerLink]="['/users/admins', admin.id]"
-                        class="text-decoration-none text-dark hover-success"
-                      >
-                        {{ admin.name }}
-                      </a>
-                      @if (admin.id === currentUser()?.id) {
-                        <span class="badge bg-light text-muted fw-medium fs-9">You</span>
-                      }
-                    </h6>
-                    <span class="fs-8 text-muted font-monospace d-block">{{ admin.email }}</span>
-                  </div>
-                </div>
-              </td>
-              <td>
-                <span class="text-dark fw-medium fs-7-5">{{ admin.phone || '—' }}</span>
-              </td>
-              <td>
-                <span [class]="'role-badge role-badge--' + admin.role">{{ admin.role }}</span>
-              </td>
-              <td>
-                <span [class]="'status-badge status-badge--' + admin.status">
-                  {{ admin.status }}
-                </span>
-              </td>
-              <td class="text-end pe-4">
-                @if (canManage() && admin.id === currentUser()?.id) {
-                  <a
-                    [routerLink]="['/users/admins', admin.id, 'edit']"
-                    class="btn btn-icon-ellipsis border-0 bg-transparent"
-                    aria-label="Edit your profile"
-                    title="Edit your profile"
-                  >
-                    <i class="bi bi-pencil"></i>
-                  </a>
-                } @else if (canManage()) {
-                  <div ngbDropdown class="d-inline-block" container="body">
-                    <button
-                      class="btn btn-icon-ellipsis border-0 bg-transparent"
-                      ngbDropdownToggle
-                      [id]="'actionsDropdown-' + admin.id"
-                      aria-label="User actions"
-                    >
-                      <i class="bi bi-three-dots-vertical"></i>
-                    </button>
-                    <div
-                      ngbDropdownMenu
-                      [attr.aria-labelledby]="'actionsDropdown-' + admin.id"
-                      class="dropdown-menu-custom shadow border"
-                    >
-                      <!-- View Details -->
-                      <a ngbDropdownItem [routerLink]="['/users/admins', admin.id]">
-                        <i class="bi bi-eye me-2 text-muted"></i> View Details
-                      </a>
-                      <!-- Edit User -->
-                      <a ngbDropdownItem [routerLink]="['/users/admins', admin.id, 'edit']">
-                        <i class="bi bi-pencil me-2 text-muted"></i> Edit User
-                      </a>
-                      <!-- Suspend / Reactivate -->
-                      <button ngbDropdownItem (click)="toggleStatus(admin)">
-                        @if (admin.status === 'active') {
-                          <i class="bi bi-slash-circle me-2 text-muted"></i> Suspend User
-                        } @else {
-                          <i class="bi bi-check-circle me-2 text-muted"></i> Reactivate User
+              <th scope="col" class="ps-4">User Details</th>
+              <th scope="col">Phone</th>
+              <th scope="col">Role</th>
+              <th scope="col">Status</th>
+              <th scope="col" class="text-end pe-4">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (admin of staffList(); track admin.id) {
+              <tr>
+                <td class="ps-4 py-3">
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="user-avatar">
+                      {{ getInitials(admin.name) }}
+                    </div>
+                    <div>
+                      <h6 class="mb-0 fw-semibold fs-7-5 d-flex align-items-center gap-2">
+                        <a
+                          [routerLink]="['/users/admins', admin.id]"
+                          class="text-decoration-none text-dark hover-success"
+                        >
+                          {{ admin.name }}
+                        </a>
+                        @if (admin.id === currentUser()?.id) {
+                          <span class="badge bg-light text-muted fw-medium fs-9">You</span>
                         }
-                      </button>
-                      <div class="dropdown-divider"></div>
-                      <!-- Delete User -->
-                      <button
-                        ngbDropdownItem
-                        class="text-danger"
-                        (click)="deleteAdmin(admin)"
-                      >
-                        <i class="bi bi-trash me-2"></i> Delete User
-                      </button>
+                      </h6>
+                      <span class="fs-8 text-muted font-monospace d-block">{{ admin.email }}</span>
                     </div>
                   </div>
-                } @else {
-                  <a
-                    [routerLink]="['/users/admins', admin.id]"
-                    class="btn btn-icon-ellipsis border-0 bg-transparent"
-                    aria-label="View user"
-                  >
-                    <i class="bi bi-eye"></i>
-                  </a>
-                }
-              </td>
-            </tr>
-          } @empty {
-            <tr>
-              <td colspan="5" class="text-center py-5 text-muted">
-                <i class="bi bi-people fs-2 d-block mb-3 opacity-30"></i>
-                <p class="mb-0 fw-medium">No users matched your search query</p>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-    @if (filteredAdmins().length > 0) {
-      <mat-paginator
-        [length]="filteredAdmins().length"
-        [pageSize]="pageSize()"
-        [pageSizeOptions]="[5, 10, 25, 50, 100]"
-        [pageIndex]="pageIndex()"
-        (page)="handlePageEvent($event)"
-        aria-label="Select page"
-        class="border-top"
-      />
+                </td>
+                <td>
+                  <span class="text-dark fw-medium fs-7-5">{{ admin.phone || '—' }}</span>
+                </td>
+                <td>
+                  <span [class]="'role-badge role-badge--' + admin.role">{{ admin.role }}</span>
+                </td>
+                <td>
+                  <span [class]="'status-badge status-badge--' + admin.status">
+                    {{ admin.status }}
+                  </span>
+                </td>
+                <td class="text-end pe-4">
+                  @if (canManage() && admin.id === currentUser()?.id) {
+                    <a
+                      [routerLink]="['/users/admins', admin.id, 'edit']"
+                      class="btn btn-icon-ellipsis border-0 bg-transparent"
+                      aria-label="Edit your profile"
+                      title="Edit your profile"
+                      [class.disabled]="busy()"
+                      [attr.aria-disabled]="busy()"
+                      (click)="busy() && $event.preventDefault()"
+                    >
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                  } @else if (canManage()) {
+                    <div ngbDropdown class="d-inline-block" container="body">
+                      <button
+                        class="btn btn-icon-ellipsis border-0 bg-transparent"
+                        ngbDropdownToggle
+                        [id]="'actionsDropdown-' + admin.id"
+                        aria-label="User actions"
+                        [disabled]="busy()"
+                      >
+                        <i class="bi bi-three-dots-vertical"></i>
+                      </button>
+                      <div
+                        ngbDropdownMenu
+                        [attr.aria-labelledby]="'actionsDropdown-' + admin.id"
+                        class="dropdown-menu-custom shadow border"
+                      >
+                        <!-- View Details -->
+                        <a ngbDropdownItem [routerLink]="['/users/admins', admin.id]">
+                          <i class="bi bi-eye me-2 text-muted"></i> View Details
+                        </a>
+                        <!-- Edit User -->
+                        <a ngbDropdownItem [routerLink]="['/users/admins', admin.id, 'edit']">
+                          <i class="bi bi-pencil me-2 text-muted"></i> Edit User
+                        </a>
+                        <!-- Active / Inactive switch -->
+                        <div
+                          class="dropdown-item d-flex align-items-center justify-content-between"
+                          (click)="$event.stopPropagation()"
+                        >
+                          <span>Active</span>
+                          <div class="form-check form-switch mb-0">
+                            <input
+                              class="form-check-input"
+                              type="checkbox"
+                              role="switch"
+                              [checked]="admin.status === 'active'"
+                              [disabled]="busy()"
+                              (change)="onToggleStatus(admin)"
+                            />
+                          </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <!-- Delete User -->
+                        <button
+                          ngbDropdownItem
+                          class="text-danger"
+                          [disabled]="busy()"
+                          (click)="deleteAdmin(admin)"
+                        >
+                          <i class="bi bi-trash me-2"></i> Delete User
+                        </button>
+                      </div>
+                    </div>
+                  } @else {
+                    <a
+                      [routerLink]="['/users/admins', admin.id]"
+                      class="btn btn-icon-ellipsis border-0 bg-transparent"
+                      aria-label="View user"
+                    >
+                      <i class="bi bi-eye"></i>
+                    </a>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="text-center py-5 text-muted">
+                  <i class="bi bi-people fs-2 d-block mb-3 opacity-30"></i>
+                  <p class="mb-0 fw-medium">No users matched your search query</p>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      @if (meta() && meta()!.total > 0) {
+        <mat-paginator
+          [length]="meta()!.total"
+          [pageSize]="20"
+          [hidePageSize]="true"
+          [pageIndex]="meta()!.current_page - 1"
+          [disabled]="mutating()"
+          (page)="handlePageEvent($event)"
+          aria-label="Select page"
+          class="border-top"
+        />
+      }
     }
   </div>
 </div>

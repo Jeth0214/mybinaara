@@ -48,6 +48,16 @@
     }
   }
 
+  &.status--inactive,
+  &.status-badge--inactive {
+    background: rgba(192, 57, 43, 0.1);
+    color: var(--brand-error);
+
+    &::before {
+      background: var(--brand-error);
+    }
+  }
+
   &.status--rejected,
   &.status-badge--rejected {
     background: rgba(192, 57, 43, 0.08);

@@ -83,7 +83,7 @@ class StoreLogoTest extends TestCase
     public function test_store_staff_can_upload_logo(): void
     {
         $store = Store::factory()->active()->create();
-        $staff = User::factory()->create(['user_type' => UserType::StoreStaff]);
+        $staff = User::factory()->create(['user_type' => UserType::VendorStaff]);
         $store->users()->attach($staff->id, ['role' => StoreUserRole::Staff->value]);
 
         $response = $this->actingAs($staff, 'sanctum')->postJson("/api/stores/{$store->id}/logo", [

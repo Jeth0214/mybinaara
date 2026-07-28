@@ -36,6 +36,7 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'status' => UserStatus::Active,
         ];
     }
 
@@ -50,7 +51,7 @@ class UserFactory extends Factory
     }
 
     /**
-     * Admin-type user, opportunistically attached to the seeded "admin" role
+     * Admin-type user, opportunistically attached to the seeded "administrator" role
      * (full permissions) if roles/permissions have been seeded in the current test.
      * role_id isn't mass-assignable, so this is set via forceFill() after creation.
      */
@@ -58,13 +59,13 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'user_type' => UserType::Admin,
-        ])->withRole('admin');
+        ])->withRole('administrator');
     }
 
-    public function suspended(): static
+    public function inactive(): static
     {
         return $this->state(fn (array $attributes) => [
-            'status' => UserStatus::Suspended,
+            'status' => UserStatus::Inactive,
         ]);
     }
 

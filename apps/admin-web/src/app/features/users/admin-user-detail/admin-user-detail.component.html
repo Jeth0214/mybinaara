@@ -1,9 +1,27 @@
 <div class="container py-4" style="max-width: 1200px;">
-  @if (admin(); as a) {
-    <a routerLink="/users/admins" class="text-decoration-none text-muted fs-7 d-inline-flex align-items-center gap-2 mb-3">
-      <i class="bi bi-arrow-left"></i> Back to Admin Users
-    </a>
+  <a routerLink="/users/admins" class="text-decoration-none text-muted fs-7 d-inline-flex align-items-center gap-2 mb-3">
+    <i class="bi bi-arrow-left"></i> Back to Admin Users
+  </a>
 
+  @if (loading()) {
+    <div class="d-flex align-items-center justify-content-center gap-2 text-muted py-5">
+      <div class="spinner-border spinner-border-sm text-success" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      Loading user...
+    </div>
+  } @else if (notFound()) {
+    <div class="text-center py-5 my-5">
+      <i class="bi bi-person fs-1 text-muted opacity-40"></i>
+      <h5 class="text-muted mt-3">User record not found</h5>
+      <a routerLink="/users/admins" class="btn btn-success mt-3 btn-sm">Back to Admin Users</a>
+    </div>
+  } @else if (loadError()) {
+    <div class="text-center py-5 my-5">
+      <div class="text-danger fs-7-5 mb-3">{{ loadError() }}</div>
+      <button type="button" class="btn btn-light btn-sm" (click)="fetchStaff(+adminId()!)">Retry</button>
+    </div>
+  } @else if (admin(); as a) {
     <!-- Header -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
       <div class="d-flex align-items-center gap-3">
@@ -24,25 +42,40 @@
 
       @if (canManage() && isSelf()) {
         <div class="d-flex gap-2">
-          <a [routerLink]="['/users/admins', a.id, 'edit']" class="btn btn-primary d-flex align-items-center gap-2">
+          <a
+            [routerLink]="['/users/admins', a.id, 'edit']"
+            class="btn btn-primary d-flex align-items-center gap-2"
+            [class.disabled]="busy()"
+            [attr.aria-disabled]="busy()"
+            (click)="busy() && $event.preventDefault()"
+          >
             <i class="bi bi-pencil"></i> Edit My Profile
           </a>
         </div>
       } @else if (canManage()) {
-        <div class="d-flex gap-2">
-          <a [routerLink]="['/users/admins', a.id, 'edit']" class="btn btn-primary d-flex align-items-center gap-2">
+        <div class="d-flex align-items-center gap-3">
+          <div class="form-check form-switch d-flex align-items-center gap-2 mb-0">
+            <input
+              class="form-check-input ms-0"
+              type="checkbox"
+              role="switch"
+              id="statusSwitch"
+              [checked]="a.status === 'active'"
+              [disabled]="busy()"
+              (change)="onToggleStatus()"
+            />
+            <label class="form-check-label fs-7-5 fw-medium" for="statusSwitch">Active</label>
+          </div>
+          <a
+            [routerLink]="['/users/admins', a.id, 'edit']"
+            class="btn btn-primary d-flex align-items-center gap-2"
+            [class.disabled]="busy()"
+            [attr.aria-disabled]="busy()"
+            (click)="busy() && $event.preventDefault()"
+          >
             <i class="bi bi-pencil"></i> Edit User
           </a>
-          @if (a.status === 'suspended') {
-            <button class="btn btn-outline-success d-flex align-items-center gap-2" (click)="toggleStatus()">
-              <i class="bi bi-check2-circle"></i> Reactivate
-            </button>
-          } @else {
-            <button class="btn btn-outline-danger d-flex align-items-center gap-2" (click)="toggleStatus()">
-              <i class="bi bi-slash-circle"></i> Suspend
-            </button>
-          }
-          <button class="btn btn-outline-danger d-flex align-items-center gap-2" (click)="deleteAdmin()">
+          <button class="btn btn-outline-danger d-flex align-items-center gap-2" [disabled]="busy()" (click)="deleteAdmin()">
             <i class="bi bi-trash"></i> Delete
           </button>
         </div>
@@ -61,16 +94,28 @@
           <div class="fs-7-5 fw-medium text-dark">{{ a.phone || 'Not provided' }}</div>
         </div>
         <div class="col-md-4">
+          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">Whatsapp</div>
+          <div class="fs-7-5 fw-medium text-dark">{{ a.whatsapp || 'Not provided' }}</div>
+        </div>
+        <div class="col-md-4">
           <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">Created On</div>
-          <div class="fs-7-5 fw-medium text-dark">{{ a.createdAt | date:'mediumDate' }}</div>
+          <div class="fs-7-5 fw-medium text-dark">{{ a.created_at | date:'mediumDate' }}</div>
         </div>
       </div>
     </div>
-  } @else {
-    <div class="text-center py-5 my-5">
-      <i class="bi bi-person fs-1 text-muted opacity-40"></i>
-      <h5 class="text-muted mt-3">User record not found</h5>
-      <a routerLink="/users/admins" class="btn btn-success mt-3 btn-sm">Back to Admin Users</a>
+
+    <!-- Permissions Card -->
+    <div class="card border-0 shadow-sm p-4">
+      <div class="fs-8 text-uppercase text-muted fw-semibold mb-2">Permissions</div>
+      @if (a.permissions.length > 0) {
+        <div class="d-flex flex-wrap gap-2">
+          @for (perm of a.permissions; track perm) {
+            <span class="badge bg-light text-dark fw-medium border fs-8-5">{{ perm }}</span>
+          }
+        </div>
+      } @else {
+        <p class="text-muted fs-7-5 mb-0">No permissions granted.</p>
+      }
     </div>
   }
 </div>

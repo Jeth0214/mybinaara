@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\PermissionSeeder;
@@ -23,34 +24,40 @@ class RolePermissionTest extends TestCase
         $this->seed([RoleSeeder::class, PermissionSeeder::class, RolePermissionSeeder::class]);
     }
 
-    public function test_admin_role_has_all_nine_permissions(): void
+    public function test_administrator_role_has_every_permission(): void
     {
-        $admin = Role::query()->where('name', 'admin')->firstOrFail();
+        $administrator = Role::query()->where('name', 'administrator')->firstOrFail();
 
-        $this->assertCount(9, $admin->permissions);
-        $this->assertTrue($admin->permissions->contains('key', 'catalog.manage'));
+        $this->assertCount(Permission::query()->count(), $administrator->permissions);
+        $this->assertTrue($administrator->permissions->contains('key', 'catalog.manage'));
     }
 
-    public function test_user_role_has_only_the_three_read_only_permissions(): void
+    public function test_staff_and_vendor_roles_have_no_default_permissions(): void
     {
-        $user = Role::query()->where('name', 'user')->firstOrFail();
+        $staff = Role::query()->where('name', 'staff')->firstOrFail();
+        $vendor = Role::query()->where('name', 'vendor')->firstOrFail();
 
-        $this->assertEqualsCanonicalizing(
-            ['stores.view', 'users.view', 'catalog.view'],
-            $user->permissions->pluck('key')->all(),
-        );
-        $this->assertFalse($user->permissions->contains('key', 'catalog.manage'));
+        $this->assertCount(0, $staff->permissions);
+        $this->assertCount(0, $vendor->permissions);
     }
 
-    public function test_user_has_permission_reflects_their_role(): void
+    public function test_administrator_user_has_every_permission_regardless_of_assignment(): void
     {
-        $admin = User::factory()->admin()->create();
-        $limited = User::factory()->admin()->withRole('user')->create();
+        $administrator = User::factory()->admin()->create();
+
+        $this->assertTrue($administrator->hasPermission('catalog.manage'));
+        $this->assertTrue($administrator->hasPermission('staff.delete'));
+    }
+
+    public function test_staff_user_has_permission_reflects_their_direct_assignment(): void
+    {
+        $staff = User::factory()->admin()->withRole('staff')->create();
+        $staff->permissions()->sync(Permission::query()->whereIn('key', ['catalog.view'])->pluck('id'));
+
         $roleless = User::factory()->create();
 
-        $this->assertTrue($admin->hasPermission('catalog.manage'));
-        $this->assertFalse($limited->hasPermission('catalog.manage'));
-        $this->assertTrue($limited->hasPermission('catalog.view'));
+        $this->assertTrue($staff->hasPermission('catalog.view'));
+        $this->assertFalse($staff->hasPermission('catalog.manage'));
         $this->assertFalse($roleless->hasPermission('catalog.view'));
     }
 }

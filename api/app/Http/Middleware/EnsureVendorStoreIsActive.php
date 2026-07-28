@@ -17,7 +17,7 @@ class EnsureVendorStoreIsActive
     {
         $user = $request->user();
 
-        if ($user && in_array($user->user_type, [UserType::StoreOwner, UserType::StoreStaff], true)) {
+        if ($user && in_array($user->user_type, [UserType::StoreOwner, UserType::VendorStaff], true)) {
             $store = $user->stores()->first();
             $status = $store?->status;
 

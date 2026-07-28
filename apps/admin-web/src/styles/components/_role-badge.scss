@@ -8,11 +8,13 @@
   text-transform: uppercase;
   letter-spacing: 0.02rem;
 
-  &.role-badge--admin {
+  &.role-badge--admin,
+  &.role-badge--administrator {
     background-color: #fdecea;
     color: #8e2b1f;
   }
-  &.role-badge--user {
+  &.role-badge--user,
+  &.role-badge--staff {
     background-color: #eaf2f8;
     color: #1a5276;
   }

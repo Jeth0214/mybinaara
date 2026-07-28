@@ -36,6 +36,9 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'last_login_at' => 'datetime',
             'password' => 'hashed',
+            'failed_login_attempts' => 'integer',
+            'locked_until' => 'datetime',
+            'requires_admin_unlock' => 'boolean',
         ];
     }
 
@@ -54,8 +57,17 @@ class User extends Authenticatable
         return $this->belongsToMany(Store::class, 'store_user');
     }
 
+    public function permissions(): BelongsToMany
+    {
+        return $this->belongsToMany(Permission::class, 'user_permissions');
+    }
+
     public function hasPermission(string $key): bool
     {
-        return $this->role !== null && $this->role->permissions()->where('key', $key)->exists();
+        if ($this->role?->name === 'administrator') {
+            return true;
+        }
+
+        return $this->permissions()->where('key', $key)->exists();
     }
 }

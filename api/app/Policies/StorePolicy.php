@@ -66,7 +66,7 @@ class StorePolicy
 
     private function isOwnerOrStaffOf(User $user, Store $store): bool
     {
-        return in_array($user->user_type, [UserType::StoreOwner, UserType::StoreStaff], true)
+        return in_array($user->user_type, [UserType::StoreOwner, UserType::VendorStaff], true)
             && $store->users()->where('users.id', $user->id)->exists();
     }
 }

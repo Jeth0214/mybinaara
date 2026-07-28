@@ -59,7 +59,7 @@ class StoreLocationTest extends TestCase
     public function test_store_staff_can_update_location(): void
     {
         $store = Store::factory()->active()->create();
-        $staff = User::factory()->create(['user_type' => UserType::StoreStaff]);
+        $staff = User::factory()->create(['user_type' => UserType::VendorStaff]);
         $store->users()->attach($staff->id, ['role' => StoreUserRole::Staff->value]);
 
         $this->actingAs($staff, 'sanctum')

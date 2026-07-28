@@ -30,28 +30,28 @@ class AccountStatusMiddlewareTest extends TestCase
         $this->actingAs($admin, 'sanctum')->getJson('/api/stores')->assertOk();
     }
 
-    public function test_suspended_admin_is_blocked_and_logged_out(): void
+    public function test_inactive_admin_is_blocked_and_logged_out(): void
     {
-        $admin = User::factory()->admin()->suspended()->create();
+        $admin = User::factory()->admin()->inactive()->create();
         $token = $admin->createToken('phpunit')->plainTextToken;
 
         $response = $this->withHeader('Authorization', "Bearer {$token}")->getJson('/api/stores');
 
         $response->assertStatus(403)
-            ->assertJsonFragment(['message' => 'This account has been suspended.']);
+            ->assertJsonFragment(['message' => 'This account is inactive.']);
 
         $this->assertDatabaseCount('personal_access_tokens', 0);
     }
 
-    public function test_suspended_customer_is_blocked_and_logged_out(): void
+    public function test_inactive_customer_is_blocked_and_logged_out(): void
     {
-        $customer = User::factory()->suspended()->create(['user_type' => UserType::Customer]);
+        $customer = User::factory()->inactive()->create(['user_type' => UserType::Customer]);
         $token = $customer->createToken('phpunit')->plainTextToken;
 
         $response = $this->withHeader('Authorization', "Bearer {$token}")->getJson('/api/user');
 
         $response->assertStatus(403)
-            ->assertJsonFragment(['message' => 'This account has been suspended.']);
+            ->assertJsonFragment(['message' => 'This account is inactive.']);
 
         $this->assertDatabaseCount('personal_access_tokens', 0);
     }
@@ -65,7 +65,7 @@ class AccountStatusMiddlewareTest extends TestCase
 
     public function test_revoked_token_cannot_be_reused(): void
     {
-        $admin = User::factory()->admin()->suspended()->create();
+        $admin = User::factory()->admin()->inactive()->create();
         $token = $admin->createToken('phpunit')->plainTextToken;
 
         $this->withHeader('Authorization', "Bearer {$token}")->getJson('/api/stores')->assertStatus(403);
