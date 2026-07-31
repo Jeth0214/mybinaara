@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
 import { StoreService } from '../../../../core/services/store.service';
+import { Store } from '../../../../core/models/store.model';
 import { UserCatalogService } from '../../../../core/services/user-catalog.service';
 
 // Register all Chart.js components
@@ -22,11 +23,17 @@ export class AnalyticsChartsComponent {
   private readonly storeService = inject(StoreService);
   private readonly userCatalogService = inject(UserCatalogService);
 
+  private readonly stores = signal<Store[]>([]);
+
+  constructor() {
+    this.storeService.listStores({ page: 1 }).subscribe((res) => this.stores.set(res.data));
+  }
+
   // ── STORES BAR CHART: live count of stores per city ─────────────────────
   private readonly cityDistribution = computed(() => {
     const counts = new Map<string, number>();
-    for (const store of this.storeService.stores()) {
-      const city = store.location.city || 'Unknown';
+    for (const store of this.stores()) {
+      const city = store.location?.city || 'Unknown';
       counts.set(city, (counts.get(city) || 0) + 1);
     }
     return [...counts.entries()].sort((a, b) => b[1] - a[1]);

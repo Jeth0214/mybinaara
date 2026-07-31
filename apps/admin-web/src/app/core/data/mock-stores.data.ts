@@ -1,4 +1,14 @@
-import { Store } from '../models/store.model';
+/**
+ * Legacy demo data for the mock product/catalog features (unrelated to the
+ * real Stores API). Intentionally decoupled from the `Store` model, which
+ * now mirrors the backend `StoreResource` contract.
+ */
+export interface MockStoreRecord {
+  id: string;
+  name: string;
+  status: 'active' | 'suspended' | 'pending';
+  [key: string]: unknown;
+}
 
 const BASE_MOCK_STORES: any[] = [
   {
@@ -228,7 +238,7 @@ for (let i = 7; i <= 100; i++) {
   });
 }
 
-export const MOCK_STORES: Store[] = [...BASE_MOCK_STORES, ...GENERATED_STORES].map(s => {
+export const MOCK_STORES: MockStoreRecord[] = [...BASE_MOCK_STORES, ...GENERATED_STORES].map(s => {
   const buildingNumber = '1234';
   const streetName = s.streetAddress || 'Main Street';
   const district = s.district || '';

@@ -1,6 +1,6 @@
 <div class="row g-4 mt-2">
-  <div class="col-lg-8 border-end-lg">
-    <form [formGroup]="form()" class="pe-lg-4">
+  <div class="col-lg-9 mx-auto">
+    <form [formGroup]="form()">
       <h5 class="fw-semibold mb-3">Step 3: Saudi Registry</h5>
       <p class="text-muted fs-7 mb-4">Please input verified credentials corresponding to the merchant registry records in KSA.</p>
 
@@ -52,7 +52,10 @@
           Previous
         </button>
         @if (isEditMode()) {
-          <button type="button" class="btn btn-success px-4 shadow-2xs" (click)="submitStore.emit()" [disabled]="form().invalid">
+          <button type="button" class="btn btn-success px-4 shadow-2xs" [disabled]="form().invalid || submitting()" (click)="submitStore.emit()">
+            @if (submitting()) {
+              <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            }
             Save Changes
           </button>
         } @else {
@@ -62,24 +65,5 @@
         }
       </div>
     </form>
-  </div>
-
-  <!-- Side Helper Panel -->
-  <div class="col-lg-4">
-    <div class="card bg-light border-0 p-3 h-100 shadow-3xs">
-      <h6 class="fw-bold text-dark mb-3"><i class="bi bi-info-circle text-success me-2"></i>Testing Guide</h6>
-      <p class="fs-8 text-muted">Use this valid format mockup registry details to satisfy the strict regex validations.</p>
-
-      <div class="bg-white p-2.5 rounded border border-light shadow-2xs">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <span class="fw-semibold fs-8 text-dark">Saudi Registry Numbers</span>
-          <button class="btn btn-link btn-xs p-0 text-decoration-none fs-8 fw-bold" (click)="fillTestingRegistry()">Fill All</button>
-        </div>
-        <div class="fs-8 font-monospace text-muted">
-          <div>1010348712</div>
-          <div>300054321000003</div>
-        </div>
-      </div>
-    </div>
   </div>
 </div>

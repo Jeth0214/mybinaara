@@ -1,15 +1,33 @@
 <div class="container py-4" style="max-width: 1200px;">
-  @if (product(); as prod) {
-    <a routerLink="/catalog/products" class="text-decoration-none text-muted fs-7 d-inline-flex align-items-center gap-2 mb-3">
-      <i class="bi bi-arrow-left"></i> Back to Product Catalog
-    </a>
+  <a routerLink="/catalog/products" class="text-decoration-none text-muted fs-7 d-inline-flex align-items-center gap-2 mb-3">
+    <i class="bi bi-arrow-left"></i> Back to Products
+  </a>
 
+  @if (loading()) {
+    <div class="d-flex align-items-center justify-content-center gap-2 text-muted py-5">
+      <div class="spinner-border spinner-border-sm text-success" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      Loading product...
+    </div>
+  } @else if (notFound()) {
+    <div class="text-center py-5 my-5">
+      <i class="bi bi-box-seam fs-1 text-muted opacity-40"></i>
+      <h5 class="text-muted mt-3">Product record not found</h5>
+      <a routerLink="/catalog/products" class="btn btn-success mt-3 btn-sm">Back to Products</a>
+    </div>
+  } @else if (loadError()) {
+    <div class="text-center py-5 my-5">
+      <div class="text-danger fs-7-5 mb-3">{{ loadError() }}</div>
+      <button type="button" class="btn btn-light btn-sm" (click)="fetchProduct(+productId()!)">Retry</button>
+    </div>
+  } @else if (product(); as prod) {
     <!-- Header -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
       <div class="d-flex align-items-center gap-3">
         <div class="product-thumb bg-light rounded text-muted d-flex align-items-center justify-content-center overflow-hidden">
-          @if (prod.image) {
-            <img [src]="prod.image" [alt]="prod.name" style="width: 100%; height: 100%; object-fit: cover;" />
+          @if (prod.image_url) {
+            <img [src]="prod.image_url" [alt]="prod.name" style="width: 100%; height: 100%; object-fit: cover;" />
           } @else {
             <i class="bi bi-box-seam fs-3"></i>
           }
@@ -17,25 +35,39 @@
         <div>
           <div class="d-flex align-items-center gap-2">
             <h4 class="fw-bold mb-0">{{ prod.name }}</h4>
-            <span [class]="'status-badge status-badge--' + (prod.isSuspended ? 'suspended' : 'active')">
-              {{ prod.isSuspended ? 'Suspended' : 'Active' }}
-            </span>
+            <span [class]="'status-badge status-badge--' + prod.status">{{ prod.status }}</span>
           </div>
-          <span class="fs-7-5 text-muted d-block font-monospace mt-1">SKU: {{ prod.sku }}</span>
+          <code class="fs-7-5 text-muted d-block mt-1">/{{ prod.slug }}</code>
         </div>
       </div>
 
-      <div class="d-flex gap-2">
-        <a [routerLink]="['/catalog/products', prod.id, 'edit']" class="btn btn-primary d-flex align-items-center gap-2">
-          <i class="bi bi-pencil"></i> Edit Product
-        </a>
-        @if (prod.isSuspended) {
-          <button class="btn btn-outline-success d-flex align-items-center gap-2" (click)="unsuspendProduct()">
-            <i class="bi bi-check2-circle"></i> Unsuspend
-          </button>
-        } @else {
-          <button class="btn btn-outline-danger d-flex align-items-center gap-2" (click)="openSuspendModal()">
-            <i class="bi bi-slash-circle"></i> Suspend
+      <div class="d-flex align-items-center gap-2">
+        @if (canChangeStatus() && availableStatusActions().length > 0) {
+          <div ngbDropdown class="d-inline-block">
+            <button class="btn btn-outline-secondary d-flex align-items-center gap-2" ngbDropdownToggle [disabled]="busy()">
+              <i class="bi bi-arrow-repeat"></i> Change Status
+            </button>
+            <div ngbDropdownMenu class="dropdown-menu-custom shadow border">
+              @for (action of availableStatusActions(); track action.target) {
+                <button ngbDropdownItem (click)="changeStatus(action.target)">{{ action.label }}</button>
+              }
+            </div>
+          </div>
+        }
+        @if (canEdit()) {
+          <a
+            [routerLink]="['/catalog/products', prod.id, 'edit']"
+            class="btn btn-primary d-flex align-items-center gap-2"
+            [class.disabled]="busy()"
+            [attr.aria-disabled]="busy()"
+            (click)="busy() && $event.preventDefault()"
+          >
+            <i class="bi bi-pencil"></i> Edit Product
+          </a>
+        }
+        @if (canDelete()) {
+          <button class="btn btn-outline-danger d-flex align-items-center gap-2" [disabled]="busy()" (click)="deleteProduct()">
+            <i class="bi bi-trash"></i> Delete
           </button>
         }
       </div>
@@ -45,76 +77,56 @@
     <div class="card border-0 shadow-sm p-4 mb-4">
       <div class="row g-4">
         <div class="col-md-4">
-          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">Category</div>
-          <div class="fs-7-5 fw-medium text-dark">{{ prod.category }}</div>
+          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">SKU</div>
+          <div class="fs-7-5 fw-medium text-dark">{{ prod.sku || '—' }}</div>
         </div>
         <div class="col-md-4">
-          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">Brand</div>
-          <div class="fs-7-5 fw-medium text-dark">{{ prod.brand }}</div>
+          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">Category</div>
+          <div class="fs-7-5 fw-medium text-dark">{{ prod.category?.name || 'Uncategorized' }}</div>
+        </div>
+        <div class="col-md-4">
+          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">Store</div>
+          <div class="fs-7-5 fw-medium text-dark">{{ prod.store.name }}</div>
         </div>
         <div class="col-md-4">
           <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">Price</div>
-          <div class="fs-7-5 fw-bold text-success">{{ prod.price | number:'1.2-2' }} SAR</div>
-        </div>
-        <div class="col-md-4">
-          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">Store Vendor</div>
-          <div class="fs-7-5 fw-medium text-dark">
-            <a [routerLink]="['/stores', prod.storeId]" class="text-decoration-none">{{ prod.storeName }}</a>
+          <div class="fs-7-5 fw-bold text-success">
+            {{ prod.price | number:'1.2-2' }} SAR
+            @if (prod.compare_at_price) {
+              <span class="text-muted fw-normal text-decoration-line-through ms-2">{{ prod.compare_at_price | number:'1.2-2' }} SAR</span>
+            }
           </div>
         </div>
         <div class="col-md-4">
-          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">Listed On</div>
-          <div class="fs-7-5 fw-medium text-dark">{{ prod.createdAt | date:'mediumDate' }}</div>
+          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">Stock Quantity</div>
+          <div class="fs-7-5 fw-medium text-dark">{{ prod.stock_quantity }}</div>
+        </div>
+        <div class="col-md-4">
+          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">Status</div>
+          <div class="fs-7-5 fw-medium text-dark text-capitalize">{{ prod.status }}</div>
         </div>
         <div class="col-12">
           <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">Description</div>
-          <p class="fs-7-5 text-dark mb-0">{{ prod.description }}</p>
+          <p class="fs-7-5 text-dark mb-0">{{ prod.description || 'No description provided.' }}</p>
         </div>
-        @if (prod.isSuspended && prod.suspensionReason) {
-          <div class="col-12">
-            <div class="alert alert-danger fs-7-5 mb-0">
-              <i class="bi bi-exclamation-triangle-fill me-2"></i>
-              <strong>Suspension Reason:</strong> {{ prod.suspensionReason }}
-            </div>
-          </div>
-        }
-      </div>
-    </div>
-
-    <!-- Suspend Modal -->
-    @if (showSuspendModal()) {
-      <div class="custom-overlay">
-        <div class="custom-modal-card p-4 rounded-3 shadow border" style="max-width: 450px;">
-          <h5 class="fw-semibold text-danger mb-2"><i class="bi bi-slash-circle me-2"></i>Suspend Product</h5>
-          <p class="text-muted fs-7 mb-3">Please provide a reason for suspending this product (e.g. policy violation). This is logged for compliance.</p>
-
-          <div class="mb-3">
-            <label class="form-label fw-semibold fs-8 text-uppercase text-muted">Suspension Reason <span class="text-danger">*</span></label>
-            <textarea
-              class="form-control fs-7"
-              rows="3"
-              [(ngModel)]="suspensionReason"
-            ></textarea>
-          </div>
-
-          <div class="d-flex justify-content-end gap-2 border-top pt-3 mt-3">
-            <button class="btn btn-light btn-sm" (click)="closeSuspendModal()">Cancel</button>
-            <button
-              class="btn btn-danger btn-sm px-3"
-              (click)="submitSuspend()"
-              [disabled]="suspensionReason().trim().length < 5"
-            >
-              Confirm Suspension
-            </button>
+        <div class="col-md-4">
+          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">Created By</div>
+          <div class="fs-7-5 fw-medium text-dark">{{ prod.created_by?.name || '—' }}</div>
+        </div>
+        <div class="col-md-4">
+          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">Created On</div>
+          <div class="fs-7-5 fw-medium text-dark">{{ prod.created_at | date:'medium' }}</div>
+        </div>
+        <div class="col-md-4">
+          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">Last Updated</div>
+          <div class="fs-7-5 fw-medium text-dark">
+            {{ prod.updated_at | date:'medium' }}
+            @if (prod.updated_by?.name) {
+              <span class="text-muted d-block fs-8">by {{ prod.updated_by?.name }}</span>
+            }
           </div>
         </div>
       </div>
-    }
-  } @else {
-    <div class="text-center py-5 my-5">
-      <i class="bi bi-box-seam fs-1 text-muted opacity-40"></i>
-      <h5 class="text-muted mt-3">Product record not found</h5>
-      <a routerLink="/catalog/products" class="btn btn-success mt-3 btn-sm">Back to Catalog</a>
     </div>
   }
 </div>

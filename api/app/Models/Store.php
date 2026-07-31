@@ -68,4 +68,9 @@ class Store extends Model
                 WHEN 'sat' THEN 1 WHEN 'sun' THEN 2 WHEN 'mon' THEN 3 WHEN 'tue' THEN 4
                 WHEN 'wed' THEN 5 WHEN 'thu' THEN 6 WHEN 'fri' THEN 7 END");
     }
+
+    public function products(): HasMany
+    {
+        return $this->hasMany(Product::class);
+    }
 }

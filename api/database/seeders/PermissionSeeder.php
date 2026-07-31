@@ -27,7 +27,10 @@ class PermissionSeeder extends Seeder
             ['key' => 'vendors.edit', 'category' => 'Vendor Management', 'label' => 'Edit Vendors'],
 
             ['key' => 'products.view', 'category' => 'Product Management', 'label' => 'View Products'],
+            ['key' => 'products.create', 'category' => 'Product Management', 'label' => 'Create Products'],
+            ['key' => 'products.edit', 'category' => 'Product Management', 'label' => 'Edit Products'],
             ['key' => 'products.hide', 'category' => 'Product Management', 'label' => 'Hide Products'],
+            ['key' => 'products.suspend', 'category' => 'Product Management', 'label' => 'Suspend Products'],
             ['key' => 'products.delete', 'category' => 'Product Management', 'label' => 'Delete Products'],
 
             ['key' => 'catalog.view', 'category' => 'Category Management', 'label' => 'View Categories'],

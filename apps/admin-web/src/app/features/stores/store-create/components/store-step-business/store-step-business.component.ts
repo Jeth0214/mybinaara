@@ -1,7 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject, input, signal, ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatStepperModule } from '@angular/material/stepper';
+
+const ACCEPTED_LOGO_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+const MAX_LOGO_SIZE = 2 * 1024 * 1024;
 
 @Component({
   selector: 'app-store-step-business',
@@ -11,99 +14,60 @@ import { MatStepperModule } from '@angular/material/stepper';
   templateUrl: './store-step-business.component.html',
   styleUrl: './store-step-business.component.scss'
 })
-export class StoreStepBusinessComponent {
+export class StoreStepBusinessComponent implements OnDestroy {
   readonly form = input.required<FormGroup>();
   readonly isEditMode = input<boolean>(false);
-  readonly isPendingAccount = input<boolean>(false);
-
-  private readonly cdr = inject(ChangeDetectorRef);
+  readonly existingLogoUrl = input<string | null>(null);
 
   readonly logoError = signal<string | null>(null);
-  readonly logoUploading = signal<boolean>(false);
+  readonly logoPreviewUrl = signal<string | null>(null);
+  private objectUrl: string | null = null;
+
+  currentLogoPreview(): string | null {
+    return this.logoPreviewUrl() ?? this.existingLogoUrl();
+  }
 
   onLogoFileSelect(event: Event): void {
     const inputEl = event.target as HTMLInputElement;
     if (!inputEl.files || inputEl.files.length === 0) return;
 
     const file = inputEl.files[0];
-    const control = this.form().get('storeLogo');
-
     this.logoError.set(null);
-    this.logoUploading.set(true);
 
-    if (!file.type.startsWith('image/')) {
-      this.logoError.set('Only image files (PNG, JPG, JPEG, WEBP) are allowed.');
-      control?.setValue('');
-      control?.setErrors({ invalidType: true });
-      this.logoUploading.set(false);
-      this.cdr.markForCheck();
+    if (!ACCEPTED_LOGO_TYPES.includes(file.type)) {
+      this.logoError.set('Only JPG, PNG, or WEBP images are allowed.');
       return;
     }
 
-    const maxSize = 2 * 1024 * 1024;
-    if (file.size > maxSize) {
+    if (file.size > MAX_LOGO_SIZE) {
       this.logoError.set('File size exceeds 2MB limit. Please upload a smaller image.');
-      control?.setValue('');
-      control?.setErrors({ maxSize: true });
-      this.logoUploading.set(false);
-      this.cdr.markForCheck();
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e: any) => {
-      const img = new Image();
-      img.onload = () => {
-        const width = img.width;
-        const height = img.height;
-
-        if (width < 200 || height < 200) {
-          this.logoError.set(`Image dimensions are too small (${width}x${height}px). Minimum size is 200x200px.`);
-          control?.setValue('');
-          control?.setErrors({ minDimensions: true });
-          this.logoUploading.set(false);
-          this.cdr.markForCheck();
-          return;
-        }
-
-        const ratio = width / height;
-        if (ratio < 0.8 || ratio > 1.25) {
-          this.logoError.set(`Image is not approximately square (current size: ${width}x${height}px).`);
-          control?.setValue('');
-          control?.setErrors({ aspectRatio: true });
-          this.logoUploading.set(false);
-          this.cdr.markForCheck();
-          return;
-        }
-
-        setTimeout(() => {
-          this.logoError.set(null);
-          control?.setValue(e.target.result);
-          control?.setErrors(null);
-          control?.markAsTouched();
-          control?.updateValueAndValidity();
-          this.logoUploading.set(false);
-          this.cdr.markForCheck();
-        }, 1200);
-      };
-      img.onerror = () => {
-        this.logoError.set('Failed to read image file content.');
-        control?.setValue('');
-        control?.setErrors({ invalidImage: true });
-        this.logoUploading.set(false);
-        this.cdr.markForCheck();
-      };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
+    this.revokeObjectUrl();
+    this.objectUrl = URL.createObjectURL(file);
+    this.logoPreviewUrl.set(this.objectUrl);
+    this.form().get('logo')?.setValue(file);
+    this.form().get('removeLogo')?.setValue(false);
+    inputEl.value = '';
   }
 
-  fillTestingContacts(): void {
-    this.form().patchValue({
-      ownerName: 'Mohammed Al-Fozan',
-      ownerEmail: 'mohammed@fozan.com.sa',
-      ownerPhone: '+966505123456',
-      ownerWhatsapp: '+966505123456'
-    });
+  removeLogo(): void {
+    this.revokeObjectUrl();
+    this.logoPreviewUrl.set(null);
+    this.logoError.set(null);
+    this.form().get('logo')?.setValue(null);
+    this.form().get('removeLogo')?.setValue(true);
+  }
+
+  private revokeObjectUrl(): void {
+    if (this.objectUrl) {
+      URL.revokeObjectURL(this.objectUrl);
+      this.objectUrl = null;
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.revokeObjectUrl();
   }
 }
