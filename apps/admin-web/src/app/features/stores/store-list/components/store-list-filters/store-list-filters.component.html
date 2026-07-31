@@ -2,7 +2,7 @@
   <div class="card-body p-3">
     <div class="row g-3">
       <!-- Search -->
-      <div class="col-lg-6 col-md-6">
+      <div class="col-lg-8 col-md-8">
         <div class="input-group">
           <span class="input-group-text bg-transparent border-end-0 text-muted">
             <i class="bi bi-search"></i>
@@ -10,34 +10,27 @@
           <input
             type="text"
             class="form-control border-start-0 ps-2"
-            [(ngModel)]="searchQuery"
+            placeholder="Search by name, owner, CR or VAT number..."
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+            [disabled]="disabled()"
           />
         </div>
       </div>
 
       <!-- Status Filter -->
-      <div class="col-lg-3 col-md-3 col-6">
+      <div class="col-lg-4 col-md-4">
         <select
           class="form-select"
-          [(ngModel)]="statusFilter"
+          [ngModel]="statusFilter()"
+          (ngModelChange)="statusFilter.set($event)"
+          [disabled]="disabled()"
         >
           <option value="all">All Statuses</option>
           <option value="active">Active</option>
-          <option value="suspended">Suspended</option>
           <option value="pending">Pending Activation</option>
-        </select>
-      </div>
-
-      <!-- City Filter -->
-      <div class="col-lg-3 col-md-3 col-6">
-        <select
-          class="form-select"
-          [(ngModel)]="cityFilter"
-        >
-          <option value="all">All Saudi Cities</option>
-          @for (city of cities(); track city.value) {
-            <option [value]="city.value">{{ city.label }}</option>
-          }
+          <option value="suspended">Suspended</option>
+          <option value="rejected">Rejected</option>
         </select>
       </div>
     </div>

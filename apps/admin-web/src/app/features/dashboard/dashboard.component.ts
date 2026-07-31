@@ -33,12 +33,13 @@ export class DashboardComponent implements OnInit {
   readonly loading = signal(true);
   readonly recentStores = signal<RecentStore[]>([]);
   readonly activity = signal<StoreActivityItem[]>([]);
+  readonly activeStoresCount = signal(0);
   readonly today = new Date();
 
   // Computes dashboard stats reactively using live signals from our services
   readonly computedStats = computed<AdminDashboardStats>(() => {
     return {
-      activeStores: this.storeService.activeStores().length,
+      activeStores: this.activeStoresCount(),
       adminUsers: this.userCatalogService.admins().length,
       catalogProducts: this.userCatalogService.products().length,
       categories: this.userCatalogService.categories().length,
@@ -53,6 +54,10 @@ export class DashboardComponent implements OnInit {
     this.dashboardService.getStoreActivity().subscribe((data) => {
       this.activity.set(data);
       this.loading.set(false);
+    });
+
+    this.storeService.listStores({ status: 'active', page: 1 }).subscribe((res) => {
+      this.activeStoresCount.set(res.meta.total);
     });
   }
 }

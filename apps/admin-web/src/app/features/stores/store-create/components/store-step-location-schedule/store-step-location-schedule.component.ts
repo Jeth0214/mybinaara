@@ -94,39 +94,37 @@ export class StoreStepLocationScheduleComponent implements OnInit, OnDestroy {
       this.sub.add(longitudeCtrl.valueChanges.subscribe(() => updateMapUrl()));
     }
 
-    // Populate districts initially if a city is already selected
+    // Populate the district quick-pick list if a city is already matched (edit mode prefill)
     if (cityCtrl?.value) {
       const matchedCity = this.addressService.findCityByName(cityCtrl.value);
       if (matchedCity) {
         this.saudiDistricts.set(this.addressService.getDistrictsByCity(matchedCity.city_id));
-        districtCtrl?.enable();
       }
     }
+  }
 
-    // Listen for city dropdown changes to cascade districts selection
-    if (cityCtrl) {
-      this.sub.add(
-        cityCtrl.valueChanges.subscribe((cityName: string) => {
-          if (!cityName) {
-            districtCtrl?.setValue('');
-            districtCtrl?.disable();
-            this.saudiDistricts.set([]);
-          } else {
-            const matchedCity = this.addressService.findCityByName(cityName);
-            if (matchedCity) {
-              this.saudiDistricts.set(this.addressService.getDistrictsByCity(matchedCity.city_id));
-              districtCtrl?.enable();
-            } else {
-              districtCtrl?.setValue('');
-              districtCtrl?.disable();
-              this.saudiDistricts.set([]);
-            }
-          }
-          this.cdr.markForCheck();
-        })
-      );
+  /** Quick-pick: selecting a city from the optional dropdown fills the free-text city field and its id. */
+  onCityQuickPick(cityId: string): void {
+    const locationGroup = this.form().get('location') as FormGroup;
+    if (!cityId) {
+      this.saudiDistricts.set([]);
+      return;
     }
+    const city = this.saudiCities().find((c) => c.city_id === Number(cityId));
+    if (!city) return;
 
+    locationGroup.patchValue({ city: city.name_en, city_id: city.city_id, district: '', district_id: null });
+    this.saudiDistricts.set(this.addressService.getDistrictsByCity(city.city_id));
+  }
+
+  /** Quick-pick: selecting a district from the optional dropdown fills the free-text district field and its id. */
+  onDistrictQuickPick(districtId: string): void {
+    const locationGroup = this.form().get('location') as FormGroup;
+    if (!districtId) return;
+    const district = this.saudiDistricts().find((d) => d.district_id === Number(districtId));
+    if (!district) return;
+
+    locationGroup.patchValue({ district: district.name_en, district_id: district.district_id });
   }
 
   ngOnDestroy(): void {
@@ -185,7 +183,7 @@ export class StoreStepLocationScheduleComponent implements OnInit, OnDestroy {
         locationGroup.patchValue({
           latitude: resolvedLat,
           longitude: resolvedLng,
-          fullAddress: fullAddress
+          full_address: fullAddress
         });
         this.geocoding.set(false);
         this.cdr.markForCheck();
@@ -198,31 +196,6 @@ export class StoreStepLocationScheduleComponent implements OnInit, OnDestroy {
     });
   }
 
-  usePreset(preset: { city: string; district: string; streetName: string; buildingNumber: string; postalCode: string; additionalNumber: string; lat: number; lng: number; plusCode?: string }): void {
-    const locationGroup = this.form().get('location') as FormGroup;
-    locationGroup.get('district')?.enable();
-
-    const line1 = `${preset.buildingNumber} ${preset.streetName}`.trim();
-    const line2 = preset.district;
-    const line3 = `${preset.city} ${preset.postalCode} - ${preset.additionalNumber}`.trim();
-    const line4 = 'Saudi Arabia';
-    const fullAddress = [line1, line2, line3, line4].filter(Boolean).join(',\n');
-
-    locationGroup.patchValue({
-      country: 'Saudi Arabia',
-      city: preset.city,
-      district: preset.district,
-      building_number: preset.buildingNumber,
-      street_name: preset.streetName,
-      postal_code: preset.postalCode,
-      additional_number: preset.additionalNumber,
-      fullAddress: fullAddress,
-      latitude: preset.lat,
-      longitude: preset.lng,
-      plus_code: preset.plusCode || ''
-    });
-    this.cdr.markForCheck();
-  }
   resolvePlusCode(): void {
     const locationGroup = this.form().get('location') as FormGroup;
     const rawVal = (locationGroup.get('plus_code')?.value || '').trim();
@@ -303,7 +276,7 @@ export class StoreStepLocationScheduleComponent implements OnInit, OnDestroy {
     locationGroup.patchValue({
       latitude: lat,
       longitude: lng,
-      fullAddress: fullAddress
+      full_address: fullAddress
     });
 
     this.geocoding.set(false);

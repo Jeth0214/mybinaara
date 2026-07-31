@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CityController;
 use App\Http\Controllers\Api\DistrictController;
 use App\Http\Controllers\Api\PermissionController;
+use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\RegionController;
 use App\Http\Controllers\Api\StaffController;
@@ -65,6 +66,13 @@ Route::middleware(['auth:sanctum', EnsureAccountIsActive::class, EnsureVendorSto
     Route::patch('/staff/{staff}', [StaffController::class, 'update']);
     Route::patch('/staff/{staff}/status', [StaffController::class, 'updateStatus']);
     Route::delete('/staff/{staff}', [StaffController::class, 'destroy']);
+
+    Route::get('/products', [ProductController::class, 'index']);
+    Route::get('/products/{product}', [ProductController::class, 'show']);
+    Route::post('/products', [ProductController::class, 'store']);
+    Route::patch('/products/{product}', [ProductController::class, 'update']);
+    Route::delete('/products/{product}', [ProductController::class, 'destroy']);
+    Route::patch('/products/{product}/status', [ProductController::class, 'updateStatus']);
 
     Route::get('/permissions', [PermissionController::class, 'index']);
 
