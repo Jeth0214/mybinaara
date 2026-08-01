@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CityController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\DistrictController;
 use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\ProductController;
@@ -73,6 +74,8 @@ Route::middleware(['auth:sanctum', EnsureAccountIsActive::class, EnsureVendorSto
     Route::patch('/products/{product}', [ProductController::class, 'update']);
     Route::delete('/products/{product}', [ProductController::class, 'destroy']);
     Route::patch('/products/{product}/status', [ProductController::class, 'updateStatus']);
+
+    Route::get('/dashboard', [DashboardController::class, 'index']);
 
     Route::get('/permissions', [PermissionController::class, 'index']);
 

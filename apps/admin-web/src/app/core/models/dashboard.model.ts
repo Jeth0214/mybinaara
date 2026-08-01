@@ -5,7 +5,6 @@ export interface RecentStore {
   city: string;
   status: 'pending' | 'active' | 'suspended' | 'rejected';
   createdAt: string;
-  category: string;
 }
 
 export interface StoreActivityItem {
@@ -22,4 +21,42 @@ export interface AdminDashboardStats {
   adminUsers: number;
   catalogProducts: number;
   categories: number;
+}
+
+export interface StoreByCity {
+  city: string;
+  count: number;
+}
+
+export interface CategoryShare {
+  name: string;
+  productCount: number;
+}
+
+export interface RegistrationsOverTimePoint {
+  date: string;
+  count: number;
+}
+
+export interface StatusCount {
+  status: string;
+  count: number;
+}
+
+export interface DashboardCharts {
+  storesByCity: StoreByCity[];
+  categoryShare: CategoryShare[];
+  registrationsOverTime: {
+    stores: RegistrationsOverTimePoint[];
+    vendors: RegistrationsOverTimePoint[];
+  };
+  storeStatusDistribution: StatusCount[];
+  productStatusDistribution: StatusCount[];
+}
+
+export interface AdminDashboard {
+  stats: AdminDashboardStats;
+  charts: DashboardCharts;
+  recentStores: RecentStore[];
+  storeActivity: StoreActivityItem[];
 }

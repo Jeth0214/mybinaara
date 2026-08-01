@@ -12,7 +12,6 @@
       <tr>
         <th>Store</th>
         <th>City</th>
-        <th>Category</th>
         <th>Status</th>
         <th>Created</th>
       </tr>
@@ -27,7 +26,6 @@
             </div>
           </td>
           <td>{{ store.city }}</td>
-          <td><small>{{ store.category }}</small></td>
           <td>
             <span class="status-badge" [class]="'status-badge status--' + store.status">
               {{ store.status }}
@@ -37,7 +35,7 @@
         </tr>
       } @empty {
         <tr>
-          <td colspan="5" class="data-table-empty">
+          <td colspan="4" class="data-table-empty">
             <i class="bi bi-shop"></i>
             <p>No stores registered yet</p>
           </td>

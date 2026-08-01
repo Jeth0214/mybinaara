@@ -1,6 +1,6 @@
 export class AdminLogin {
   static readonly type = '[Admin Auth] Login';
-  constructor(public email: string, public password: string) {}
+  constructor(public email: string, public password: string, public remember: boolean) {}
 }
 
 export class AdminLogout {

@@ -25,6 +25,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       if (isApiRequest && token && err instanceof HttpErrorResponse && err.status === 401) {
         clearToken();
         localStorage.removeItem('admin_current_user');
+        sessionStorage.removeItem('admin_current_user');
         store.dispatch(new AdminLogout());
         router.navigate(['/login']);
       }
