@@ -11,9 +11,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 #[Fillable([
-    'name', 'cr_number', 'vat_number', 'status', 'is_activated', 'logo_url', 'rejection_reason', 'created_by',
+    'name', 'cr_number', 'vat_number', 'status', 'is_activated', 'activated_at', 'logo_url', 'rejection_reason', 'created_by',
     'full_address', 'building_number', 'street_name', 'district', 'district_id', 'city', 'city_id',
     'postal_code', 'additional_number', 'country', 'latitude', 'longitude', 'plus_code',
 ])]
@@ -26,6 +27,7 @@ class Store extends Model
         return [
             'status' => StoreStatus::class,
             'is_activated' => 'boolean',
+            'activated_at' => 'datetime',
             'latitude' => 'decimal:6',
             'longitude' => 'decimal:6',
         ];
@@ -72,5 +74,10 @@ class Store extends Model
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);
+    }
+
+    public function activityLogs(): MorphMany
+    {
+        return $this->morphMany(ActivityLog::class, 'loggable');
     }
 }

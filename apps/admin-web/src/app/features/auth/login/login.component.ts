@@ -55,9 +55,9 @@ export class LoginComponent implements OnInit, OnDestroy {
       return;
     }
     this.loading.set(true);
-    const { email, password } = this.form.value;
+    const { email, password, remember } = this.form.value;
 
-    this.store.dispatch(new AdminLogin(email!, password!)).subscribe({
+    this.store.dispatch(new AdminLogin(email!, password!, !!remember)).subscribe({
       next: () => {
         this.loading.set(false);
         this.router.navigate(['/dashboard']);

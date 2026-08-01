@@ -15,7 +15,7 @@ const ADMIN_PORTAL_ROLES = ['administrator', 'staff'];
 export class AuthService {
   private readonly http = inject(HttpClient);
 
-  login(email: string, password: string): Observable<AdminUser> {
+  login(email: string, password: string, remember: boolean): Observable<AdminUser> {
     return this.http
       .post<LoginResponse>(`${environment.apiUrl}/login`, {
         email,
@@ -29,8 +29,8 @@ export class AuthService {
             throw new Error('You do not have access to the Admin Portal.');
           }
 
-          setToken(response.token);
-          this.saveUser(response.user);
+          setToken(response.token, remember);
+          this.saveUser(response.user, remember);
           return response.user;
         }),
         catchError((err) => throwError(() => mapHttpError(err)))
@@ -43,13 +43,14 @@ export class AuthService {
       finalize(() => {
         clearToken();
         localStorage.removeItem(STORAGE_KEY);
+        sessionStorage.removeItem(STORAGE_KEY);
       })
     );
   }
 
   getCurrentUser(): AdminUser | null {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
+      const stored = localStorage.getItem(STORAGE_KEY) ?? sessionStorage.getItem(STORAGE_KEY);
       return stored ? (JSON.parse(stored) as AdminUser) : null;
     } catch {
       return null;
@@ -60,8 +61,9 @@ export class AuthService {
     return getToken();
   }
 
-  private saveUser(user: AdminUser): void {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+  private saveUser(user: AdminUser, remember: boolean): void {
+    const storage = remember ? localStorage : sessionStorage;
+    storage.setItem(STORAGE_KEY, JSON.stringify(user));
   }
 
   /** Best-effort revoke of a token issued to an account without admin-portal access. */

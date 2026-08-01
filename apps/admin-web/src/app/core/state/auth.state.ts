@@ -69,7 +69,7 @@ export class AdminAuthState implements NgxsOnInit {
   @Action(AdminLogin)
   login(ctx: StateContext<AdminAuthStateModel>, action: AdminLogin) {
     ctx.patchState({ loading: true, error: null });
-    return this.authService.login(action.email, action.password).pipe(
+    return this.authService.login(action.email, action.password, action.remember).pipe(
       tap((user) => {
         ctx.patchState({ user, loading: false });
       }),

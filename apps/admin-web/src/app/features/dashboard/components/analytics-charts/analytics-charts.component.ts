@@ -1,10 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
-import { StoreService } from '../../../../core/services/store.service';
-import { Store } from '../../../../core/models/store.model';
-import { UserCatalogService } from '../../../../core/services/user-catalog.service';
+import { DashboardCharts } from '../../../../core/models/dashboard.model';
 
 // Register all Chart.js components
 Chart.register(...registerables);
@@ -20,32 +18,16 @@ const CATEGORY_COLORS = ['#2d7a4f', '#007bff', '#17a2b8', '#fd7e14', '#6f42c1', 
   styleUrl: './analytics-charts.component.scss',
 })
 export class AnalyticsChartsComponent {
-  private readonly storeService = inject(StoreService);
-  private readonly userCatalogService = inject(UserCatalogService);
-
-  private readonly stores = signal<Store[]>([]);
-
-  constructor() {
-    this.storeService.listStores({ page: 1 }).subscribe((res) => this.stores.set(res.data));
-  }
+  readonly charts = input.required<DashboardCharts>();
 
   // ── STORES BAR CHART: live count of stores per city ─────────────────────
-  private readonly cityDistribution = computed(() => {
-    const counts = new Map<string, number>();
-    for (const store of this.stores()) {
-      const city = store.location?.city || 'Unknown';
-      counts.set(city, (counts.get(city) || 0) + 1);
-    }
-    return [...counts.entries()].sort((a, b) => b[1] - a[1]);
-  });
-
   readonly barChartData = computed<ChartConfiguration<'bar'>['data']>(() => {
-    const dist = this.cityDistribution();
+    const dist = this.charts().storesByCity;
     return {
-      labels: dist.map(([city]) => city),
+      labels: dist.map((entry) => entry.city),
       datasets: [
         {
-          data: dist.map(([, count]) => count),
+          data: dist.map((entry) => entry.count),
           label: 'Stores Count',
           backgroundColor: '#2d7a4f',
           hoverBackgroundColor: '#1a3f22',
@@ -93,7 +75,7 @@ export class AnalyticsChartsComponent {
 
   // ── DOUGHNUT CHART: live product count per category (top 5 + Other) ─────
   private readonly categoryShare = computed(() => {
-    const sorted = [...this.userCatalogService.categories()].sort((a, b) => b.productCount - a.productCount);
+    const sorted = [...this.charts().categoryShare].sort((a, b) => b.productCount - a.productCount);
     const top = sorted.slice(0, 5);
     const otherTotal = sorted.slice(5).reduce((sum, cat) => sum + cat.productCount, 0);
 

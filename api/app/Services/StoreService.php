@@ -24,7 +24,11 @@ use Illuminate\Support\Str;
 
 class StoreService
 {
-    public function __construct(private readonly StoreScheduleService $schedules) {}
+    public function __construct(
+        private readonly StoreScheduleService $schedules,
+        private readonly ActivityLogService $activityLogs,
+        private readonly DefaultPasswordProvider $passwords,
+    ) {}
 
     /**
      * @param  array{status?: string, search?: string}  $filters
@@ -48,7 +52,7 @@ class StoreService
     public function create(array $data, User $creator): Store
     {
         return DB::transaction(function () use ($data, $creator) {
-            $temporaryPassword = $this->generateTemporaryPassword();
+            $temporaryPassword = $this->passwords->forRole('vendor');
 
             $owner = User::query()->create([
                 'user_type' => UserType::StoreOwner,
@@ -74,6 +78,8 @@ class StoreService
             ]);
 
             $store->owners()->attach($owner->id, ['role' => StoreUserRole::Owner->value]);
+
+            $this->activityLogs->record($store, 'registration', 'New store registered', $creator);
 
             $rawToken = Str::random(64);
 
@@ -160,11 +166,13 @@ class StoreService
             'rejection_reason' => $status === StoreStatus::Rejected ? $rejectionReason : null,
         ]);
 
-        return $store;
-    }
+        $this->activityLogs->record($store, ...match ($status) {
+            StoreStatus::Active => ['activation', 'Store approved'],
+            StoreStatus::Suspended => ['suspension', 'Store suspended'],
+            StoreStatus::Rejected => ['verification', 'Store rejected'],
+            StoreStatus::Pending => ['verification', 'Store returned to pending'],
+        });
 
-    private function generateTemporaryPassword(): string
-    {
-        return 'Binaara'.Str::upper(Str::random(6)).'!';
+        return $store;
     }
 }

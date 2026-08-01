@@ -1,9 +1,13 @@
-<div class="container py-4" style="max-width: 1200px;">
+<div class="container py-4" style="max-width: 1200px">
   <!-- Header -->
-  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+  <div
+    class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4"
+  >
     <div>
       <h4 class="fw-bold mb-1">Admin Users</h4>
-      <p class="text-muted mb-0">Manage internal operator accounts and access levels</p>
+      <p class="text-muted mb-0">
+        Manage internal operator accounts and access levels
+      </p>
     </div>
     @if (canManage()) {
       <a
@@ -21,7 +25,7 @@
   <!-- Search Card -->
   <div class="card border-0 shadow-sm mb-4">
     <div class="card-body p-3">
-      <div class="input-group" style="max-width: 420px;">
+      <div class="input-group" style="max-width: 420px">
         <span class="input-group-text bg-transparent border-end-0 text-muted">
           <i class="bi bi-search"></i>
         </span>
@@ -40,8 +44,13 @@
   <!-- Table Card -->
   <div class="card border-0 shadow-sm overflow-hidden">
     @if (loading()) {
-      <div class="d-flex align-items-center justify-content-center gap-2 text-muted py-5">
-        <div class="spinner-border spinner-border-sm text-success" role="status">
+      <div
+        class="d-flex align-items-center justify-content-center gap-2 text-muted py-5"
+      >
+        <div
+          class="spinner-border spinner-border-sm text-success"
+          role="status"
+        >
           <span class="visually-hidden">Loading...</span>
         </div>
         Loading users...
@@ -49,7 +58,13 @@
     } @else if (loadError()) {
       <div class="text-center py-5">
         <div class="text-danger fs-7-5 mb-3">{{ loadError() }}</div>
-        <button type="button" class="btn btn-light btn-sm" (click)="loadStaff(meta()?.current_page ?? 1)">Retry</button>
+        <button
+          type="button"
+          class="btn btn-light btn-sm"
+          (click)="loadStaff(meta()?.current_page ?? 1)"
+        >
+          Retry
+        </button>
       </div>
     } @else {
       <div class="table-responsive">
@@ -72,7 +87,9 @@
                       {{ getInitials(admin.name) }}
                     </div>
                     <div>
-                      <h6 class="mb-0 fw-semibold fs-7-5 d-flex align-items-center gap-2">
+                      <h6
+                        class="mb-0 fw-semibold fs-7-5 d-flex align-items-center gap-2"
+                      >
                         <a
                           [routerLink]="['/users/admins', admin.id]"
                           class="text-decoration-none text-dark hover-success"
@@ -80,18 +97,27 @@
                           {{ admin.name }}
                         </a>
                         @if (admin.id === currentUser()?.id) {
-                          <span class="badge bg-light text-muted fw-medium fs-9">You</span>
+                          <span
+                            class="badge bg-primary text-white fw-medium fs-9"
+                            >You</span
+                          >
                         }
                       </h6>
-                      <span class="fs-8 text-muted font-monospace d-block">{{ admin.email }}</span>
+                      <span class="fs-8 text-muted font-monospace d-block">{{
+                        admin.email
+                      }}</span>
                     </div>
                   </div>
                 </td>
                 <td>
-                  <span class="text-dark fw-medium fs-7-5">{{ admin.phone || '—' }}</span>
+                  <span class="text-dark fw-medium fs-7-5">{{
+                    admin.phone || "—"
+                  }}</span>
                 </td>
                 <td>
-                  <span [class]="'role-badge role-badge--' + admin.role">{{ admin.role }}</span>
+                  <span [class]="'role-badge role-badge--' + admin.role">{{
+                    admin.role
+                  }}</span>
                 </td>
                 <td>
                   <span [class]="'status-badge status-badge--' + admin.status">
@@ -128,11 +154,17 @@
                         class="dropdown-menu-custom shadow border"
                       >
                         <!-- View Details -->
-                        <a ngbDropdownItem [routerLink]="['/users/admins', admin.id]">
+                        <a
+                          ngbDropdownItem
+                          [routerLink]="['/users/admins', admin.id]"
+                        >
                           <i class="bi bi-eye me-2 text-muted"></i> View Details
                         </a>
                         <!-- Edit User -->
-                        <a ngbDropdownItem [routerLink]="['/users/admins', admin.id, 'edit']">
+                        <a
+                          ngbDropdownItem
+                          [routerLink]="['/users/admins', admin.id, 'edit']"
+                        >
                           <i class="bi bi-pencil me-2 text-muted"></i> Edit User
                         </a>
                         <!-- Active / Inactive switch -->
@@ -179,7 +211,9 @@
               <tr>
                 <td colspan="5" class="text-center py-5 text-muted">
                   <i class="bi bi-people fs-2 d-block mb-3 opacity-30"></i>
-                  <p class="mb-0 fw-medium">No users matched your search query</p>
+                  <p class="mb-0 fw-medium">
+                    No users matched your search query
+                  </p>
                 </td>
               </tr>
             }

@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Hash;
 
 class StoreActivationService
 {
+    public function __construct(private readonly ActivityLogService $activityLogs) {}
+
     /**
      * @return array{store: Store, user: User, token: string}
      */
@@ -51,7 +53,9 @@ class StoreActivationService
         return DB::transaction(function () use ($tokenRecord, $store, $owner, $newPassword) {
             $owner->update(['password' => $newPassword]);
             $tokenRecord->update(['verified_at' => now()]);
-            $store->update(['is_activated' => true, 'status' => StoreStatus::Active]);
+            $store->update(['is_activated' => true, 'status' => StoreStatus::Active, 'activated_at' => now()]);
+
+            $this->activityLogs->record($store, 'activation', 'Store activated by owner', $owner);
 
             return [
                 'store' => $store->fresh(),

@@ -18,6 +18,8 @@ use Illuminate\Support\Str;
 
 class StaffService
 {
+    public function __construct(private readonly DefaultPasswordProvider $passwords) {}
+
     /**
      * @param  array{search?: string}  $filters
      */
@@ -45,7 +47,7 @@ class StaffService
                 'email' => $data['email'],
                 'phone' => $data['phone'],
                 'whatsapp' => $data['whatsapp'] ?? null,
-                'password' => Str::random(40),
+                'password' => $this->passwords->forRole($roleName),
                 'status' => UserStatus::Active,
             ]);
 
