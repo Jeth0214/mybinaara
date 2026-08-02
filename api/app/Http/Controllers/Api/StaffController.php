@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Services\StaffService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class StaffController extends Controller
 {
@@ -25,6 +26,8 @@ class StaffController extends Controller
 
         $filters = $request->validate([
             'search' => ['sometimes', 'string', 'max:100'],
+            'role' => ['sometimes', Rule::in(['administrator', 'staff'])],
+            'status' => ['sometimes', Rule::in(['active', 'inactive'])],
         ]);
 
         $staff = $this->staff->list($filters);

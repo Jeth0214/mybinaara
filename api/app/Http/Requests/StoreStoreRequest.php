@@ -7,6 +7,7 @@ namespace App\Http\Requests;
 use App\Http\Requests\Concerns\ValidatesStoreLocation;
 use App\Http\Requests\Concerns\ValidatesStoreSchedule;
 use App\Models\Store;
+use App\Rules\PhoneRules;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -32,10 +33,10 @@ class StoreStoreRequest extends FormRequest
             'owner_name' => ['required', 'string', 'max:255'],
             'owner_email' => ['required', 'email', Rule::unique('users', 'email')],
             'owner_phone' => ['required', 'string', 'max:13'],
-            'owner_whatsapp' => ['nullable', 'string', 'max:13'],
+            'owner_whatsapp' => ['required', 'string', 'max:13', PhoneRules::SAUDI_MOBILE],
             'logo' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'location' => ['nullable', 'array'],
-        ], $this->storeLocationRules('location', required: false), $this->scheduleRules());
+        ], $this->storeLocationRules('location', required: false, includeCoordinates: false), $this->scheduleRules());
     }
 
     public function withValidator(Validator $validator): void

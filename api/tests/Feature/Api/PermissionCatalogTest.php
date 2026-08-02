@@ -27,6 +27,13 @@ class PermissionCatalogTest extends TestCase
         $this->getJson('/api/permissions')->assertStatus(401);
     }
 
+    public function test_staff_without_staff_view_permission_cannot_view_permission_catalog(): void
+    {
+        $staff = User::factory()->admin()->withRole('staff')->create();
+
+        $this->actingAs($staff, 'sanctum')->getJson('/api/permissions')->assertStatus(403);
+    }
+
     public function test_administrator_can_view_permission_catalog_grouped_by_category(): void
     {
         $administrator = User::factory()->admin()->create();

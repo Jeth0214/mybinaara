@@ -31,14 +31,16 @@ class StoreService
     ) {}
 
     /**
-     * @param  array{status?: string, search?: string}  $filters
+     * @param  array{status?: string, search?: string, city_id?: int}  $filters
      */
     public function list(array $filters = [], int $perPage = 20): LengthAwarePaginator
     {
         return Store::query()
             ->with(['owners', 'creator'])
+            ->withCount('products')
             ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
             ->when($filters['search'] ?? null, fn ($query, $search) => $query->where('name', 'like', "%{$search}%"))
+            ->when($filters['city_id'] ?? null, fn ($query, $cityId) => $query->where('city_id', $cityId))
             ->latest()
             ->paginate($perPage);
     }
@@ -94,7 +96,7 @@ class StoreService
             Mail::to($owner->email)->send(new StoreActivationMail($store, $owner, $temporaryPassword, $activationUrl));
 
             if (! empty($data['location'])) {
-                $this->updateLocation($store, $data['location']);
+                $this->updateAddress($store, $data['location']);
             }
 
             $this->schedules->replace($store, $data['schedule']);
@@ -130,7 +132,28 @@ class StoreService
     /**
      * @param  array<string, mixed>  $data
      */
+    public function updateAddress(Store $store, array $data): Store
+    {
+        $store->update($this->resolveLocationNames($data));
+
+        return $store;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function updateLocation(Store $store, array $data): Store
+    {
+        $store->update($this->resolveLocationNames($data));
+
+        return $store;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function resolveLocationNames(array $data): array
     {
         if (! empty($data['city_id'])) {
             $data['city'] = City::query()->find($data['city_id'])?->name_en ?? $data['city'] ?? null;
@@ -139,9 +162,7 @@ class StoreService
             $data['district'] = District::query()->find($data['district_id'])?->name_en ?? $data['district'] ?? null;
         }
 
-        $store->update($data);
-
-        return $store;
+        return $data;
     }
 
     public function updateLogo(Store $store, UploadedFile $file): Store

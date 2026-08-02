@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api;
 use App\Enums\StoreStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreStoreRequest;
+use App\Http\Requests\UpdateStoreAddressRequest;
 use App\Http\Requests\UpdateStoreLocationRequest;
 use App\Http\Requests\UpdateStoreLogoRequest;
 use App\Http\Requests\UpdateStoreRequest;
@@ -30,6 +31,7 @@ class StoreController extends Controller
         $filters = $request->validate([
             'status' => ['sometimes', 'string'],
             'search' => ['sometimes', 'string', 'max:100'],
+            'city_id' => ['sometimes', 'integer'],
         ]);
 
         $stores = $this->stores->list($filters);
@@ -85,6 +87,13 @@ class StoreController extends Controller
             $request->enum('status', StoreStatus::class),
             $request->input('rejection_reason'),
         );
+
+        return (new StoreResource($store->load(['owners', 'creator'])))->response();
+    }
+
+    public function updateAddress(UpdateStoreAddressRequest $request, Store $store): JsonResponse
+    {
+        $store = $this->stores->updateAddress($store, $request->validated());
 
         return (new StoreResource($store->load(['owners', 'creator'])))->response();
     }

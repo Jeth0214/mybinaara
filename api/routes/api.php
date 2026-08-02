@@ -57,6 +57,7 @@ Route::middleware(['auth:sanctum', EnsureAccountIsActive::class, EnsureVendorSto
     Route::patch('/stores/{store}', [StoreController::class, 'update']);
     Route::delete('/stores/{store}', [StoreController::class, 'destroy']);
     Route::patch('/stores/{store}/status', [StoreController::class, 'updateStatus']);
+    Route::patch('/stores/{store}/address', [StoreController::class, 'updateAddress']);
     Route::patch('/stores/{store}/location', [StoreController::class, 'updateLocation']);
     Route::post('/stores/{store}/logo', [StoreController::class, 'updateLogo']);
     Route::put('/stores/{store}/schedule', [StoreController::class, 'updateSchedule']);

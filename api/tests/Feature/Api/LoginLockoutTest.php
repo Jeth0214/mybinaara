@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Api;
 
+use App\Enums\UserType;
 use App\Models\Permission;
 use App\Models\User;
 use Database\Seeders\PermissionSeeder;
@@ -200,6 +201,16 @@ class LoginLockoutTest extends TestCase
 
         $response->assertOk();
         $this->assertFalse($user->fresh()->requires_admin_unlock);
+    }
+
+    public function test_vendor_cannot_unlock_an_account(): void
+    {
+        $vendor = User::factory()->create(['user_type' => UserType::StoreOwner]);
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($vendor, 'sanctum')->patchJson("/api/users/{$user->id}/unlock");
+
+        $response->assertStatus(403);
     }
 
     public function test_guest_cannot_unlock_an_account(): void

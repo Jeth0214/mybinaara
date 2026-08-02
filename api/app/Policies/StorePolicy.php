@@ -36,7 +36,7 @@ class StorePolicy
 
     public function delete(User $user, Store $store): bool
     {
-        return $user->user_type === UserType::Admin && $user->hasPermission('stores.edit');
+        return $user->user_type === UserType::Admin && $user->hasPermission('stores.delete');
     }
 
     public function verify(User $user, Store $store): bool
@@ -44,7 +44,32 @@ class StorePolicy
         return $user->user_type === UserType::Admin && $user->hasPermission('stores.verify');
     }
 
+    public function approve(User $user, Store $store): bool
+    {
+        return $user->user_type === UserType::Admin && $user->hasPermission('stores.approve');
+    }
+
+    public function reject(User $user, Store $store): bool
+    {
+        return $user->user_type === UserType::Admin && $user->hasPermission('stores.reject');
+    }
+
+    public function suspend(User $user, Store $store): bool
+    {
+        return $user->user_type === UserType::Admin && $user->hasPermission('stores.suspend');
+    }
+
+    public function unsuspend(User $user, Store $store): bool
+    {
+        return $user->user_type === UserType::Admin && $user->hasPermission('stores.suspend');
+    }
+
     public function updateSchedule(User $user, Store $store): bool
+    {
+        return $this->isAdminEditor($user) || $this->isOwnerOrStaffOf($user, $store);
+    }
+
+    public function updateAddress(User $user, Store $store): bool
     {
         return $this->isAdminEditor($user) || $this->isOwnerOrStaffOf($user, $store);
     }

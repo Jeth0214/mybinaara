@@ -201,4 +201,59 @@ class CategoryTest extends TestCase
             ->patchJson("/api/categories/{$category->id}/toggle-status")
             ->assertStatus(403);
     }
+
+    /**
+     * Proves category writes are gated on their own distinct categories.*
+     * permissions rather than all collapsing onto catalog.manage.
+     */
+    public function test_categories_create_permission_does_not_grant_edit_or_delete(): void
+    {
+        $creator = User::factory()->admin()->withRole('staff')->create();
+        $creator->permissions()->sync(Permission::query()->where('key', 'categories.create')->pluck('id'));
+        $category = Category::factory()->create();
+
+        $this->actingAs($creator, 'sanctum')
+            ->postJson('/api/categories', ['name' => 'Adhesives', 'slug' => 'adhesives'])
+            ->assertStatus(201);
+
+        $this->actingAs($creator, 'sanctum')
+            ->patchJson("/api/categories/{$category->id}", ['name' => 'Updated'])
+            ->assertStatus(403);
+
+        $this->actingAs($creator, 'sanctum')
+            ->deleteJson("/api/categories/{$category->id}")
+            ->assertStatus(403);
+    }
+
+    public function test_categories_edit_permission_allows_update_not_delete(): void
+    {
+        $editor = User::factory()->admin()->withRole('staff')->create();
+        $editor->permissions()->sync(Permission::query()->where('key', 'categories.edit')->pluck('id'));
+        $category = Category::factory()->create();
+
+        $this->actingAs($editor, 'sanctum')
+            ->patchJson("/api/categories/{$category->id}", ['name' => 'Updated Name'])
+            ->assertOk()
+            ->assertJsonPath('data.name', 'Updated Name');
+
+        $this->actingAs($editor, 'sanctum')
+            ->deleteJson("/api/categories/{$category->id}")
+            ->assertStatus(403);
+    }
+
+    public function test_categories_delete_permission_allows_delete_not_edit(): void
+    {
+        $deleter = User::factory()->admin()->withRole('staff')->create();
+        $deleter->permissions()->sync(Permission::query()->where('key', 'categories.delete')->pluck('id'));
+        $category = Category::factory()->create();
+
+        $this->actingAs($deleter, 'sanctum')
+            ->patchJson("/api/categories/{$category->id}", ['name' => 'Updated Name'])
+            ->assertStatus(403);
+
+        $this->actingAs($deleter, 'sanctum')
+            ->deleteJson("/api/categories/{$category->id}")
+            ->assertStatus(204);
+        $this->assertDatabaseMissing('categories', ['id' => $category->id]);
+    }
 }

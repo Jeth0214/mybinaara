@@ -25,16 +25,16 @@ class CategoryPolicy
 
     public function create(User $user): bool
     {
-        return $user->user_type === UserType::Admin && $user->hasPermission('catalog.manage');
+        return $user->user_type === UserType::Admin && $user->hasPermission('categories.create');
     }
 
     public function update(User $user, Category $category): bool
     {
-        return $user->user_type === UserType::Admin && $user->hasPermission('catalog.manage');
+        return $user->user_type === UserType::Admin && $user->hasPermission('categories.edit');
     }
 
     public function delete(User $user, Category $category): bool
     {
-        return $user->user_type === UserType::Admin && $user->hasPermission('catalog.manage');
+        return $user->user_type === UserType::Admin && $user->hasPermission('categories.delete');
     }
 }

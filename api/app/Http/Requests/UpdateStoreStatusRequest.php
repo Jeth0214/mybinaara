@@ -15,8 +15,25 @@ class UpdateStoreStatusRequest extends FormRequest
     {
         /** @var Store $store */
         $store = $this->route('store');
+        $target = StoreStatus::tryFrom((string) $this->input('status'));
 
-        return $this->user()?->can('verify', $store) ?? false;
+        if ($target === null) {
+            return true; // let validation reject the bad enum value
+        }
+
+        $user = $this->user();
+        if ($user === null) {
+            return false;
+        }
+
+        return match ($target) {
+            StoreStatus::Active => $store->status === StoreStatus::Suspended
+                ? $user->can('unsuspend', $store)
+                : $user->can('approve', $store),
+            StoreStatus::Rejected => $user->can('reject', $store),
+            StoreStatus::Suspended => $user->can('suspend', $store),
+            StoreStatus::Pending => $user->can('verify', $store),
+        };
     }
 
     /**

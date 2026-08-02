@@ -7,6 +7,8 @@ namespace Tests\Feature\Api;
 use App\Enums\StoreUserRole;
 use App\Enums\UserType;
 use App\Mail\StoreActivationMail;
+use App\Models\City;
+use App\Models\District;
 use App\Models\Permission;
 use App\Models\Store;
 use App\Models\StoreActivationToken;
@@ -227,11 +229,76 @@ class StoreTest extends TestCase
         $admin = User::factory()->admin()->create();
 
         $payload = $this->validStorePayload();
-        $payload['location']['latitude'] = 91;
+        $payload['location']['city_id'] = 999999;
 
         $response = $this->actingAs($admin, 'sanctum')->post('/api/stores', $payload);
 
-        $response->assertStatus(422)->assertJsonValidationErrors(['location.latitude']);
+        $response->assertStatus(422)->assertJsonValidationErrors(['location.city_id']);
+    }
+
+    /**
+     * Pin Location (latitude/longitude/plus_code) is no longer accepted on store
+     * creation — the admin no longer sets it; the vendor sets it after activation
+     * via the dedicated /location endpoint. Extra fields are simply ignored, not
+     * rejected, so this asserts the store is created successfully with those
+     * fields silently dropped rather than persisted.
+     */
+    public function test_creating_store_ignores_pin_location_fields(): void
+    {
+        Mail::fake();
+        $admin = User::factory()->admin()->create();
+
+        $payload = $this->validStorePayload();
+        $payload['location']['latitude'] = 24.7136;
+        $payload['location']['longitude'] = 46.6753;
+        $payload['location']['plus_code'] = '7G35+XJ';
+
+        $response = $this->actingAs($admin, 'sanctum')->post('/api/stores', $payload);
+
+        $response->assertStatus(201)
+            ->assertJsonPath('data.location.latitude', null)
+            ->assertJsonPath('data.location.longitude', null)
+            ->assertJsonPath('data.location.plus_code', null);
+    }
+
+    public function test_creating_store_rejects_mismatched_city_and_district(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $city = City::factory()->create();
+        $otherCity = City::factory()->create();
+        $district = District::factory()->create(['city_id' => $otherCity->id]);
+
+        $payload = $this->validStorePayload();
+        $payload['location']['city_id'] = $city->id;
+        $payload['location']['district_id'] = $district->id;
+
+        $response = $this->actingAs($admin, 'sanctum')->post('/api/stores', $payload);
+
+        $response->assertStatus(422)->assertJsonValidationErrors(['location.district_id']);
+    }
+
+    public function test_creating_store_requires_owner_whatsapp(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $payload = $this->validStorePayload();
+        unset($payload['owner_whatsapp']);
+
+        $response = $this->actingAs($admin, 'sanctum')->post('/api/stores', $payload);
+
+        $response->assertStatus(422)->assertJsonValidationErrors(['owner_whatsapp']);
+    }
+
+    public function test_creating_store_rejects_invalid_whatsapp_format(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $payload = $this->validStorePayload();
+        $payload['owner_whatsapp'] = '12345';
+
+        $response = $this->actingAs($admin, 'sanctum')->post('/api/stores', $payload);
+
+        $response->assertStatus(422)->assertJsonValidationErrors(['owner_whatsapp']);
     }
 
     public function test_creating_store_requires_a_complete_schedule(): void
@@ -343,6 +410,122 @@ class StoreTest extends TestCase
 
         // stores.view is granted to the limited role, so reads still work.
         $this->actingAs($limitedAdmin, 'sanctum')->getJson('/api/stores')->assertOk();
+    }
+
+    /**
+     * Proves the four store status transitions are gated on their own
+     * distinct permissions rather than all collapsing onto stores.verify.
+     */
+    public function test_stores_verify_permission_alone_cannot_approve_reject_or_suspend(): void
+    {
+        $verifyOnly = User::factory()->admin()->withRole('staff')->create();
+        $verifyOnly->permissions()->sync(Permission::query()->where('key', 'stores.verify')->pluck('id'));
+
+        $pendingStore = Store::factory()->create();
+        $activeStore = Store::factory()->active()->create();
+
+        $this->actingAs($verifyOnly, 'sanctum')
+            ->patchJson("/api/stores/{$pendingStore->id}/status", ['status' => 'active'])
+            ->assertStatus(403);
+
+        $this->actingAs($verifyOnly, 'sanctum')
+            ->patchJson("/api/stores/{$pendingStore->id}/status", [
+                'status' => 'rejected',
+                'rejection_reason' => 'Incomplete documents',
+            ])
+            ->assertStatus(403);
+
+        $this->actingAs($verifyOnly, 'sanctum')
+            ->patchJson("/api/stores/{$activeStore->id}/status", ['status' => 'suspended'])
+            ->assertStatus(403);
+
+        // stores.verify still governs reverting a store back to pending review.
+        $this->actingAs($verifyOnly, 'sanctum')
+            ->patchJson("/api/stores/{$activeStore->id}/status", ['status' => 'pending'])
+            ->assertOk();
+    }
+
+    public function test_stores_approve_permission_allows_only_approving(): void
+    {
+        $approver = User::factory()->admin()->withRole('staff')->create();
+        $approver->permissions()->sync(Permission::query()->where('key', 'stores.approve')->pluck('id'));
+
+        $pendingStore = Store::factory()->create();
+
+        $this->actingAs($approver, 'sanctum')
+            ->patchJson("/api/stores/{$pendingStore->id}/status", ['status' => 'active'])
+            ->assertOk()
+            ->assertJsonPath('data.status', 'active');
+
+        $this->actingAs($approver, 'sanctum')
+            ->patchJson("/api/stores/{$pendingStore->id}/status", ['status' => 'suspended'])
+            ->assertStatus(403);
+    }
+
+    public function test_stores_reject_permission_allows_only_rejecting(): void
+    {
+        $rejecter = User::factory()->admin()->withRole('staff')->create();
+        $rejecter->permissions()->sync(Permission::query()->where('key', 'stores.reject')->pluck('id'));
+
+        $pendingStore = Store::factory()->create();
+
+        $this->actingAs($rejecter, 'sanctum')
+            ->patchJson("/api/stores/{$pendingStore->id}/status", ['status' => 'active'])
+            ->assertStatus(403);
+
+        $this->actingAs($rejecter, 'sanctum')
+            ->patchJson("/api/stores/{$pendingStore->id}/status", [
+                'status' => 'rejected',
+                'rejection_reason' => 'Invalid CR number',
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.status', 'rejected');
+    }
+
+    public function test_stores_suspend_permission_allows_suspending_and_unsuspending(): void
+    {
+        $suspender = User::factory()->admin()->withRole('staff')->create();
+        $suspender->permissions()->sync(Permission::query()->where('key', 'stores.suspend')->pluck('id'));
+
+        $activeStore = Store::factory()->active()->create();
+
+        $this->actingAs($suspender, 'sanctum')
+            ->patchJson("/api/stores/{$activeStore->id}/status", ['status' => 'suspended'])
+            ->assertOk()
+            ->assertJsonPath('data.status', 'suspended');
+
+        $this->actingAs($suspender, 'sanctum')
+            ->patchJson("/api/stores/{$activeStore->id}/status", ['status' => 'active'])
+            ->assertOk()
+            ->assertJsonPath('data.status', 'active');
+    }
+
+    /**
+     * Proves deleting a store requires the distinct stores.delete permission,
+     * not just stores.edit (the previous bug).
+     */
+    public function test_stores_edit_permission_alone_cannot_delete_store(): void
+    {
+        $editorOnly = User::factory()->admin()->withRole('staff')->create();
+        $editorOnly->permissions()->sync(Permission::query()->where('key', 'stores.edit')->pluck('id'));
+        $store = Store::factory()->create();
+
+        $this->actingAs($editorOnly, 'sanctum')
+            ->deleteJson("/api/stores/{$store->id}")
+            ->assertStatus(403);
+        $this->assertDatabaseHas('stores', ['id' => $store->id]);
+    }
+
+    public function test_stores_delete_permission_allows_deleting_store(): void
+    {
+        $deleter = User::factory()->admin()->withRole('staff')->create();
+        $deleter->permissions()->sync(Permission::query()->where('key', 'stores.delete')->pluck('id'));
+        $store = Store::factory()->create();
+
+        $this->actingAs($deleter, 'sanctum')
+            ->deleteJson("/api/stores/{$store->id}")
+            ->assertStatus(204);
+        $this->assertDatabaseMissing('stores', ['id' => $store->id]);
     }
 
     /**

@@ -21,7 +21,7 @@ class StaffService
     public function __construct(private readonly DefaultPasswordProvider $passwords) {}
 
     /**
-     * @param  array{search?: string}  $filters
+     * @param  array{search?: string, role?: string, status?: string}  $filters
      */
     public function list(array $filters = [], int $perPage = 20): LengthAwarePaginator
     {
@@ -29,6 +29,8 @@ class StaffService
             ->with(['role', 'permissions'])
             ->whereHas('role', fn ($query) => $query->whereIn('name', ['administrator', 'staff']))
             ->when($filters['search'] ?? null, fn ($query, $search) => $query->where('name', 'like', "%{$search}%"))
+            ->when($filters['role'] ?? null, fn ($query, $role) => $query->whereHas('role', fn ($q) => $q->where('name', $role)))
+            ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
             ->latest()
             ->paginate($perPage);
     }
