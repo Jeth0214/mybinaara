@@ -5,6 +5,8 @@
         <tr>
           <th scope="col" class="ps-4">Store details</th>
           <th scope="col">Owner Info</th>
+          <th scope="col">City</th>
+          <th scope="col">Products</th>
           <th scope="col">Status</th>
           <th scope="col" class="text-end pe-4">Actions</th>
         </tr>
@@ -12,7 +14,7 @@
       <tbody>
         @if (loading()) {
           <tr>
-            <td colspan="4" class="text-center py-5 text-muted">
+            <td colspan="6" class="text-center py-5 text-muted">
               <div class="spinner-border text-success mb-3" role="status">
                 <span class="visually-hidden">Loading...</span>
               </div>
@@ -47,26 +49,19 @@
                         {{ store.name }}
                       </a>
                     </h6>
-                    <span class="fs-8 text-muted d-flex align-items-center gap-1 mt-0.5 fs-7-5">
-                      @if (store.location?.city) {
-                        <i class="bi bi-geo-alt"></i> {{ store.location?.city }}
-                        @if (store.location?.district) {
-                          ({{ store.location?.district }})
-                        }
-                      } @else {
-                        <span class="fst-italic">No location set</span>
-                      }
-                    </span>
                   </div>
                 </div>
               </td>
               <td>
                 <div class="fs-7-5">
                   <div class="fw-medium text-dark">{{ store.owner?.name ?? '—' }}</div>
-                  <div class="text-muted fs-8 mt-0.5">
-                    {{ store.owner?.phone ?? '—' }}
-                  </div>
                 </div>
+              </td>
+              <td>
+                <span class="fs-7-5">{{ store.location?.city ?? '—' }}</span>
+              </td>
+              <td>
+                <span class="fs-7-5">{{ store.products_count }}</span>
               </td>
               <td>
                 <span [class]="'status-badge status-badge--' + store.status">
@@ -114,11 +109,11 @@
             </tr>
           } @empty {
             <tr>
-              <td colspan="4" class="text-center py-5 text-muted">
+              <td colspan="6" class="text-center py-5 text-muted">
                 <i class="bi bi-shop-window fs-2 d-block mb-3 opacity-30"></i>
                 @if (hasActiveFilters()) {
                   <p class="mb-0 fw-medium">No stores found matching your filters</p>
-                  <small>Try adjusting your search query or status filter.</small>
+                  <small>Try adjusting your search query, status, or city filter.</small>
                 } @else {
                   <p class="mb-0 fw-medium">No stores yet</p>
                   <small>Get started by adding your first store.</small>

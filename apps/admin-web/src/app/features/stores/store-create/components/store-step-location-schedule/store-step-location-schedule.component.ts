@@ -1,12 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject, input, signal, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { MatStepperModule } from '@angular/material/stepper';
 import { Subscription } from 'rxjs';
 import { AddressService, CityData, DistrictData } from '../../../../../core/services/address.service';
-import { GeocodingService } from '../../../../../core/services/geocoding.service';
-import { OpenLocationCode } from '../../../../../core/utils/open-location-code';
 
 @Component({
   selector: 'app-store-step-location-schedule',
@@ -18,21 +16,28 @@ import { OpenLocationCode } from '../../../../../core/utils/open-location-code';
 })
 export class StoreStepLocationScheduleComponent implements OnInit, OnDestroy {
   readonly form = input.required<FormGroup>();
+  /** Legacy stores may have a free-text city/district name but no city_id/district_id yet. */
+  readonly legacyCityName = input<string | null>(null);
+  readonly legacyDistrictName = input<string | null>(null);
+  /** Set by the vendor post-activation; read-only display, never editable from the Admin Portal. */
+  readonly latitude = input<number | null>(null);
+  readonly longitude = input<number | null>(null);
 
   private readonly addressService = inject(AddressService);
-  private readonly geocodingService = inject(GeocodingService);
   private readonly sanitizer = inject(DomSanitizer);
-  private readonly cdr = inject(ChangeDetectorRef);
   private readonly sub = new Subscription();
 
-  // Address inputs state
-  readonly geocoding = signal<boolean>(false);
-  readonly geocodeError = signal<string | null>(null);
-  readonly safeMapUrl = signal<SafeResourceUrl | null>(null);
-
-  readonly plusCodeError = signal<string | null>(null);
   readonly saudiCities = signal<CityData[]>([]);
   readonly saudiDistricts = signal<DistrictData[]>([]);
+
+  readonly mapPreviewUrl = computed<SafeResourceUrl | null>(() => {
+    const lat = this.latitude();
+    const lng = this.longitude();
+    if (lat === null || lng === null) return null;
+
+    const url = `https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  });
 
   // Days list for working hours
   readonly days: Array<{ key: 'sat' | 'sun' | 'mon' | 'tue' | 'wed' | 'thu' | 'fri'; label: string }> = [
@@ -63,224 +68,51 @@ export class StoreStepLocationScheduleComponent implements OnInit, OnDestroy {
   })();
 
   ngOnInit(): void {
-    this.saudiCities.set(this.addressService.getRegions().length > 0 ? this.addressService.getCities() : []);
+    this.saudiCities.set(this.addressService.getCities());
 
     const locationGroup = this.form().get('location') as FormGroup;
-    const cityCtrl = locationGroup.get('city');
-    const districtCtrl = locationGroup.get('district');
-    const latitudeCtrl = locationGroup.get('latitude');
-    const longitudeCtrl = locationGroup.get('longitude');
+    const cityIdCtrl = locationGroup.get('city_id');
+    const districtIdCtrl = locationGroup.get('district_id');
 
-    // Helper to update map URL dynamically
-    const updateMapUrl = () => {
-      const lat = latitudeCtrl?.value;
-      const lng = longitudeCtrl?.value;
-      if (lat !== null && lat !== undefined && lng !== null && lng !== undefined && !isNaN(Number(lat)) && !isNaN(Number(lng))) {
-        const url = `https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`;
-        this.safeMapUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(url));
-      } else {
-        this.safeMapUrl.set(null);
-      }
-    };
-
-    // Initialize map URL
-    updateMapUrl();
-
-    // Listen for coordinate changes to update map
-    if (latitudeCtrl) {
-      this.sub.add(latitudeCtrl.valueChanges.subscribe(() => updateMapUrl()));
-    }
-    if (longitudeCtrl) {
-      this.sub.add(longitudeCtrl.valueChanges.subscribe(() => updateMapUrl()));
-    }
-
-    // Populate the district quick-pick list if a city is already matched (edit mode prefill)
-    if (cityCtrl?.value) {
-      const matchedCity = this.addressService.findCityByName(cityCtrl.value);
+    // Legacy fallback: resolve a free-text city/district name to an id for prefill (edit mode only).
+    if (!cityIdCtrl?.value && this.legacyCityName()) {
+      const matchedCity = this.addressService.findCityByName(this.legacyCityName()!);
       if (matchedCity) {
+        cityIdCtrl?.setValue(matchedCity.city_id);
         this.saudiDistricts.set(this.addressService.getDistrictsByCity(matchedCity.city_id));
+
+        if (!districtIdCtrl?.value && this.legacyDistrictName()) {
+          const matchedDistrict = this.addressService.findDistrictByName(matchedCity.city_id, this.legacyDistrictName()!);
+          if (matchedDistrict) {
+            districtIdCtrl?.setValue(matchedDistrict.district_id);
+          }
+        }
       }
+    } else if (cityIdCtrl?.value) {
+      this.saudiDistricts.set(this.addressService.getDistrictsByCity(cityIdCtrl.value));
     }
-  }
 
-  /** Quick-pick: selecting a city from the optional dropdown fills the free-text city field and its id. */
-  onCityQuickPick(cityId: string): void {
-    const locationGroup = this.form().get('location') as FormGroup;
-    if (!cityId) {
-      this.saudiDistricts.set([]);
-      return;
-    }
-    const city = this.saudiCities().find((c) => c.city_id === Number(cityId));
-    if (!city) return;
+    // Selecting a new city clears any district that doesn't belong to it.
+    this.sub.add(
+      cityIdCtrl?.valueChanges.subscribe((cityId: number | null) => {
+        if (!cityId) {
+          this.saudiDistricts.set([]);
+          districtIdCtrl?.setValue(null);
+          return;
+        }
 
-    locationGroup.patchValue({ city: city.name_en, city_id: city.city_id, district: '', district_id: null });
-    this.saudiDistricts.set(this.addressService.getDistrictsByCity(city.city_id));
-  }
+        const districts = this.addressService.getDistrictsByCity(cityId);
+        this.saudiDistricts.set(districts);
 
-  /** Quick-pick: selecting a district from the optional dropdown fills the free-text district field and its id. */
-  onDistrictQuickPick(districtId: string): void {
-    const locationGroup = this.form().get('location') as FormGroup;
-    if (!districtId) return;
-    const district = this.saudiDistricts().find((d) => d.district_id === Number(districtId));
-    if (!district) return;
-
-    locationGroup.patchValue({ district: district.name_en, district_id: district.district_id });
+        const currentDistrictId = districtIdCtrl?.value;
+        if (currentDistrictId && !districts.some((d) => d.district_id === currentDistrictId)) {
+          districtIdCtrl?.setValue(null);
+        }
+      })
+    );
   }
 
   ngOnDestroy(): void {
     this.sub.unsubscribe();
   }
-
-
-
-  // Geocode Address & Preview
-  triggerGeocodeAddress(): void {
-    const locationGroup = this.form().get('location') as FormGroup;
-    const buildingNumber = locationGroup.get('building_number')?.value;
-    const streetName = locationGroup.get('street_name')?.value;
-    const district = locationGroup.get('district')?.value;
-    const city = locationGroup.get('city')?.value;
-    const postalCode = locationGroup.get('postal_code')?.value;
-    const additionalNumber = locationGroup.get('additional_number')?.value;
-    const country = locationGroup.get('country')?.value || 'Saudi Arabia';
-
-    if (!city) {
-      this.geocodeError.set('Please select a City first.');
-      return;
-    }
-
-    this.geocoding.set(true);
-    this.geocodeError.set(null);
-
-    const line1 = `${buildingNumber || ''} ${streetName || ''}`.trim();
-    const line2 = district || '';
-    const line3 = `${city} ${postalCode || ''}${postalCode && additionalNumber ? ' - ' + additionalNumber : ''}`.trim();
-    const line4 = country;
-    const fullAddress = [line1, line2, line3, line4].filter(Boolean).join(',\n');
-
-    const addressParts = [
-      streetName,
-      district,
-      city,
-      country
-    ].filter(Boolean);
-    const searchQuery = addressParts.join(', ');
-
-    this.geocodingService.geocodeAddress(searchQuery, city).subscribe({
-      next: (coords) => {
-        let resolvedLat = coords.lat;
-        let resolvedLng = coords.lng;
-
-        // Apply a small deterministic offset based on building number to simulate exact mapping along the street
-        if (buildingNumber) {
-          const num = parseInt(buildingNumber.replace(/\D/g, ''), 10) || 0;
-          const latOffset = ((num % 50) - 25) * 0.000005;
-          const lngOffset = (((num * 13) % 50) - 25) * 0.000005;
-          resolvedLat += latOffset;
-          resolvedLng += lngOffset;
-        }
-
-        locationGroup.patchValue({
-          latitude: resolvedLat,
-          longitude: resolvedLng,
-          full_address: fullAddress
-        });
-        this.geocoding.set(false);
-        this.cdr.markForCheck();
-      },
-      error: (err) => {
-        this.geocodeError.set(err.message || 'Geocoding failed.');
-        this.geocoding.set(false);
-        this.cdr.markForCheck();
-      }
-    });
-  }
-
-  resolvePlusCode(): void {
-    const locationGroup = this.form().get('location') as FormGroup;
-    const rawVal = (locationGroup.get('plus_code')?.value || '').trim();
-    this.plusCodeError.set(null);
-
-    if (!rawVal) {
-      this.plusCodeError.set('Please enter a Plus Code (e.g. 7G35+XJ Jeddah).');
-      return;
-    }
-
-    const parts = rawVal.split(/\s+/);
-    // Find the token that matches the Plus Code regex
-    const plusCodeToken = parts.find((p: string) => /^[23456789CFGHJMPQRVWX]+\+/i.test(p));
-    const cityToken = parts.filter((p: string) => p !== plusCodeToken).join(' ');
-
-    if (!plusCodeToken) {
-      this.plusCodeError.set('Invalid Plus Code format (e.g. 7G35+XJ).');
-      return;
-    }
-
-    this.geocoding.set(true);
-
-    if (OpenLocationCode.isFull(plusCodeToken)) {
-      try {
-        const decoded = OpenLocationCode.decode(plusCodeToken);
-        this.processResolvedCoords(decoded.latitudeCenter, decoded.longitudeCenter, plusCodeToken);
-      } catch (err: any) {
-        this.plusCodeError.set(err.message || 'Failed to decode Plus Code.');
-        this.geocoding.set(false);
-        this.cdr.markForCheck();
-      }
-    } else {
-      if (!cityToken) {
-        this.plusCodeError.set('Please include the city name (e.g., 7G35+XJ Jeddah) to resolve a short Plus Code.');
-        this.geocoding.set(false);
-        return;
-      }
-
-      this.geocodingService.geocodeAddress(cityToken).subscribe({
-        next: (refCoords) => {
-          try {
-            const fullCode = OpenLocationCode.recoverNearest(plusCodeToken, refCoords.lat, refCoords.lng);
-            const decoded = OpenLocationCode.decode(fullCode);
-            this.processResolvedCoords(decoded.latitudeCenter, decoded.longitudeCenter, fullCode);
-          } catch (err: any) {
-            this.plusCodeError.set(err.message || 'Failed to resolve Plus Code.');
-            this.geocoding.set(false);
-            this.cdr.markForCheck();
-          }
-        },
-        error: (err) => {
-          this.plusCodeError.set(`Could not find coordinates for city: "${cityToken}".`);
-          this.geocoding.set(false);
-          this.cdr.markForCheck();
-        }
-      });
-    }
-  }
-
-  private processResolvedCoords(lat: number, lng: number, fullCode: string): void {
-    const locationGroup = this.form().get('location') as FormGroup;
-
-    // Retrieve manual address fields to update fullAddress
-    const buildingNumber = locationGroup.get('building_number')?.value;
-    const streetName = locationGroup.get('street_name')?.value;
-    const district = locationGroup.get('district')?.value;
-    const city = locationGroup.get('city')?.value;
-    const postalCode = locationGroup.get('postal_code')?.value;
-    const additionalNumber = locationGroup.get('additional_number')?.value;
-    const country = locationGroup.get('country')?.value || 'Saudi Arabia';
-
-    const line1 = `${buildingNumber || ''} ${streetName || ''}`.trim();
-    const line2 = district || '';
-    const line3 = `${city} ${postalCode || ''}${postalCode && additionalNumber ? ' - ' + additionalNumber : ''}`.trim();
-    const line4 = country;
-    const fullAddress = [line1, line2, line3, line4].filter(Boolean).join(',\n');
-
-    locationGroup.patchValue({
-      latitude: lat,
-      longitude: lng,
-      full_address: fullAddress
-    });
-
-    this.geocoding.set(false);
-    this.cdr.markForCheck();
-  }
-
 }

@@ -10,13 +10,21 @@ import { mapHttpError } from '../utils/http-error.util';
 export class StoreService {
   private readonly http = inject(HttpClient);
 
-  listStores(params: { search?: string; status?: StoreStatus | 'all'; page?: number }): Observable<PaginatedStores> {
+  listStores(params: {
+    search?: string;
+    status?: StoreStatus | 'all';
+    city_id?: number | 'all';
+    page?: number;
+  }): Observable<PaginatedStores> {
     let httpParams = new HttpParams();
     if (params.search) {
       httpParams = httpParams.set('search', params.search);
     }
     if (params.status && params.status !== 'all') {
       httpParams = httpParams.set('status', params.status);
+    }
+    if (params.city_id && params.city_id !== 'all') {
+      httpParams = httpParams.set('city_id', params.city_id);
     }
     if (params.page) {
       httpParams = httpParams.set('page', params.page);
@@ -55,6 +63,13 @@ export class StoreService {
     formData.append('logo', file, file.name);
 
     return this.http.post<{ data: Store }>(`${environment.apiUrl}/stores/${id}/logo`, formData).pipe(
+      map((response) => response.data),
+      catchError((err) => throwError(() => mapHttpError(err)))
+    );
+  }
+
+  updateStoreAddress(id: number, payload: Record<string, unknown>): Observable<Store> {
+    return this.http.patch<{ data: Store }>(`${environment.apiUrl}/stores/${id}/address`, payload).pipe(
       map((response) => response.data),
       catchError((err) => throwError(() => mapHttpError(err)))
     );

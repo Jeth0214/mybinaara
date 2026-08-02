@@ -19,40 +19,28 @@
               <!-- City -->
               <div class="col-md-6">
                 <label class="form-label fw-medium text-dark fs-8.5">City</label>
-                <div class="input-group">
-                  <input type="text" class="form-control shadow-2xs fs-8.5" formControlName="city" placeholder="e.g. Riyadh" />
-                  <select
-                    class="form-select shadow-2xs fs-8.5"
-                    style="max-width: 130px;"
-                    aria-label="Quick pick city"
-                    (change)="onCityQuickPick($any($event.target).value)"
-                  >
-                    <option value="">Quick pick…</option>
-                    @for (city of saudiCities(); track city.city_id) {
-                      <option [value]="city.city_id">{{ city.name_en }}</option>
-                    }
-                  </select>
-                </div>
+                <select class="form-select shadow-2xs fs-8.5" formControlName="city_id" aria-label="City">
+                  <option [ngValue]="null">Select a city…</option>
+                  @for (city of saudiCities(); track city.city_id) {
+                    <option [ngValue]="city.city_id">{{ city.name_en }}</option>
+                  }
+                </select>
               </div>
 
               <!-- District -->
               <div class="col-md-6">
                 <label class="form-label fw-medium text-dark fs-8.5">District</label>
-                <div class="input-group">
-                  <input type="text" class="form-control shadow-2xs fs-8.5" formControlName="district" placeholder="e.g. Al Olaya" />
-                  <select
-                    class="form-select shadow-2xs fs-8.5"
-                    style="max-width: 130px;"
-                    aria-label="Quick pick district"
-                    [disabled]="saudiDistricts().length === 0"
-                    (change)="onDistrictQuickPick($any($event.target).value)"
-                  >
-                    <option value="">Quick pick…</option>
-                    @for (district of saudiDistricts(); track district.district_id) {
-                      <option [value]="district.district_id">{{ district.name_en }}</option>
-                    }
-                  </select>
-                </div>
+                <select
+                  class="form-select shadow-2xs fs-8.5"
+                  formControlName="district_id"
+                  aria-label="District"
+                  [disabled]="saudiDistricts().length === 0"
+                >
+                  <option [ngValue]="null">Select a district…</option>
+                  @for (district of saudiDistricts(); track district.district_id) {
+                    <option [ngValue]="district.district_id">{{ district.name_en }}</option>
+                  }
+                </select>
               </div>
             </div>
 
@@ -123,50 +111,14 @@
 
           </div>
 
-          <!-- Plus Code Integration Section -->
-          <div class="pt-3 mt-5">
-             <h6 class="fw-bold text-dark border-bottom pb-2 mb-3 d-flex align-items-center gap-2">
-                <i class="bi bi-geo-alt-fill text-success"></i> Pin Location
-             </h6>
-            <div class="row g-3 mb-3">
-              <div class="col-12">
-                <label class="form-label fw-medium text-dark fs-8.5">Plus Code</label>
-                <div class="input-group">
-                  <input
-                    type="text"
-                    class="form-control shadow-2xs fs-8.5"
-                    formControlName="plus_code"
-                  />
-                  <button
-                    class="btn btn-success d-flex align-items-center gap-1.5 px-3 shadow-2xs"
-                    type="button"
-                    [disabled]="geocoding()"
-                    (click)="resolvePlusCode()"
-                  >
-                    @if (geocoding()) {
-                      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                    } @else {
-                      <i class="bi bi-search me-2"></i>
-                    }
-                    <span>Preview</span>
-                  </button>
-                </div>
-                @if (plusCodeError(); as error) {
-                  <div class="text-danger fs-8 mt-1">{{ error }}</div>
-                }
-              </div>
-            </div>
-
-          </div>
-
         </div>
 
-        <!-- Live OSM Map Preview Frame -->
+        <!-- Read-only Map Preview: the pin itself is set by the vendor post-activation -->
         <div class="mt-4">
           <label class="form-label fw-medium d-flex align-items-center gap-2 text-dark fs-8.5">
-            <i class="bi bi-map-fill text-success"></i> Live Map Preview
+            <i class="bi bi-map-fill text-success"></i> Map Preview
           </label>
-          @if (safeMapUrl(); as mapUrl) {
+          @if (mapPreviewUrl(); as mapUrl) {
             <div class="map-container border rounded overflow-hidden shadow-sm mt-1" style="height: 250px;">
               <iframe
                 width="100%"
@@ -175,6 +127,7 @@
                 scrolling="no"
                 marginheight="0"
                 marginwidth="0"
+                title="Store location preview"
                 [src]="mapUrl"
                 style="border: 0;">
               </iframe>
@@ -182,7 +135,7 @@
           } @else {
             <div class="bg-light border rounded text-center py-5 text-muted shadow-3xs mt-1">
               <i class="bi bi-map fs-2 d-block mb-2 text-secondary opacity-50"></i>
-              <span class="fs-8">Select address coordinates or click geocode address button to load preview</span>
+              <span class="fs-8">The store owner hasn't set a pin location yet.</span>
             </div>
           }
         </div>

@@ -47,6 +47,12 @@ export class StoreCreateComponent implements OnInit {
   readonly isCreated = signal(false);
   readonly createdOwnerEmail = signal<string | null>(null);
   readonly existingLogoUrl = signal<string | null>(null);
+  /** Legacy stores may have a free-text city/district name but no city_id/district_id yet. */
+  readonly legacyCityName = signal<string | null>(null);
+  readonly legacyDistrictName = signal<string | null>(null);
+  /** Set by the vendor post-activation; shown read-only for admin reference, never editable here. */
+  readonly existingLatitude = signal<number | null>(null);
+  readonly existingLongitude = signal<number | null>(null);
 
   // Step 1: Business Info (Branding & Owner)
   readonly step1Form = this.fb.group({
@@ -56,7 +62,7 @@ export class StoreCreateComponent implements OnInit {
     owner_name: ['', [Validators.required, Validators.minLength(3)]],
     owner_email: ['', [Validators.required, Validators.email]],
     owner_phone: ['', [Validators.required, Validators.pattern(SAUDI_PHONE_PATTERN)]],
-    owner_whatsapp: ['', [Validators.pattern(SAUDI_PHONE_PATTERN)]]
+    owner_whatsapp: ['', [Validators.required, Validators.pattern(SAUDI_PHONE_PATTERN)]]
   });
 
   // Step 2: Location (optional) and Schedule (required)
@@ -64,18 +70,13 @@ export class StoreCreateComponent implements OnInit {
     location: this.fb.group(
       {
         country: ['Saudi Arabia'],
-        city: [''],
         city_id: [null as number | null],
-        district: [''],
         district_id: [null as number | null],
         building_number: [''],
         street_name: [''],
         postal_code: [''],
         additional_number: [''],
-        full_address: [''],
-        latitude: [null as number | null, [Validators.min(-90), Validators.max(90)]],
-        longitude: [null as number | null, [Validators.min(-180), Validators.max(180)]],
-        plus_code: ['']
+        full_address: ['']
       },
       { validators: [locationRequiredWhenFilledValidator] }
     ),
@@ -130,21 +131,25 @@ export class StoreCreateComponent implements OnInit {
     });
     ['owner_name', 'owner_email', 'owner_phone', 'owner_whatsapp'].forEach((c) => this.step1Form.get(c)?.disable());
 
+    if (!store.location?.city_id) {
+      this.legacyCityName.set(store.location?.city ?? null);
+    }
+    if (!store.location?.district_id) {
+      this.legacyDistrictName.set(store.location?.district ?? null);
+    }
+    this.existingLatitude.set(store.location?.latitude ?? null);
+    this.existingLongitude.set(store.location?.longitude ?? null);
+
     const locationGroup = this.step2Form.get('location') as FormGroup;
     locationGroup.patchValue({
       country: store.location?.country ?? 'Saudi Arabia',
-      city: store.location?.city ?? '',
       city_id: store.location?.city_id ?? null,
-      district: store.location?.district ?? '',
       district_id: store.location?.district_id ?? null,
       building_number: store.location?.building_number ?? '',
       street_name: store.location?.street_name ?? '',
       postal_code: store.location?.postal_code ?? '',
       additional_number: store.location?.additional_number ?? '',
-      full_address: store.location?.full_address ?? '',
-      latitude: store.location?.latitude ?? null,
-      longitude: store.location?.longitude ?? null,
-      plus_code: store.location?.plus_code ?? ''
+      full_address: store.location?.full_address ?? ''
     });
 
     const workingHoursGroup = this.step2Form.get('workingHours') as FormGroup;
@@ -223,16 +228,11 @@ export class StoreCreateComponent implements OnInit {
       full_address: raw.full_address,
       building_number: raw.building_number || null,
       street_name: raw.street_name || null,
-      district: raw.district || null,
       district_id: raw.district_id || null,
-      city: raw.city || null,
       city_id: raw.city_id || null,
       postal_code: raw.postal_code || null,
       additional_number: raw.additional_number || null,
-      country: raw.country || null,
-      latitude: raw.latitude,
-      longitude: raw.longitude,
-      plus_code: raw.plus_code || null
+      country: raw.country || null
     };
   }
 
@@ -265,9 +265,7 @@ export class StoreCreateComponent implements OnInit {
     appendFormData(formData, 'owner_name', raw1.owner_name);
     appendFormData(formData, 'owner_email', raw1.owner_email);
     appendFormData(formData, 'owner_phone', raw1.owner_phone);
-    if (raw1.owner_whatsapp) {
-      appendFormData(formData, 'owner_whatsapp', raw1.owner_whatsapp);
-    }
+    appendFormData(formData, 'owner_whatsapp', raw1.owner_whatsapp);
     if (raw1.logo) {
       appendFormData(formData, 'logo', raw1.logo);
     }
@@ -311,11 +309,9 @@ export class StoreCreateComponent implements OnInit {
       calls.push(this.storeService.updateStoreLogo(id, raw1.logo));
     }
 
-    const locationPayload = this.buildLocationPayload();
-    if (locationPayload) {
-      const locationFormData = new FormData();
-      Object.entries(locationPayload).forEach(([key, value]) => appendFormData(locationFormData, key, value));
-      calls.push(this.storeService.updateStoreLocation(id, locationFormData));
+    const addressPayload = this.buildLocationPayload();
+    if (addressPayload) {
+      calls.push(this.storeService.updateStoreAddress(id, addressPayload));
     }
 
     calls.push(this.storeService.updateStoreSchedule(id, this.buildScheduleArray()));
@@ -341,19 +337,7 @@ export class StoreCreateComponent implements OnInit {
 /** Backend requires `full_address` once any other location field is filled. */
 function locationRequiredWhenFilledValidator(control: AbstractControl): ValidationErrors | null {
   const group = control as FormGroup;
-  const watchedFields = [
-    'building_number',
-    'street_name',
-    'district',
-    'district_id',
-    'city',
-    'city_id',
-    'postal_code',
-    'additional_number',
-    'latitude',
-    'longitude',
-    'plus_code'
-  ];
+  const watchedFields = ['building_number', 'street_name', 'district_id', 'city_id', 'postal_code', 'additional_number'];
   const hasAnyValue = watchedFields.some((field) => {
     const value = group.get(field)?.value;
     return value !== null && value !== undefined && value !== '';

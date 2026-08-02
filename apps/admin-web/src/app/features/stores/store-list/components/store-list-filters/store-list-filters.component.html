@@ -2,7 +2,7 @@
   <div class="card-body p-3">
     <div class="row g-3">
       <!-- Search -->
-      <div class="col-lg-8 col-md-8">
+      <div class="col-lg-6 col-md-6">
         <div class="input-group">
           <span class="input-group-text bg-transparent border-end-0 text-muted">
             <i class="bi bi-search"></i>
@@ -19,7 +19,7 @@
       </div>
 
       <!-- Status Filter -->
-      <div class="col-lg-4 col-md-4">
+      <div class="col-lg-3 col-md-3 col-6">
         <select
           class="form-select"
           [ngModel]="statusFilter()"
@@ -31,6 +31,22 @@
           <option value="pending">Pending Activation</option>
           <option value="suspended">Suspended</option>
           <option value="rejected">Rejected</option>
+        </select>
+      </div>
+
+      <!-- City Filter -->
+      <div class="col-lg-3 col-md-3 col-6">
+        <select
+          class="form-select"
+          [ngModel]="cityFilter()"
+          (ngModelChange)="cityFilter.set($event)"
+          [disabled]="disabled()"
+          aria-label="Filter by city"
+        >
+          <option value="all">All Cities</option>
+          @for (city of cities; track city.city_id) {
+            <option [value]="city.city_id">{{ city.name_en }}</option>
+          }
         </select>
       </div>
     </div>
