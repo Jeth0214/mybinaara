@@ -4,41 +4,105 @@
       <h5 class="fw-semibold mb-3">Step 4: Review Details & Finish</h5>
       <p class="text-muted fs-7 mb-4">Please verify all store information. On submission, the store account will be created and an activation email will be sent to the owner.</p>
 
-      <!-- Profile Preview -->
+      <!-- Logo Preview -->
       <div class="bg-light p-3 rounded-3 mb-4">
-        <h6 class="fw-semibold fs-7 border-bottom pb-2 mb-3 text-secondary text-uppercase">Merchant Summary</h6>
+        <h6 class="fw-semibold fs-7 border-bottom pb-2 mb-3 text-secondary text-uppercase">Logo Preview</h6>
+        <div class="d-flex align-items-center gap-3">
+          @if (logoPreviewUrl(); as logoUrl) {
+            <img
+              [src]="logoUrl"
+              alt="Store logo preview"
+              class="rounded border"
+              style="width: 96px; height: 96px; object-fit: cover;"
+            />
+          } @else {
+            <div
+              class="rounded border d-flex align-items-center justify-content-center text-muted bg-white"
+              style="width: 96px; height: 96px;"
+            >
+              <i class="bi bi-image fs-3 opacity-50"></i>
+            </div>
+            <span class="text-muted fst-italic fs-7-5">Logo not set</span>
+          }
+        </div>
+      </div>
+
+      <!-- Store Information -->
+      <div class="bg-light p-3 rounded-3 mb-4">
+        <h6 class="fw-semibold fs-7 border-bottom pb-2 mb-3 text-secondary text-uppercase">Store Information</h6>
         <div class="row g-3">
-          <div class="col-md-6">
+          <div class="col-md-4">
             <span class="d-block text-muted fs-8 text-uppercase">Store Name</span>
             <strong class="text-dark">{{ step1().name }}</strong>
           </div>
-          <div class="col-md-6">
-            <span class="d-block text-muted fs-8 text-uppercase">Location</span>
-            <strong class="text-dark">
-              @if (step2().location?.city) {
-                {{ step2().location?.city }}@if (step2().location?.district) { ({{ step2().location?.district }}) }
-              } @else {
-                No location set
-              }
-            </strong>
-          </div>
-
-          <div class="col-md-6">
+          <div class="col-md-4">
             <span class="d-block text-muted fs-8 text-uppercase">CR Number</span>
             <code class="text-secondary font-monospace">{{ step3().crNumber }}</code>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-4">
             <span class="d-block text-muted fs-8 text-uppercase">VAT Number</span>
             <code class="text-secondary font-monospace">{{ step3().vatNumber }}</code>
           </div>
+        </div>
+      </div>
 
+      <!-- Owner Information -->
+      <div class="bg-light p-3 rounded-3 mb-4">
+        <h6 class="fw-semibold fs-7 border-bottom pb-2 mb-3 text-secondary text-uppercase">Owner Information</h6>
+        <div class="row g-3">
           <div class="col-md-6">
-            <span class="d-block text-muted fs-8 text-uppercase">Authorized Contact</span>
+            <span class="d-block text-muted fs-8 text-uppercase">Owner Name</span>
             <strong class="text-dark">{{ step1().owner_name }}</strong>
           </div>
-          <div class="col-md-6">
-            <span class="d-block text-muted fs-8 text-uppercase">Email & Phone</span>
-            <span class="text-dark font-monospace fs-7">{{ step1().owner_email }} / {{ step1().owner_phone }}</span>
+        </div>
+      </div>
+
+      <!-- Contact Information -->
+      <div class="bg-light p-3 rounded-3 mb-4">
+        <h6 class="fw-semibold fs-7 border-bottom pb-2 mb-3 text-secondary text-uppercase">Contact Information</h6>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <span class="d-block text-muted fs-8 text-uppercase">Email</span>
+            <span class="text-dark font-monospace fs-7-5">{{ step1().owner_email }}</span>
+          </div>
+          <div class="col-md-4">
+            <span class="d-block text-muted fs-8 text-uppercase">Phone</span>
+            <span class="text-dark font-monospace fs-7-5">{{ step1().owner_phone }}</span>
+          </div>
+          <div class="col-md-4">
+            <span class="d-block text-muted fs-8 text-uppercase">WhatsApp</span>
+            <span class="text-dark font-monospace fs-7-5">{{ step1().owner_whatsapp }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Location Information -->
+      <div class="bg-light p-3 rounded-3 mb-4">
+        <h6 class="fw-semibold fs-7 border-bottom pb-2 mb-3 text-secondary text-uppercase">Location Information</h6>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <span class="d-block text-muted fs-8 text-uppercase">City</span>
+            @if (cityName(); as city) {
+              <strong class="text-dark">{{ city }}</strong>
+            } @else {
+              <span class="text-muted fst-italic">Not set</span>
+            }
+          </div>
+          <div class="col-md-4">
+            <span class="d-block text-muted fs-8 text-uppercase">District</span>
+            @if (districtName(); as district) {
+              <strong class="text-dark">{{ district }}</strong>
+            } @else {
+              <span class="text-muted fst-italic">Not set</span>
+            }
+          </div>
+          <div class="col-md-4">
+            <span class="d-block text-muted fs-8 text-uppercase">Address</span>
+            @if (fullAddress(); as address) {
+              <strong class="text-dark">{{ address }}</strong>
+            } @else {
+              <span class="text-muted fst-italic">Address not provided</span>
+            }
           </div>
         </div>
       </div>

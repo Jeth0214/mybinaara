@@ -6,11 +6,11 @@ import { RouterLink } from '@angular/router';
 import { NgbDropdownModule, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { Store } from '@ngxs/store';
-import { EMPTY, Subject } from 'rxjs';
+import { EMPTY, Subject, merge } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, skip, switchMap } from 'rxjs/operators';
 import { StaffService } from '../../../core/services/staff.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { StaffMember, PaginationMeta } from '../../../core/models/staff.model';
+import { StaffMember, PaginationMeta, StaffRole } from '../../../core/models/staff.model';
 import { AdminAuthState } from '../../../core/state/auth.state';
 import { StoreConfirmModalComponent } from '../../stores/components/store-confirm-modal/store-confirm-modal.component';
 
@@ -32,6 +32,8 @@ export class AdminUsersComponent {
   readonly canManage = computed(() => !!this.currentUser()?.permissions.includes('staff.edit'));
 
   readonly searchQuery = signal('');
+  readonly roleFilter = signal<'all' | StaffRole>('all');
+  readonly statusFilter = signal<'all' | 'active' | 'inactive'>('all');
 
   readonly staffList = signal<StaffMember[]>([]);
   readonly meta = signal<PaginationMeta | null>(null);
@@ -40,6 +42,10 @@ export class AdminUsersComponent {
 
   readonly mutating = signal(false);
   readonly busy = computed(() => this.loading() || this.mutating());
+
+  readonly hasActiveFilters = computed(
+    () => this.searchQuery().trim() !== '' || this.roleFilter() !== 'all' || this.statusFilter() !== 'all'
+  );
 
   /** Every fetch (search, pagination, retry, post-mutation refresh) goes through
    *  this single switchMap pipeline, so a newer request always cancels an
@@ -53,13 +59,20 @@ export class AdminUsersComponent {
           this.loading.set(true);
           this.loadError.set(null);
 
-          return this.staffService.listStaff({ search: this.searchQuery().trim(), page }).pipe(
-            catchError((err) => {
-              this.loading.set(false);
-              this.loadError.set(err?.message ?? 'Failed to load users.');
-              return EMPTY;
+          return this.staffService
+            .listStaff({
+              search: this.searchQuery().trim(),
+              role: this.roleFilter(),
+              status: this.statusFilter(),
+              page,
             })
-          );
+            .pipe(
+              catchError((err) => {
+                this.loading.set(false);
+                this.loadError.set(err?.message ?? 'Failed to load users.');
+                return EMPTY;
+              })
+            );
         }),
         takeUntilDestroyed()
       )
@@ -69,8 +82,12 @@ export class AdminUsersComponent {
         this.meta.set(response.meta);
       });
 
-    toObservable(this.searchQuery)
-      .pipe(skip(1), debounceTime(300), distinctUntilChanged(), takeUntilDestroyed())
+    merge(
+      toObservable(this.searchQuery).pipe(skip(1), debounceTime(300), distinctUntilChanged()),
+      toObservable(this.roleFilter).pipe(skip(1), distinctUntilChanged()),
+      toObservable(this.statusFilter).pipe(skip(1), distinctUntilChanged())
+    )
+      .pipe(takeUntilDestroyed())
       .subscribe(() => this.loadStaff(1));
 
     this.loadStaff(1);
@@ -78,6 +95,13 @@ export class AdminUsersComponent {
 
   loadStaff(page: number): void {
     this.reload$.next(page);
+  }
+
+  resetFilters(): void {
+    this.searchQuery.set('');
+    this.roleFilter.set('all');
+    this.statusFilter.set('all');
+    this.loadStaff(1);
   }
 
   handlePageEvent(event: PageEvent): void {

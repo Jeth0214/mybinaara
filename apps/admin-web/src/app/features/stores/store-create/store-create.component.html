@@ -36,6 +36,10 @@
       <mat-step [stepControl]="step2Form" label="Location & Schedule">
         <app-store-step-location-schedule
           [form]="step2Form"
+          [legacyCityName]="legacyCityName()"
+          [legacyDistrictName]="legacyDistrictName()"
+          [latitude]="existingLatitude()"
+          [longitude]="existingLongitude()"
         />
       </mat-step>
 

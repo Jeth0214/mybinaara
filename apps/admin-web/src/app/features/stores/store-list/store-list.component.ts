@@ -27,6 +27,7 @@ export class StoreListComponent {
 
   readonly searchQuery = signal('');
   readonly statusFilter = signal<'all' | StoreStatus>('all');
+  readonly cityFilter = signal<'all' | string>('all');
 
   readonly stores = signal<Store[]>([]);
   readonly meta = signal<PaginationMeta | null>(null);
@@ -34,7 +35,9 @@ export class StoreListComponent {
   readonly loadError = signal<string | null>(null);
   readonly mutating = signal(false);
 
-  readonly hasActiveFilters = computed(() => this.searchQuery().trim() !== '' || this.statusFilter() !== 'all');
+  readonly hasActiveFilters = computed(
+    () => this.searchQuery().trim() !== '' || this.statusFilter() !== 'all' || this.cityFilter() !== 'all'
+  );
 
   /** True once we know the directory has no stores at all (not just no matches for the current filters). */
   readonly isDirectoryEmpty = computed(
@@ -54,7 +57,12 @@ export class StoreListComponent {
           this.loadError.set(null);
 
           return this.storeService
-            .listStores({ search: this.searchQuery().trim(), status: this.statusFilter(), page })
+            .listStores({
+              search: this.searchQuery().trim(),
+              status: this.statusFilter(),
+              city_id: this.cityFilter() === 'all' ? 'all' : Number(this.cityFilter()),
+              page,
+            })
             .pipe(
               catchError((err) => {
                 this.loading.set(false);
@@ -73,7 +81,8 @@ export class StoreListComponent {
 
     merge(
       toObservable(this.searchQuery).pipe(skip(1), debounceTime(300), distinctUntilChanged()),
-      toObservable(this.statusFilter).pipe(skip(1), distinctUntilChanged())
+      toObservable(this.statusFilter).pipe(skip(1), distinctUntilChanged()),
+      toObservable(this.cityFilter).pipe(skip(1), distinctUntilChanged())
     )
       .pipe(takeUntilDestroyed())
       .subscribe(() => this.loadStores(1));

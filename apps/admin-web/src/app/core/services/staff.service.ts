@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
 import { catchError, map, finalize } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { CreateStaffPayload, PaginatedStaff, PermissionGroup, StaffMember, UpdateStaffPayload } from '../models/staff.model';
+import { CreateStaffPayload, PaginatedStaff, PermissionGroup, StaffMember, StaffRole, UpdateStaffPayload } from '../models/staff.model';
 import { mapHttpError } from '../utils/http-error.util';
 
 @Injectable({ providedIn: 'root' })
@@ -41,10 +41,21 @@ export class StaffService {
       .subscribe((groups) => this._permissionGroups.set(groups));
   }
 
-  listStaff(params: { search?: string; page?: number }): Observable<PaginatedStaff> {
+  listStaff(params: {
+    search?: string;
+    role?: 'all' | StaffRole;
+    status?: 'all' | 'active' | 'inactive';
+    page?: number;
+  }): Observable<PaginatedStaff> {
     let httpParams = new HttpParams();
     if (params.search) {
       httpParams = httpParams.set('search', params.search);
+    }
+    if (params.role && params.role !== 'all') {
+      httpParams = httpParams.set('role', params.role);
+    }
+    if (params.status && params.status !== 'all') {
+      httpParams = httpParams.set('status', params.status);
     }
     if (params.page) {
       httpParams = httpParams.set('page', params.page);
