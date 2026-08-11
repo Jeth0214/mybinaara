@@ -12,6 +12,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Carbon;
 
 class StoreActivationMail extends Mailable implements ShouldQueue
 {
@@ -22,6 +23,7 @@ class StoreActivationMail extends Mailable implements ShouldQueue
         public readonly User $owner,
         public readonly string $temporaryPassword,
         public readonly string $activationUrl,
+        public readonly Carbon $expiresAt,
     ) {}
 
     public function envelope(): Envelope

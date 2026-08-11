@@ -1,13 +1,17 @@
-import { ChangeDetectionStrategy, Component, inject, signal, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, computed, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { MatStepperModule } from '@angular/material/stepper';
+import { Store as NgxsStore } from '@ngxs/store';
 import { Observable, forkJoin } from 'rxjs';
 import { StoreService } from '../../../core/services/store.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { SCHEDULE_DAYS, ScheduleDay, Store, StoreScheduleDay } from '../../../core/models/store.model';
+import { SCHEDULE_DAYS, ScheduleDay, Store, StoreLocation, StoreScheduleDay } from '../../../core/models/store.model';
 import { SAUDI_PHONE_PATTERN } from '../../../core/validators/phone.validator';
+import { EMAIL_PATTERN } from '../../../core/validators/email.validator';
 import { appendFormData } from '../../../core/utils/form-data.util';
+import { AdminAuthState } from '../../../core/state/auth.state';
+import { ADMIN_PERMISSIONS } from '../../../core/models/auth.model';
 
 import { StoreStepBusinessComponent } from './components/store-step-business/store-step-business.component';
 import { StoreStepLocationScheduleComponent } from './components/store-step-location-schedule/store-step-location-schedule.component';
@@ -38,6 +42,11 @@ export class StoreCreateComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly ngxsStore = inject(NgxsStore);
+
+  readonly currentUser = this.ngxsStore.selectSignal(AdminAuthState.user);
+  readonly canEditOwner = computed(() => !!this.currentUser()?.permissions.includes(ADMIN_PERMISSIONS.VENDORS_EDIT));
+  readonly canEditSchedule = computed(() => !!this.currentUser()?.permissions.includes(ADMIN_PERMISSIONS.STORES_EDIT));
 
   readonly isEditMode = signal(false);
   readonly storeId = signal<number | null>(null);
@@ -47,12 +56,7 @@ export class StoreCreateComponent implements OnInit {
   readonly isCreated = signal(false);
   readonly createdOwnerEmail = signal<string | null>(null);
   readonly existingLogoUrl = signal<string | null>(null);
-  /** Legacy stores may have a free-text city/district name but no city_id/district_id yet. */
-  readonly legacyCityName = signal<string | null>(null);
-  readonly legacyDistrictName = signal<string | null>(null);
-  /** Set by the vendor post-activation; shown read-only for admin reference, never editable here. */
-  readonly existingLatitude = signal<number | null>(null);
-  readonly existingLongitude = signal<number | null>(null);
+  readonly existingLocation = signal<StoreLocation | null>(null);
 
   // Step 1: Business Info (Branding & Owner)
   readonly step1Form = this.fb.group({
@@ -60,7 +64,7 @@ export class StoreCreateComponent implements OnInit {
     logo: [null as File | null],
     removeLogo: [false],
     owner_name: ['', [Validators.required, Validators.minLength(3)]],
-    owner_email: ['', [Validators.required, Validators.email]],
+    owner_email: ['', [Validators.required, Validators.pattern(EMAIL_PATTERN)]],
     owner_phone: ['', [Validators.required, Validators.pattern(SAUDI_PHONE_PATTERN)]],
     owner_whatsapp: ['', [Validators.required, Validators.pattern(SAUDI_PHONE_PATTERN)]]
   });
@@ -69,14 +73,10 @@ export class StoreCreateComponent implements OnInit {
   readonly step2Form = this.fb.group({
     location: this.fb.group(
       {
-        country: ['Saudi Arabia'],
-        city_id: [null as number | null],
-        district_id: [null as number | null],
-        building_number: [''],
-        street_name: [''],
-        postal_code: [''],
-        additional_number: [''],
-        full_address: ['']
+        latitude: [null as number | null],
+        longitude: [null as number | null],
+        city: [''],
+        formatted_address: ['']
       },
       { validators: [locationRequiredWhenFilledValidator] }
     ),
@@ -129,27 +129,18 @@ export class StoreCreateComponent implements OnInit {
       owner_phone: store.owner?.phone ?? '',
       owner_whatsapp: store.owner?.whatsapp ?? ''
     });
-    ['owner_name', 'owner_email', 'owner_phone', 'owner_whatsapp'].forEach((c) => this.step1Form.get(c)?.disable());
+    if (!this.canEditOwner()) {
+      ['owner_name', 'owner_email', 'owner_phone', 'owner_whatsapp'].forEach((c) => this.step1Form.get(c)?.disable());
+    }
 
-    if (!store.location?.city_id) {
-      this.legacyCityName.set(store.location?.city ?? null);
-    }
-    if (!store.location?.district_id) {
-      this.legacyDistrictName.set(store.location?.district ?? null);
-    }
-    this.existingLatitude.set(store.location?.latitude ?? null);
-    this.existingLongitude.set(store.location?.longitude ?? null);
+    this.existingLocation.set(store.location);
 
     const locationGroup = this.step2Form.get('location') as FormGroup;
     locationGroup.patchValue({
-      country: store.location?.country ?? 'Saudi Arabia',
-      city_id: store.location?.city_id ?? null,
-      district_id: store.location?.district_id ?? null,
-      building_number: store.location?.building_number ?? '',
-      street_name: store.location?.street_name ?? '',
-      postal_code: store.location?.postal_code ?? '',
-      additional_number: store.location?.additional_number ?? '',
-      full_address: store.location?.full_address ?? ''
+      latitude: store.location?.latitude ?? null,
+      longitude: store.location?.longitude ?? null,
+      city: store.location?.city ?? '',
+      formatted_address: store.location?.formatted_address ?? ''
     });
 
     const workingHoursGroup = this.step2Form.get('workingHours') as FormGroup;
@@ -170,6 +161,10 @@ export class StoreCreateComponent implements OnInit {
         dayGroup.get('closeTime')?.enable();
       }
     });
+
+    if (!this.canEditSchedule()) {
+      workingHoursGroup.disable();
+    }
 
     this.step3Form.patchValue({
       crNumber: store.cr_number,
@@ -217,22 +212,18 @@ export class StoreCreateComponent implements OnInit {
     }));
   }
 
-  /** Returns the location payload, or null when no address information was entered. */
-  private buildLocationPayload(): Record<string, unknown> | null {
+  /** Returns the location payload, or null when no location was set. */
+  private buildLocationPayload(): StoreLocation | null {
     const raw = (this.step2Form.get('location') as FormGroup).getRawValue();
-    if (!raw.full_address || !String(raw.full_address).trim()) {
+    if (raw.latitude === null || raw.longitude === null) {
       return null;
     }
 
     return {
-      full_address: raw.full_address,
-      building_number: raw.building_number || null,
-      street_name: raw.street_name || null,
-      district_id: raw.district_id || null,
-      city_id: raw.city_id || null,
-      postal_code: raw.postal_code || null,
-      additional_number: raw.additional_number || null,
-      country: raw.country || null
+      latitude: raw.latitude,
+      longitude: raw.longitude,
+      city: raw.city || null,
+      formatted_address: raw.formatted_address || null
     };
   }
 
@@ -309,12 +300,25 @@ export class StoreCreateComponent implements OnInit {
       calls.push(this.storeService.updateStoreLogo(id, raw1.logo));
     }
 
-    const addressPayload = this.buildLocationPayload();
-    if (addressPayload) {
-      calls.push(this.storeService.updateStoreAddress(id, addressPayload));
+    const locationPayload = this.buildLocationPayload();
+    if (locationPayload) {
+      calls.push(this.storeService.updateStoreLocation(id, locationPayload));
     }
 
-    calls.push(this.storeService.updateStoreSchedule(id, this.buildScheduleArray()));
+    if (this.canEditSchedule()) {
+      calls.push(this.storeService.updateStoreSchedule(id, this.buildScheduleArray()));
+    }
+
+    if (this.canEditOwner()) {
+      calls.push(
+        this.storeService.updateStoreOwner(id, {
+          name: raw1.owner_name,
+          email: raw1.owner_email,
+          phone: raw1.owner_phone,
+          whatsapp: raw1.owner_whatsapp,
+        })
+      );
+    }
 
     forkJoin(calls).subscribe({
       next: () => {
@@ -334,24 +338,29 @@ export class StoreCreateComponent implements OnInit {
   }
 }
 
-/** Backend requires `full_address` once any other location field is filled. */
+/** Backend requires all 4 location fields together, or none at all (all-or-nothing). */
 function locationRequiredWhenFilledValidator(control: AbstractControl): ValidationErrors | null {
   const group = control as FormGroup;
-  const watchedFields = ['building_number', 'street_name', 'district_id', 'city_id', 'postal_code', 'additional_number'];
-  const hasAnyValue = watchedFields.some((field) => {
-    const value = group.get(field)?.value;
-    return value !== null && value !== undefined && value !== '';
-  });
+  const fields = ['latitude', 'longitude', 'city', 'formatted_address'];
+  const values = fields.map((field) => group.get(field)?.value);
+  const present = values.filter((value) => value !== null && value !== undefined && value !== '');
 
-  const fullAddressCtrl = group.get('full_address');
-  if (hasAnyValue && !fullAddressCtrl?.value) {
-    fullAddressCtrl?.setErrors({ required: true });
+  if (present.length > 0 && present.length < fields.length) {
+    fields.forEach((field, i) => {
+      const ctrl = group.get(field);
+      if (values[i] === null || values[i] === undefined || values[i] === '') {
+        ctrl?.setErrors({ required: true });
+      }
+    });
     return { locationIncomplete: true };
   }
 
-  if (fullAddressCtrl?.hasError('required') && !hasAnyValue) {
-    fullAddressCtrl.setErrors(null);
-  }
+  fields.forEach((field) => {
+    const ctrl = group.get(field);
+    if (ctrl?.hasError('required') && present.length === 0) {
+      ctrl.setErrors(null);
+    }
+  });
 
   return null;
 }

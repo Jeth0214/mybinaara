@@ -14,6 +14,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('store_id')->constrained()->cascadeOnDelete();
             $table->foreignId('category_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('unit_id')->nullable()->constrained('product_units')->nullOnDelete();
             $table->string('name', 150);
             $table->string('slug', 180);
             $table->string('description', 2000)->nullable();
@@ -29,6 +30,7 @@ return new class extends Migration
 
             $table->unique(['store_id', 'slug']);
             $table->index('category_id');
+            $table->index('unit_id');
             $table->index(['store_id', 'status']);
         });
     }

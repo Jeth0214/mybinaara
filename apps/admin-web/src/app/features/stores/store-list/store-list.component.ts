@@ -60,7 +60,7 @@ export class StoreListComponent {
             .listStores({
               search: this.searchQuery().trim(),
               status: this.statusFilter(),
-              city_id: this.cityFilter() === 'all' ? 'all' : Number(this.cityFilter()),
+              city: this.cityFilter() === 'all' ? 'all' : this.cityFilter(),
               page,
             })
             .pipe(

@@ -29,6 +29,7 @@
           [form]="step1Form"
           [isEditMode]="isEditMode()"
           [existingLogoUrl]="existingLogoUrl()"
+          [canEditOwner]="canEditOwner()"
         />
       </mat-step>
 
@@ -36,10 +37,7 @@
       <mat-step [stepControl]="step2Form" label="Location & Schedule">
         <app-store-step-location-schedule
           [form]="step2Form"
-          [legacyCityName]="legacyCityName()"
-          [legacyDistrictName]="legacyDistrictName()"
-          [latitude]="existingLatitude()"
-          [longitude]="existingLongitude()"
+          [existingLocation]="existingLocation()"
         />
       </mat-step>
 

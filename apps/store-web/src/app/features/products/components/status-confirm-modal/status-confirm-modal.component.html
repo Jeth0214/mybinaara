@@ -1,6 +1,6 @@
 <div class="modal-confirm-status p-4 text-center">
   <div class="status-icon-circle mb-3 mx-auto" style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
-    @if (product.status === 'Unavailable') {
+    @if (product.status !== 'active') {
       <i class="bi bi-exclamation-circle text-success" style="font-size: 2.5rem;"></i>
     } @else {
       <i class="bi bi-exclamation-circle text-warning" style="font-size: 2.5rem;"></i>
@@ -8,9 +8,9 @@
   </div>
   <h5 class="font-weight-bold text-dark mb-2">Confirm Status Change</h5>
   <p class="text-muted mb-4">
-    Are you sure you want to change the status of <strong>{{ product.name }}</strong> to 
-    <strong [class.text-success]="product.status === 'Unavailable'" [class.text-danger]="product.status !== 'Unavailable'">
-      {{ product.status === 'Unavailable' ? 'Available' : 'Unavailable' }}
+    Are you sure you want to change the status of <strong>{{ product.name }}</strong> to
+    <strong [class.text-success]="product.status !== 'active'" [class.text-danger]="product.status === 'active'">
+      {{ product.status === 'active' ? 'Inactive' : 'Active' }}
     </strong>?
   </p>
   <div class="d-flex justify-content-center gap-3">

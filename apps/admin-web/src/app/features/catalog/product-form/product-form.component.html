@@ -54,6 +54,16 @@
         </div>
 
         <div class="col-md-6">
+          <label class="form-label fw-semibold fs-8 text-uppercase text-muted">Unit</label>
+          <select class="form-select" formControlName="unit_id">
+            <option [ngValue]="null">No unit</option>
+            @for (unit of units(); track unit.id) {
+              <option [ngValue]="unit.id">{{ unit.name }}{{ unit.abbreviation ? ' (' + unit.abbreviation + ')' : '' }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="col-md-6">
           <label class="form-label fw-semibold fs-8 text-uppercase text-muted">Product Name</label>
           <input type="text" class="form-control" formControlName="name" />
           @if (form.get('name')?.touched && form.get('name')?.invalid) {

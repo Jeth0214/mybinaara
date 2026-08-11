@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { PaginatedStores, Store, StoreScheduleDay, StoreStatus } from '../models/store.model';
+import { PaginatedStores, Store, StoreLocation, StoreScheduleDay, StoreStatus } from '../models/store.model';
 import { mapHttpError } from '../utils/http-error.util';
 
 @Injectable({ providedIn: 'root' })
@@ -13,7 +13,7 @@ export class StoreService {
   listStores(params: {
     search?: string;
     status?: StoreStatus | 'all';
-    city_id?: number | 'all';
+    city?: string | 'all';
     page?: number;
   }): Observable<PaginatedStores> {
     let httpParams = new HttpParams();
@@ -23,8 +23,8 @@ export class StoreService {
     if (params.status && params.status !== 'all') {
       httpParams = httpParams.set('status', params.status);
     }
-    if (params.city_id && params.city_id !== 'all') {
-      httpParams = httpParams.set('city_id', params.city_id);
+    if (params.city && params.city !== 'all') {
+      httpParams = httpParams.set('city', params.city);
     }
     if (params.page) {
       httpParams = httpParams.set('page', params.page);
@@ -68,17 +68,8 @@ export class StoreService {
     );
   }
 
-  updateStoreAddress(id: number, payload: Record<string, unknown>): Observable<Store> {
-    return this.http.patch<{ data: Store }>(`${environment.apiUrl}/stores/${id}/address`, payload).pipe(
-      map((response) => response.data),
-      catchError((err) => throwError(() => mapHttpError(err)))
-    );
-  }
-
-  updateStoreLocation(id: number, formData: FormData): Observable<Store> {
-    formData.append('_method', 'PATCH');
-
-    return this.http.post<{ data: Store }>(`${environment.apiUrl}/stores/${id}/location`, formData).pipe(
+  updateStoreLocation(id: number, payload: StoreLocation): Observable<Store> {
+    return this.http.patch<{ data: Store }>(`${environment.apiUrl}/stores/${id}/location`, payload).pipe(
       map((response) => response.data),
       catchError((err) => throwError(() => mapHttpError(err)))
     );
@@ -86,6 +77,16 @@ export class StoreService {
 
   updateStoreSchedule(id: number, schedule: StoreScheduleDay[]): Observable<Store> {
     return this.http.put<{ data: Store }>(`${environment.apiUrl}/stores/${id}/schedule`, { schedule }).pipe(
+      map((response) => response.data),
+      catchError((err) => throwError(() => mapHttpError(err)))
+    );
+  }
+
+  updateStoreOwner(
+    id: number,
+    payload: { name?: string | null; email?: string | null; phone?: string | null; whatsapp?: string | null }
+  ): Observable<Store> {
+    return this.http.patch<{ data: Store }>(`${environment.apiUrl}/stores/${id}/owner`, payload).pipe(
       map((response) => response.data),
       catchError((err) => throwError(() => mapHttpError(err)))
     );

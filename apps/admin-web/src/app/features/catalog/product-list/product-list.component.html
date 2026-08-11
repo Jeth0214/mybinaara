@@ -108,6 +108,7 @@
             <tr>
               <th scope="col" class="ps-4">Product / SKU Details</th>
               <th scope="col">Category</th>
+              <th scope="col">Unit</th>
               <th scope="col">Store</th>
               <th scope="col">Price</th>
               <th scope="col">Status</th>
@@ -142,6 +143,9 @@
                 </td>
                 <td>
                   <span class="badge bg-light text-dark fw-medium">{{ prod.category?.name || 'Uncategorized' }}</span>
+                </td>
+                <td>
+                  <span class="text-muted fs-7-5">{{ prod.unit ? prod.unit.name : '—' }}</span>
                 </td>
                 <td>
                   <span class="text-dark fw-medium fs-7-5">{{ prod.store.name }}</span>
@@ -209,7 +213,7 @@
               </tr>
             } @empty {
               <tr>
-                <td colspan="7" class="text-center py-5 text-muted">
+                <td colspan="8" class="text-center py-5 text-muted">
                   <i class="bi bi-box-seam fs-2 d-block mb-3 opacity-30"></i>
                   @if (hasActiveFilters()) {
                     <p class="mb-0 fw-medium">No products found matching your filters</p>

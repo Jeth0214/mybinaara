@@ -82,23 +82,15 @@
         <div class="row g-3">
           <div class="col-md-4">
             <span class="d-block text-muted fs-8 text-uppercase">City</span>
-            @if (cityName(); as city) {
-              <strong class="text-dark">{{ city }}</strong>
+            @if (city(); as cityValue) {
+              <strong class="text-dark">{{ cityValue }}</strong>
             } @else {
               <span class="text-muted fst-italic">Not set</span>
             }
           </div>
-          <div class="col-md-4">
-            <span class="d-block text-muted fs-8 text-uppercase">District</span>
-            @if (districtName(); as district) {
-              <strong class="text-dark">{{ district }}</strong>
-            } @else {
-              <span class="text-muted fst-italic">Not set</span>
-            }
-          </div>
-          <div class="col-md-4">
+          <div class="col-md-8">
             <span class="d-block text-muted fs-8 text-uppercase">Address</span>
-            @if (fullAddress(); as address) {
+            @if (formattedAddress(); as address) {
               <strong class="text-dark">{{ address }}</strong>
             } @else {
               <span class="text-muted fst-italic">Address not provided</span>

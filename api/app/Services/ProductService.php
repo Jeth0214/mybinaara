@@ -18,16 +18,17 @@ class ProductService
     private const MAX_PRODUCTS_PER_STORE = 100;
 
     /**
-     * @param  array{store_id?: int, category_id?: int, status?: string, search?: string, sort?: string}  $filters
+     * @param  array{store_id?: int, category_id?: int, unit_id?: int, status?: string, search?: string, sort?: string}  $filters
      */
     public function list(array $filters = [], int $perPage = 20): LengthAwarePaginator
     {
         $sort = $filters['sort'] ?? 'latest';
 
         return Product::query()
-            ->with(['store', 'category', 'creator', 'editor'])
+            ->with(['store', 'category', 'unit', 'creator', 'editor'])
             ->when($filters['store_id'] ?? null, fn ($query, $storeId) => $query->where('store_id', $storeId))
             ->when($filters['category_id'] ?? null, fn ($query, $categoryId) => $query->where('category_id', $categoryId))
+            ->when($filters['unit_id'] ?? null, fn ($query, $unitId) => $query->where('unit_id', $unitId))
             ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
             ->when($filters['search'] ?? null, fn ($query, $search) => $query->where('name', 'like', "%{$search}%"))
             ->when($sort === 'name', fn ($query) => $query->orderBy('name'))

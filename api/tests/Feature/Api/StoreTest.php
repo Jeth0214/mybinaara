@@ -7,8 +7,6 @@ namespace Tests\Feature\Api;
 use App\Enums\StoreUserRole;
 use App\Enums\UserType;
 use App\Mail\StoreActivationMail;
-use App\Models\City;
-use App\Models\District;
 use App\Models\Permission;
 use App\Models\Store;
 use App\Models\StoreActivationToken;
@@ -163,7 +161,10 @@ class StoreTest extends TestCase
 
         $response->assertStatus(201)
             ->assertJsonPath('data.status', 'pending')
-            ->assertJsonPath('data.location.full_address', '123 King Fahd Road')
+            ->assertJsonPath('data.location.formatted_address', '123 King Fahd Road, Al Olaya, Riyadh 12214, Saudi Arabia')
+            ->assertJsonPath('data.location.city', 'Riyadh')
+            ->assertJsonPath('data.location.latitude', 24.7136)
+            ->assertJsonPath('data.location.longitude', 46.6753)
             ->assertJsonCount(7, 'data.schedule');
 
         $this->assertDatabaseHas('stores', ['cr_number' => '1010101010']);
@@ -220,61 +221,46 @@ class StoreTest extends TestCase
 
         $response->assertStatus(201)
             ->assertJsonPath('data.logo_url', null)
-            ->assertJsonPath('data.location.full_address', null)
+            ->assertJsonPath('data.location.latitude', null)
+            ->assertJsonPath('data.location.longitude', null)
+            ->assertJsonPath('data.location.city', null)
+            ->assertJsonPath('data.location.formatted_address', null)
             ->assertJsonCount(7, 'data.schedule');
     }
 
-    public function test_creating_store_with_partial_location_still_requires_valid_fields(): void
+    public function test_creating_store_rejects_partial_location(): void
     {
         $admin = User::factory()->admin()->create();
 
         $payload = $this->validStorePayload();
-        $payload['location']['city_id'] = 999999;
+        unset($payload['location']['formatted_address']);
 
         $response = $this->actingAs($admin, 'sanctum')->post('/api/stores', $payload);
 
-        $response->assertStatus(422)->assertJsonValidationErrors(['location.city_id']);
+        $response->assertStatus(422)->assertJsonValidationErrors(['location.formatted_address']);
     }
 
-    /**
-     * Pin Location (latitude/longitude/plus_code) is no longer accepted on store
-     * creation — the admin no longer sets it; the vendor sets it after activation
-     * via the dedicated /location endpoint. Extra fields are simply ignored, not
-     * rejected, so this asserts the store is created successfully with those
-     * fields silently dropped rather than persisted.
-     */
-    public function test_creating_store_ignores_pin_location_fields(): void
+    public function test_creating_store_rejects_out_of_range_coordinates(): void
     {
-        Mail::fake();
         $admin = User::factory()->admin()->create();
 
         $payload = $this->validStorePayload();
-        $payload['location']['latitude'] = 24.7136;
-        $payload['location']['longitude'] = 46.6753;
-        $payload['location']['plus_code'] = '7G35+XJ';
+        $payload['location']['latitude'] = 91;
 
         $response = $this->actingAs($admin, 'sanctum')->post('/api/stores', $payload);
 
-        $response->assertStatus(201)
-            ->assertJsonPath('data.location.latitude', null)
-            ->assertJsonPath('data.location.longitude', null)
-            ->assertJsonPath('data.location.plus_code', null);
+        $response->assertStatus(422)->assertJsonValidationErrors(['location.latitude']);
     }
 
-    public function test_creating_store_rejects_mismatched_city_and_district(): void
+    public function test_admin_can_filter_stores_by_city(): void
     {
         $admin = User::factory()->admin()->create();
-        $city = City::factory()->create();
-        $otherCity = City::factory()->create();
-        $district = District::factory()->create(['city_id' => $otherCity->id]);
+        Store::factory()->count(2)->create(['city' => 'Riyadh']);
+        Store::factory()->create(['city' => 'Jeddah']);
 
-        $payload = $this->validStorePayload();
-        $payload['location']['city_id'] = $city->id;
-        $payload['location']['district_id'] = $district->id;
+        $response = $this->actingAs($admin, 'sanctum')->getJson('/api/stores?city=Riyadh');
 
-        $response = $this->actingAs($admin, 'sanctum')->post('/api/stores', $payload);
-
-        $response->assertStatus(422)->assertJsonValidationErrors(['location.district_id']);
+        $response->assertOk()->assertJsonCount(2, 'data');
     }
 
     public function test_creating_store_requires_owner_whatsapp(): void
@@ -346,6 +332,87 @@ class StoreTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonFragment(['cr_number' => ['This CR number is already registered to another store.']]);
+    }
+
+    private function withOwner(Store $store): User
+    {
+        $owner = User::factory()->create(['user_type' => UserType::StoreOwner]);
+        $store->owners()->attach($owner->id, ['role' => StoreUserRole::Owner->value]);
+
+        return $owner;
+    }
+
+    public function test_guest_cannot_update_store_owner(): void
+    {
+        $store = Store::factory()->create();
+        $this->withOwner($store);
+
+        $this->patchJson("/api/stores/{$store->id}/owner", ['name' => 'New Owner Name'])
+            ->assertStatus(401);
+    }
+
+    public function test_store_owner_cannot_update_their_own_contact_info(): void
+    {
+        $store = Store::factory()->create();
+        $owner = $this->withOwner($store);
+
+        $this->actingAs($owner, 'sanctum')
+            ->patchJson("/api/stores/{$store->id}/owner", ['name' => 'New Owner Name'])
+            ->assertStatus(403);
+    }
+
+    public function test_admin_without_vendors_edit_permission_cannot_update_store_owner(): void
+    {
+        $admin = User::factory()->admin()->withRole('staff')->create();
+        $admin->permissions()->sync(Permission::query()->where('key', 'stores.edit')->pluck('id'));
+        $store = Store::factory()->create();
+        $this->withOwner($store);
+
+        $this->actingAs($admin, 'sanctum')
+            ->patchJson("/api/stores/{$store->id}/owner", ['name' => 'New Owner Name'])
+            ->assertStatus(403);
+    }
+
+    public function test_admin_with_vendors_edit_permission_can_update_store_owner(): void
+    {
+        $admin = User::factory()->admin()->withRole('staff')->create();
+        $admin->permissions()->sync(Permission::query()->where('key', 'vendors.edit')->pluck('id'));
+        $store = Store::factory()->create();
+        $owner = $this->withOwner($store);
+
+        $response = $this->actingAs($admin, 'sanctum')->patchJson("/api/stores/{$store->id}/owner", [
+            'name' => 'Updated Owner Name',
+            'email' => 'updated-owner@example.com',
+            'phone' => '0512345678',
+            'whatsapp' => '0512345678',
+        ]);
+
+        $response->assertOk()->assertJsonPath('data.owner.name', 'Updated Owner Name');
+        $this->assertDatabaseHas('users', ['id' => $owner->id, 'name' => 'Updated Owner Name', 'email' => 'updated-owner@example.com']);
+    }
+
+    public function test_updating_store_owner_rejects_duplicate_email(): void
+    {
+        $admin = User::factory()->admin()->create();
+        User::factory()->create(['email' => 'taken@example.com']);
+        $store = Store::factory()->create();
+        $this->withOwner($store);
+
+        $this->actingAs($admin, 'sanctum')
+            ->patchJson("/api/stores/{$store->id}/owner", ['email' => 'taken@example.com'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['email']);
+    }
+
+    public function test_updating_store_owner_with_its_own_unchanged_email_is_allowed(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $store = Store::factory()->create();
+        $owner = $this->withOwner($store);
+
+        $this->actingAs($admin, 'sanctum')
+            ->patchJson("/api/stores/{$store->id}/owner", ['email' => $owner->email])
+            ->assertOk();
     }
 
     public function test_admin_can_delete_store(): void
@@ -543,12 +610,10 @@ class StoreTest extends TestCase
             'owner_whatsapp' => '+966501234567',
             'logo' => UploadedFile::fake()->image('logo.png'),
             'location' => [
-                'full_address' => '123 King Fahd Road',
-                'city' => 'Riyadh',
-                'district' => 'Al Olaya',
-                'country' => 'Saudi Arabia',
                 'latitude' => 24.7136,
                 'longitude' => 46.6753,
+                'city' => 'Riyadh',
+                'formatted_address' => '123 King Fahd Road, Al Olaya, Riyadh 12214, Saudi Arabia',
             ],
             'schedule' => $this->fullWeekSchedule(),
         ];

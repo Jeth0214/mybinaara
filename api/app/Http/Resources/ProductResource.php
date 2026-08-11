@@ -38,6 +38,11 @@ class ProductResource extends JsonResource
                 'name' => $this->category->name,
                 'slug' => $this->category->slug,
             ]),
+            'unit' => $this->whenLoaded('unit', fn () => $this->unit === null ? null : [
+                'id' => $this->unit->id,
+                'name' => $this->unit->name,
+                'abbreviation' => $this->unit->abbreviation,
+            ]),
             'created_by' => $this->whenLoaded('creator', fn () => $this->creator === null ? null : [
                 'id' => $this->creator->id,
                 'name' => $this->creator->name,

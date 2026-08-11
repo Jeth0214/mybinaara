@@ -39,6 +39,11 @@ class PermissionSeeder extends Seeder
             ['key' => 'categories.edit', 'category' => 'Category Management', 'label' => 'Edit Category'],
             ['key' => 'categories.delete', 'category' => 'Category Management', 'label' => 'Delete Category'],
 
+            ['key' => 'product_units.view', 'category' => 'Product Unit Management', 'label' => 'View Product Units'],
+            ['key' => 'product_units.create', 'category' => 'Product Unit Management', 'label' => 'Create Product Unit'],
+            ['key' => 'product_units.edit', 'category' => 'Product Unit Management', 'label' => 'Edit Product Unit'],
+            ['key' => 'product_units.delete', 'category' => 'Product Unit Management', 'label' => 'Delete Product Unit'],
+
             ['key' => 'reports.view', 'category' => 'Reports', 'label' => 'View Reports'],
             ['key' => 'reports.export', 'category' => 'Reports', 'label' => 'Export Reports'],
 

@@ -24,13 +24,12 @@ export class StatusConfirmModalComponent {
   confirmStatusChange(): void {
     if (!this.product || this.updating()) return;
 
-    const currentStatus = this.product.status || 'Available';
-    const targetStatus = currentStatus === 'Unavailable' ? 'Available' : 'Unavailable';
+    const targetStatus = this.product.status === 'active' ? 'inactive' : 'active';
 
     this.updating.set(true);
-    this.productService.updateProduct(this.product.id, { status: targetStatus }).subscribe({
-      next: () => {
-        this.toastService.success(`Status updated to "${targetStatus}".`);
+    this.productService.updateProductStatus(this.product.id, targetStatus).subscribe({
+      next: (updated) => {
+        this.toastService.success(`"${updated.name}" is now ${updated.status}.`);
         this.updating.set(false);
         this.activeModal.close(true);
       },

@@ -50,7 +50,7 @@
             </div>
             <p class="text-muted mb-0 mt-1 fs-7">
               @if (s.location?.city) {
-                <i class="bi bi-geo-alt"></i> {{ s.location?.city }}@if (s.location?.district) { ({{ s.location?.district }}) }, {{ s.location?.country }} &nbsp;•&nbsp;
+                <i class="bi bi-geo-alt"></i> {{ s.location?.city }} &nbsp;•&nbsp;
               }
               Joined {{ s.created_at | date:'mediumDate' }}
             </p>
@@ -90,7 +90,7 @@
     </div>
 
     <!-- Store Working Hours & Schedule Section (100% Width) -->
-    <app-store-detail-schedule [store]="s" />
+    <app-store-detail-schedule [store]="s" (scheduleUpdated)="store.set($event)" />
 
     <!-- STATUS CHANGE MODAL -->
     @if (showStatusModal()) {

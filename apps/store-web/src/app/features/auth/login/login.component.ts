@@ -1,10 +1,12 @@
-import { Component, signal, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, signal, computed, inject, OnInit, OnDestroy } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Store } from '@ngxs/store';
 import { Subscription } from 'rxjs';
 import { AuthState } from '../../../core/state/auth.state';
 import * as AuthActions from '../../../core/state/auth.actions';
+import { LockoutError } from '../../../core/utils/http-error.util';
+import { EMAIL_PATTERN } from '../../../core/validators/email.validator';
 
 @Component({
   selector: 'app-login',
@@ -21,20 +23,24 @@ export class LoginComponent implements OnInit, OnDestroy {
   loading = signal(false);
   passwordVisible = signal(false);
   errorMsg = signal<string | null>(null);
-  copiedType = signal<string | null>(null);
+
+  lockedUntil = signal<Date | null>(null);
+  remainingSeconds = signal(0);
+  isLocked = computed(() => this.lockedUntil() !== null && this.remainingSeconds() > 0);
+  remainingTimeLabel = computed(() => {
+    const total = this.remainingSeconds();
+    const minutes = Math.floor(total / 60);
+    const seconds = total % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  });
+
+  private countdownIntervalId: any = null;
 
   form = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
+    email: ['', [Validators.required, Validators.pattern(EMAIL_PATTERN)]],
     password: ['', [Validators.required]],
     remember: [false],
   });
-
-  copyText(text: string, type: string): void {
-    navigator.clipboard.writeText(text).then(() => {
-      this.copiedType.set(type);
-      setTimeout(() => this.copiedType.set(null), 1500);
-    });
-  }
 
   ngOnInit(): void {
     // Redirect if already authenticated
@@ -46,11 +52,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     this.sub.add(
       this.store.select(AuthState.error).subscribe((err) => {
-        if (err === 'ACCOUNT_NOT_ACTIVATED') {
-          this.errorMsg.set('Your store account is verified but not yet activated. Please use the activation link below to set up your password.');
-        } else {
-          this.errorMsg.set(err);
-        }
+        this.errorMsg.set(err);
       })
     );
   }
@@ -58,28 +60,63 @@ export class LoginComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.sub.unsubscribe();
     this.store.dispatch(new AuthActions.ClearAuthError());
+    this.stopCountdown();
   }
 
   onLogin(): void {
-    if (this.form.invalid) {
+    if (this.form.invalid || this.isLocked()) {
       this.form.markAllAsTouched();
       return;
     }
     this.loading.set(true);
-    const { email, password } = this.form.value;
+    const { email, password, remember } = this.form.value;
 
-    this.store.dispatch(new AuthActions.Login(email!, password!)).subscribe({
+    this.store.dispatch(new AuthActions.Login(email!, password!, !!remember)).subscribe({
       next: () => {
         this.loading.set(false);
         this.router.navigate(['/dashboard']);
       },
-      error: () => {
+      error: (err) => {
         this.loading.set(false);
+        if (err instanceof LockoutError) {
+          this.lockedUntil.set(err.lockedUntil);
+          this.startCountdown();
+        }
       }
     });
   }
 
   togglePassword(): void {
     this.passwordVisible.update(v => !v);
+  }
+
+  private startCountdown(): void {
+    this.stopCountdown();
+    this.tickCountdown();
+    this.countdownIntervalId = setInterval(() => this.tickCountdown(), 1000);
+  }
+
+  private tickCountdown(): void {
+    const lockedUntil = this.lockedUntil();
+    if (!lockedUntil) {
+      this.stopCountdown();
+      return;
+    }
+
+    const secondsLeft = Math.max(0, Math.floor((lockedUntil.getTime() - Date.now()) / 1000));
+    this.remainingSeconds.set(secondsLeft);
+
+    if (secondsLeft === 0) {
+      this.stopCountdown();
+      this.lockedUntil.set(null);
+      this.errorMsg.set(null);
+    }
+  }
+
+  private stopCountdown(): void {
+    if (this.countdownIntervalId) {
+      clearInterval(this.countdownIntervalId);
+      this.countdownIntervalId = null;
+    }
   }
 }

@@ -7,9 +7,9 @@ namespace App\Http\Controllers\Api;
 use App\Enums\StoreStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreStoreRequest;
-use App\Http\Requests\UpdateStoreAddressRequest;
 use App\Http\Requests\UpdateStoreLocationRequest;
 use App\Http\Requests\UpdateStoreLogoRequest;
+use App\Http\Requests\UpdateStoreOwnerRequest;
 use App\Http\Requests\UpdateStoreRequest;
 use App\Http\Requests\UpdateStoreScheduleRequest;
 use App\Http\Requests\UpdateStoreStatusRequest;
@@ -31,7 +31,7 @@ class StoreController extends Controller
         $filters = $request->validate([
             'status' => ['sometimes', 'string'],
             'search' => ['sometimes', 'string', 'max:100'],
-            'city_id' => ['sometimes', 'integer'],
+            'city' => ['sometimes', 'string', 'max:150'],
         ]);
 
         $stores = $this->stores->list($filters);
@@ -91,13 +91,6 @@ class StoreController extends Controller
         return (new StoreResource($store->load(['owners', 'creator'])))->response();
     }
 
-    public function updateAddress(UpdateStoreAddressRequest $request, Store $store): JsonResponse
-    {
-        $store = $this->stores->updateAddress($store, $request->validated());
-
-        return (new StoreResource($store->load(['owners', 'creator'])))->response();
-    }
-
     public function updateLocation(UpdateStoreLocationRequest $request, Store $store): JsonResponse
     {
         $store = $this->stores->updateLocation($store, $request->validated());
@@ -108,6 +101,13 @@ class StoreController extends Controller
     public function updateLogo(UpdateStoreLogoRequest $request, Store $store): JsonResponse
     {
         $store = $this->stores->updateLogo($store, $request->file('logo'));
+
+        return (new StoreResource($store->load(['owners', 'creator'])))->response();
+    }
+
+    public function updateOwner(UpdateStoreOwnerRequest $request, Store $store): JsonResponse
+    {
+        $store = $this->stores->updateOwner($store, $request->validated());
 
         return (new StoreResource($store->load(['owners', 'creator'])))->response();
     }

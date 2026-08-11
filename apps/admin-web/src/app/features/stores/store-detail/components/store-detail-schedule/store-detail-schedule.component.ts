@@ -1,9 +1,12 @@
-import { ChangeDetectionStrategy, Component, inject, input, effect } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, output, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { Store as NgxsStore } from '@ngxs/store';
 import { SCHEDULE_DAYS, ScheduleDay, Store, StoreScheduleDay } from '../../../../../core/models/store.model';
 import { StoreService } from '../../../../../core/services/store.service';
 import { ToastService } from '../../../../../core/services/toast.service';
+import { AdminAuthState } from '../../../../../core/state/auth.state';
+import { ADMIN_PERMISSIONS } from '../../../../../core/models/auth.model';
 
 @Component({
   selector: 'app-store-detail-schedule',
@@ -25,8 +28,13 @@ export class StoreDetailScheduleComponent {
   private readonly fb = inject(FormBuilder);
   private readonly storeService = inject(StoreService);
   private readonly toast = inject(ToastService);
+  private readonly ngxsStore = inject(NgxsStore);
 
   readonly store = input.required<Store>();
+  readonly scheduleUpdated = output<Store>();
+
+  readonly currentUser = this.ngxsStore.selectSignal(AdminAuthState.user);
+  readonly canEdit = computed(() => !!this.currentUser()?.permissions.includes(ADMIN_PERMISSIONS.STORES_EDIT));
 
   scheduleForm!: FormGroup;
 
@@ -113,10 +121,14 @@ export class StoreDetailScheduleComponent {
         });
       }
     });
+
+    if (!this.canEdit()) {
+      this.scheduleForm.disable();
+    }
   }
 
   onSave(): void {
-    if (this.scheduleForm.invalid) return;
+    if (this.scheduleForm.invalid || !this.canEdit()) return;
 
     const workingHoursVal = this.scheduleForm.getRawValue().workingHours as Record<
       ScheduleDay,
@@ -133,9 +145,10 @@ export class StoreDetailScheduleComponent {
     if (!s) return;
 
     this.storeService.updateStoreSchedule(s.id, scheduleArray).subscribe({
-      next: () => {
+      next: (updated) => {
         this.toast.success('Store operations schedule updated successfully.');
         this.scheduleForm.markAsPristine();
+        this.scheduleUpdated.emit(updated);
       },
       error: (err) => {
         this.toast.error(err?.message ?? 'Failed to update schedule.');

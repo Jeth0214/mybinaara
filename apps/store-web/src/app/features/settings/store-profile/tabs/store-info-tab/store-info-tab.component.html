@@ -15,7 +15,7 @@
           @if (logoPreview() && !logoPreview()?.includes('store-logo.png')) {
             <img [src]="logoPreview()" alt="Store Logo" class="logo-display-img" />
           } @else {
-            <img src="/images/logo/logo.png" alt="MyBinaara Logo" class="logo-display-img" />
+            <i class="bi bi-shop logo-display-icon" aria-hidden="true"></i>
           }
         </div>
         <div class="logo-display-info">
@@ -115,37 +115,7 @@
 
   
   <!-- 4. Store Location Section -->
-  <div class="card p-4 border shadow-sm mb-4 animate__animated animate__fadeIn">
-    <div class="card-header-block mb-3">
-      <h2 class="section-title h5 mb-1">Store location</h2>
-      <p class="section-subtitle text-muted mb-0">Drag and zoom the map to pinpoint your exact warehouse entrance</p>
-    </div>
-    
-    <div class="map-container mb-3">
-      <iframe 
-        width="100%" 
-        height="280" 
-        frameborder="0" 
-        scrolling="no" 
-        marginheight="0" 
-        marginwidth="0" 
-        src="https://www.openstreetmap.org/export/embed.html?bbox=46.5400%2C24.6800%2C46.8100%2C24.7400&amp;layer=mapnik&amp;marker=24.7136%2C46.6753" 
-        style="width: 100%; border: none;"
-      ></iframe>
-    </div>
-    
-    <!-- Location Coordinate Fields -->
-    <div class="row">
-      <div class="col-md-6 mb-2">
-        <label class="form-label font-weight-bold" style="font-size: 0.75rem; color: var(--brand-text-mid);">LATITUDE</label>
-        <input type="text" class="form-control" value="24.7136" readonly style="background-color: var(--brand-bg); cursor: not-allowed;" />
-      </div>
-      <div class="col-md-6 mb-2">
-        <label class="form-label font-weight-bold" style="font-size: 0.75rem; color: var(--brand-text-mid);">LONGITUDE</label>
-        <input type="text" class="form-control" value="46.6753" readonly style="background-color: var(--brand-bg); cursor: not-allowed;" />
-      </div>
-    </div>
-  </div>
+  <app-store-location-picker [existingLocation]="currentUser()?.location" (locationChange)="onLocationChange($event)" />
 
   <!-- 3. Working Hours Section -->
   <div class="card p-4 border shadow-sm mb-4">
@@ -215,9 +185,9 @@
     <button
       type="submit"
       class="btn btn-success px-4 py-2 font-weight-bold"
-      [disabled]="loading() || infoForm.invalid"
+      [disabled]="saving() || infoForm.invalid"
     >
-      {{ loading() ? 'Saving...' : 'Save changes' }}
+      {{ saving() ? 'Saving...' : 'Save changes' }}
     </button>
   </div>
 

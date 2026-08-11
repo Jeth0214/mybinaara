@@ -69,11 +69,6 @@ class StorePolicy
         return $this->isAdminEditor($user) || $this->isOwnerOrStaffOf($user, $store);
     }
 
-    public function updateAddress(User $user, Store $store): bool
-    {
-        return $this->isAdminEditor($user) || $this->isOwnerOrStaffOf($user, $store);
-    }
-
     public function updateLocation(User $user, Store $store): bool
     {
         return $this->isAdminEditor($user) || $this->isOwnerOrStaffOf($user, $store);
@@ -82,6 +77,15 @@ class StorePolicy
     public function updateLogo(User $user, Store $store): bool
     {
         return $this->isAdminEditor($user) || $this->isOwnerOrStaffOf($user, $store);
+    }
+
+    /**
+     * Editing the store owner's own contact details (name/email/phone/whatsapp)
+     * is an admin-only capability, distinct from editing the store entity itself.
+     */
+    public function updateOwner(User $user, Store $store): bool
+    {
+        return $user->user_type === UserType::Admin && $user->hasPermission('vendors.edit');
     }
 
     private function isAdminEditor(User $user): bool

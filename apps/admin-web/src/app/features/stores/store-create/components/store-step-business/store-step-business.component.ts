@@ -18,6 +18,7 @@ export class StoreStepBusinessComponent implements OnDestroy {
   readonly form = input.required<FormGroup>();
   readonly isEditMode = input<boolean>(false);
   readonly existingLogoUrl = input<string | null>(null);
+  readonly canEditOwner = input<boolean>(true);
 
   readonly logoError = signal<string | null>(null);
   readonly logoPreviewUrl = signal<string | null>(null);

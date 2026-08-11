@@ -24,7 +24,7 @@ export class QuickStockModalComponent implements OnInit {
 
   ngOnInit(): void {
     if (this.product) {
-      this.activeStockValue.set(this.product.stock);
+      this.activeStockValue.set(this.product.stock_quantity);
     }
   }
 
@@ -39,30 +39,16 @@ export class QuickStockModalComponent implements OnInit {
     if (!this.product || this.updating()) return;
 
     this.updating.set(true);
-    this.productService
-      .updateStocks([{ id: this.product.id, stock: this.activeStockValue() }])
-      .subscribe({
-        next: () => {
-          this.toastService.success('Stock level updated successfully.');
-          this.updating.set(false);
-          this.activeModal.close(true);
-        },
-        error: (err) => {
-          this.toastService.error(err?.message || 'Failed to update stock.');
-          this.updating.set(false);
-        },
-      });
-  }
-
-  getProductUnit(product: Product): string {
-    const name = product.name.toLowerCase();
-    const cat = product.category.toLowerCase();
-    if (name.includes('bag') || cat.includes('cement')) {
-      return 'bag';
-    }
-    if (name.includes('rebar') || cat.includes('steel') || cat.includes('metal')) {
-      return 'ton';
-    }
-    return 'unit';
+    this.productService.updateProductStock(this.product.id, this.activeStockValue()).subscribe({
+      next: () => {
+        this.toastService.success('Stock level updated successfully.');
+        this.updating.set(false);
+        this.activeModal.close(true);
+      },
+      error: (err) => {
+        this.toastService.error(err?.message || 'Failed to update stock.');
+        this.updating.set(false);
+      },
+    });
   }
 }

@@ -20,6 +20,7 @@ class ActivateStoreRequest extends FormRequest
     {
         return [
             'token' => ['required', 'string'],
+            'email' => ['required', 'string', 'email'],
             'current_password' => ['required', 'string'],
             'new_password' => ['required', 'string', 'min:8', 'confirmed'],
         ];

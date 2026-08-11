@@ -4,41 +4,26 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Concerns;
 
-use App\Rules\DistrictBelongsToCity;
-use Illuminate\Validation\Rule;
-
 trait ValidatesStoreLocation
 {
     /**
+     * Location is all-or-nothing: either all four fields carry a value, or all
+     * four are null. `$requirePresence` additionally forces every key to appear
+     * in the payload (used by the dedicated PATCH endpoint, where an explicit
+     * all-null body is how a location is cleared).
+     *
      * @return array<string, mixed>
      */
-    protected function storeLocationRules(string $prefix = '', bool $required = true, bool $includeCoordinates = true): array
+    protected function storeLocationRules(string $prefix = '', bool $requirePresence = true): array
     {
         $p = $prefix === '' ? '' : $prefix.'.';
-        $cityId = $this->input($p.'city_id');
+        $base = $requirePresence ? ['present', 'nullable'] : ['nullable'];
 
-        $rules = [
-            $p.'full_address' => [$required ? 'required' : 'nullable', 'string', 'max:500'],
-            $p.'building_number' => ['nullable', 'string', 'max:20'],
-            $p.'street_name' => ['nullable', 'string', 'max:255'],
-            $p.'district' => ['nullable', 'string', 'max:150'],
-            $p.'district_id' => [
-                'nullable', 'integer', Rule::exists('districts', 'id'),
-                new DistrictBelongsToCity($cityId !== null ? (int) $cityId : null),
-            ],
-            $p.'city' => ['nullable', 'string', 'max:150'],
-            $p.'city_id' => ['nullable', 'integer', Rule::exists('cities', 'id')],
-            $p.'postal_code' => ['nullable', 'string', 'max:10'],
-            $p.'additional_number' => ['nullable', 'string', 'max:10'],
-            $p.'country' => ['nullable', 'string', 'max:100'],
+        return [
+            $p.'latitude' => [...$base, 'numeric', 'between:-90,90', "required_with:{$p}longitude,{$p}city,{$p}formatted_address"],
+            $p.'longitude' => [...$base, 'numeric', 'between:-180,180', "required_with:{$p}latitude,{$p}city,{$p}formatted_address"],
+            $p.'city' => [...$base, 'string', 'max:150', "required_with:{$p}latitude,{$p}longitude,{$p}formatted_address"],
+            $p.'formatted_address' => [...$base, 'string', 'max:500', "required_with:{$p}latitude,{$p}longitude,{$p}city"],
         ];
-
-        if ($includeCoordinates) {
-            $rules[$p.'latitude'] = ['nullable', 'numeric', 'between:-90,90'];
-            $rules[$p.'longitude'] = ['nullable', 'numeric', 'between:-180,180'];
-            $rules[$p.'plus_code'] = ['nullable', 'string', 'max:20'];
-        }
-
-        return $rules;
     }
 }

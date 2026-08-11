@@ -2,144 +2,18 @@
   <div class="col-lg-9 mx-auto">
     <form [formGroup]="form()">
       <h5 class="fw-semibold mb-3">Step 2: Location & Schedule Setup</h5>
-      <p class="text-muted fs-8 mb-3">Adding a location is optional. Fill in the address below, or leave it blank to skip.</p>
+      <p class="text-muted fs-8 mb-3">Adding a location is optional. Use the map below, or leave it blank to skip.</p>
 
-      <!-- Address Configuration Layout -->
+      <!-- Location Configuration -->
       <div class="card p-4 border shadow-sm mb-4 bg-white">
         <h6 class="fw-bold text-dark border-bottom pb-2 mb-3 d-flex align-items-center gap-2">
-          <i class="bi bi-building text-success"></i> National Address <span class="text-muted fw-normal fs-8">(optional)</span>
+          <i class="bi bi-map text-success"></i> Store location <span class="text-muted fw-normal fs-8">(optional)</span>
         </h6>
 
-        <!-- Dynamic Form Fields Grouped inside "location" -->
-        <div formGroupName="location">
-
-          <!-- National Address Section -->
-          <div>
-            <div class="row g-3 mb-3">
-              <!-- City -->
-              <div class="col-md-6">
-                <label class="form-label fw-medium text-dark fs-8.5">City</label>
-                <select class="form-select shadow-2xs fs-8.5" formControlName="city_id" aria-label="City">
-                  <option [ngValue]="null">Select a city…</option>
-                  @for (city of saudiCities(); track city.city_id) {
-                    <option [ngValue]="city.city_id">{{ city.name_en }}</option>
-                  }
-                </select>
-              </div>
-
-              <!-- District -->
-              <div class="col-md-6">
-                <label class="form-label fw-medium text-dark fs-8.5">District</label>
-                <select
-                  class="form-select shadow-2xs fs-8.5"
-                  formControlName="district_id"
-                  aria-label="District"
-                  [disabled]="saudiDistricts().length === 0"
-                >
-                  <option [ngValue]="null">Select a district…</option>
-                  @for (district of saudiDistricts(); track district.district_id) {
-                    <option [ngValue]="district.district_id">{{ district.name_en }}</option>
-                  }
-                </select>
-              </div>
-            </div>
-
-            <div class="row g-3 mb-3">
-              <!-- Building Number -->
-              <div class="col-md-4">
-                <label class="form-label fw-medium text-dark fs-8.5">Building Number</label>
-                <input
-                  type="text"
-                  class="form-control shadow-2xs"
-                  formControlName="building_number"
-                />
-              </div>
-
-              <!-- Postal Code -->
-              <div class="col-md-4">
-                <label class="form-label fw-medium text-dark fs-8.5">Postal Code</label>
-                <input
-                  type="text"
-                  class="form-control shadow-2xs"
-                  formControlName="postal_code"
-                />
-              </div>
-
-              <!-- Additional Number -->
-              <div class="col-md-4">
-                <label class="form-label fw-medium text-dark fs-8.5">Additional Number</label>
-                <input
-                  type="text"
-                  class="form-control shadow-2xs"
-                  formControlName="additional_number"
-                />
-              </div>
-            </div>
-
-            <div class="row g-3 mb-3">
-              <!-- Street Name -->
-              <div class="col-md-12">
-                <label class="form-label fw-medium text-dark fs-8.5">Street Name</label>
-                <input
-                  type="text"
-                  class="form-control shadow-2xs"
-                  formControlName="street_name"
-                />
-              </div>
-            </div>
-
-            <div class="row g-3 mb-3">
-              <!-- Full Address -->
-              <div class="col-md-12">
-                <label class="form-label fw-medium text-dark fs-8.5">
-                  Full Address
-                  @if (form().get('location.full_address')?.hasError('required')) {
-                    <span class="text-danger">*</span>
-                  }
-                </label>
-                <textarea
-                  class="form-control shadow-2xs"
-                  rows="2"
-                  formControlName="full_address"
-                  placeholder="Street, district, city, postal code..."
-                ></textarea>
-                @if (form().get('location.full_address')?.touched && form().get('location.full_address')?.hasError('required')) {
-                  <div class="text-danger fs-8 mt-1">Full address is required once any other location field is filled.</div>
-                }
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-
-        <!-- Read-only Map Preview: the pin itself is set by the vendor post-activation -->
-        <div class="mt-4">
-          <label class="form-label fw-medium d-flex align-items-center gap-2 text-dark fs-8.5">
-            <i class="bi bi-map-fill text-success"></i> Map Preview
-          </label>
-          @if (mapPreviewUrl(); as mapUrl) {
-            <div class="map-container border rounded overflow-hidden shadow-sm mt-1" style="height: 250px;">
-              <iframe
-                width="100%"
-                height="100%"
-                frameborder="0"
-                scrolling="no"
-                marginheight="0"
-                marginwidth="0"
-                title="Store location preview"
-                [src]="mapUrl"
-                style="border: 0;">
-              </iframe>
-            </div>
-          } @else {
-            <div class="bg-light border rounded text-center py-5 text-muted shadow-3xs mt-1">
-              <i class="bi bi-map fs-2 d-block mb-2 text-secondary opacity-50"></i>
-              <span class="fs-8">The store owner hasn't set a pin location yet.</span>
-            </div>
-          }
-        </div>
-
+        <app-store-location-picker
+          [initialLocation]="existingLocation()"
+          (locationChange)="onLocationChange($event)"
+        />
       </div>
 
       <!-- Working Hours Section -->
@@ -152,11 +26,11 @@
         <div formGroupName="workingHours" class="working-hours-grid">
           @for (day of days; track day.key) {
             <div [formGroupName]="day.key" class="day-schedule-row d-flex align-items-center py-2 border-bottom">
-              
+
               <div class="day-label fw-semibold text-dark" style="width: 80px;" [class.text-warning]="day.key === 'fri'">
                 {{ day.label }}
               </div>
-              
+
               <div class="time-input-cell flex-grow-1 mx-2">
                 <select
                   formControlName="openTime"
@@ -169,7 +43,7 @@
                   }
                 </select>
               </div>
-              
+
               <div class="time-input-cell flex-grow-1 mx-2">
                 <select
                   formControlName="closeTime"
@@ -182,12 +56,12 @@
                   }
                 </select>
               </div>
-              
+
               <div class="form-check ms-3 mb-0 d-flex align-items-center">
-                <input 
-                  class="form-check-input" 
-                  type="checkbox" 
-                  formControlName="isOff" 
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  formControlName="isOff"
                   [id]="'isOff-' + day.key"
                   style="cursor: pointer; width: 1.15rem; height: 1.15rem;"
                 />

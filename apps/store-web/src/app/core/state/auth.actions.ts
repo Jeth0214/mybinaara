@@ -1,23 +1,34 @@
 import { StoreSchedule } from '../models/auth.model';
+import { StoreLocation } from '../models/store-location.model';
 
-export class VerifyTemporaryCredentials {
-  static readonly type = '[Auth] Verify Temporary Credentials';
-  constructor(public email: string, public tempPass: string) {}
+export class VerifyActivationCredentials {
+  static readonly type = '[Auth] Verify Activation Credentials';
+  constructor(public token: string, public email: string, public currentPassword: string) {}
 }
 
-export class UpdateActivationPassword {
-  static readonly type = '[Auth] Update Activation Password';
-  constructor(public email: string, public newPass: string) {}
+export class ForgotPassword {
+  static readonly type = '[Auth] Forgot Password';
+  constructor(public email: string) {}
 }
 
-export class VerifyActivationOtp {
-  static readonly type = '[Auth] Verify Activation Otp';
-  constructor(public email: string, public otpCode: string) {}
+export class ResetPassword {
+  static readonly type = '[Auth] Reset Password';
+  constructor(public token: string, public email: string, public password: string) {}
+}
+
+export class ActivateStore {
+  static readonly type = '[Auth] Activate Store';
+  constructor(
+    public token: string,
+    public email: string,
+    public currentPassword: string,
+    public newPassword: string
+  ) {}
 }
 
 export class Login {
   static readonly type = '[Auth] Login';
-  constructor(public email: string, public pass: string) {}
+  constructor(public email: string, public pass: string, public remember: boolean) {}
 }
 
 export class Logout {
@@ -28,18 +39,18 @@ export class ClearAuthError {
   static readonly type = '[Auth] Clear Error';
 }
 
+export class RefreshStore {
+  static readonly type = '[Auth] Refresh Store';
+}
+
 export class UpdateProfile {
   static readonly type = '[Auth] Update Profile';
-  constructor(
-    public payload: {
-      storeName: string;
-      logoUrl?: string;
-      city?: string;
-      phone: string;
-      whatsapp?: string;
-      workingHours?: StoreSchedule;
-    }
-  ) {}
+  constructor(public payload: { workingHours: StoreSchedule }) {}
+}
+
+export class UpdateStoreLocation {
+  static readonly type = '[Auth] Update Store Location';
+  constructor(public payload: StoreLocation) {}
 }
 
 export class ChangePassword {

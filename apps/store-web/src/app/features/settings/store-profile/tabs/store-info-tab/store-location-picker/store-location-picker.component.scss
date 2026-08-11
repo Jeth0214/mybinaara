@@ -1,0 +1,45 @@
+.location-map-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1.5px solid var(--brand-border);
+  height: 320px;
+
+  mgl-map {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.location-map-style-toggle {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.location-map-style-toggle__satellite-btn.active {
+  background-color: var(--brand-gold);
+  border-color: var(--brand-gold);
+  color: var(--brand-text-dark, #1a1a1a);
+}
+
+.location-map-pin {
+  font-size: 1.75rem;
+  color: var(--brand-green-dark, #1c6b3c);
+  transform: translateY(-50%);
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.35));
+
+  &--satellite {
+    color: var(--brand-gold);
+  }
+}
+
+.location-field-label {
+  font-size: 0.75rem;
+  color: var(--brand-text-mid);
+}

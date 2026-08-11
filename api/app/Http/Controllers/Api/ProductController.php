@@ -31,6 +31,7 @@ class ProductController extends Controller
         $filters = $request->validate([
             'store_id' => ['sometimes', 'integer'],
             'category_id' => ['sometimes', 'integer'],
+            'unit_id' => ['sometimes', 'integer'],
             'status' => ['sometimes', 'string'],
             'search' => ['sometimes', 'string', 'max:100'],
             'sort' => ['sometimes', 'string', 'in:latest,name,price_asc,price_desc'],
@@ -51,7 +52,7 @@ class ProductController extends Controller
     {
         $this->authorize('view', $product);
 
-        $product->load(['store', 'category', 'creator', 'editor']);
+        $product->load(['store', 'category', 'unit', 'creator', 'editor']);
 
         return (new ProductResource($product))->response();
     }
@@ -66,14 +67,14 @@ class ProductController extends Controller
 
         $product = $this->products->create($request->validated(), $request->file('image'), $user, $forcedStoreId);
 
-        return (new ProductResource($product->load(['store', 'category', 'creator', 'editor'])))->response()->setStatusCode(201);
+        return (new ProductResource($product->load(['store', 'category', 'unit', 'creator', 'editor'])))->response()->setStatusCode(201);
     }
 
     public function update(UpdateProductRequest $request, Product $product): JsonResponse
     {
         $product = $this->products->update($product, $request->validated(), $request->user(), $request->file('image'));
 
-        return (new ProductResource($product->load(['store', 'category', 'creator', 'editor'])))->response();
+        return (new ProductResource($product->load(['store', 'category', 'unit', 'creator', 'editor'])))->response();
     }
 
     public function destroy(Product $product): JsonResponse
@@ -89,6 +90,6 @@ class ProductController extends Controller
     {
         $product = $this->products->updateStatus($product, $request->enum('status', ProductStatus::class), $request->user());
 
-        return (new ProductResource($product->load(['store', 'category', 'creator', 'editor'])))->response();
+        return (new ProductResource($product->load(['store', 'category', 'unit', 'creator', 'editor'])))->response();
     }
 }
