@@ -1,10 +1,40 @@
-import { ChangeDetectionStrategy, Component, inject, signal, computed, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { Subscription, forkJoin } from 'rxjs';
 import { ProductService } from '../../../core/services/product.service';
+import { CategoryService } from '../../../core/services/category.service';
+import { ProductUnitService } from '../../../core/services/product-unit.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { PRODUCT_CATEGORIES, CategoryInfo } from '../../../core/models/product.model';
+import { MAX_PRODUCTS_PER_STORE } from '../../../core/models/product.model';
+import { Category } from '../../../core/models/category.model';
+import { ProductUnit } from '../../../core/models/product-unit.model';
+
+function slugify(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function comparePriceValidator(control: AbstractControl): ValidationErrors | null {
+  const group = control.parent;
+  if (!group) return null;
+
+  const price = Number(group.get('price')?.value);
+  const compareAtPrice = control.value;
+
+  if (compareAtPrice === '' || compareAtPrice === null || compareAtPrice === undefined) {
+    return null;
+  }
+
+  return Number(compareAtPrice) > price ? null : { gtPrice: true };
+}
+
+const MIN_IMAGE_DIMENSION = 300;
+const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
 
 @Component({
   selector: 'app-add-product',
@@ -14,102 +44,163 @@ import { PRODUCT_CATEGORIES, CategoryInfo } from '../../../core/models/product.m
   styleUrl: './add-product.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AddProductComponent implements OnInit {
+export class AddProductComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private productService = inject(ProductService);
+  private categoryService = inject(CategoryService);
+  private productUnitService = inject(ProductUnitService);
   private toastService = inject(ToastService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private sub = new Subscription();
 
-  // Expose configuration and states
-  readonly categories = PRODUCT_CATEGORIES;
-  readonly isLimitReached = this.productService.isLimitReached;
-  readonly productsLimit = this.productService.productsLimit;
-  readonly currentUser = this.productService.currentUser;
+  readonly maxProducts = MAX_PRODUCTS_PER_STORE;
 
-  // Local state signals
-  readonly loading = signal<boolean>(false);
-  readonly fetching = signal<boolean>(false);
-  readonly selectedImage = signal<string | null>(null);
-  readonly isEditMode = signal<boolean>(false);
-  productId?: string;
+  readonly categories = signal<Category[]>([]);
+  readonly units = signal<ProductUnit[]>([]);
+
+  readonly loading = signal(false);
+  readonly fetching = signal(false);
+  readonly loadError = signal<string | null>(null);
+  readonly isEditMode = signal(false);
+  readonly productId = signal<number | null>(null);
+
+  readonly selectedImageFile = signal<File | null>(null);
+  readonly imagePreviewUrl = signal<string | null>(null);
+  readonly imageError = signal<string | null>(null);
+  private objectUrl: string | null = null;
+  private currentSlug = '';
 
   productForm: FormGroup = this.fb.group({
-    name: ['', [Validators.required]],
-    sku: [''],
-    price: ['', [Validators.required, Validators.min(0.01)]],
-    stock: ['', [Validators.required, Validators.min(0)]],
-    category: ['', [Validators.required]],
-    brand: ['', [Validators.required]],
-    unit: ['per bag', [Validators.required]],
-    status: ['Available', [Validators.required]],
-    description: ['', [Validators.required]],
+    name: ['', [Validators.required, Validators.maxLength(150)]],
+    category_id: [null as number | null],
+    unit_id: [null as number | null],
+    sku: ['', [Validators.maxLength(50)]],
+    price: [null as number | null, [Validators.required, Validators.min(0)]],
+    compare_at_price: [null as number | null, [comparePriceValidator]],
+    stock_quantity: [0, [Validators.required, Validators.min(0)]],
+    description: ['', [Validators.maxLength(2000)]],
   });
 
   ngOnInit(): void {
     const id = this.route.snapshot.params['id'];
     if (id) {
-      this.productId = id;
+      this.productId.set(+id);
       this.isEditMode.set(true);
-      this.loadProductDetails(id);
+      this.loadProductDetails(+id);
     }
+
+    this.sub.add(
+      this.productForm.get('price')?.valueChanges.subscribe(() => {
+        this.productForm.get('compare_at_price')?.updateValueAndValidity({ emitEvent: false });
+      })
+    );
+
+    this.sub.add(
+      this.productForm.get('name')?.valueChanges.subscribe((name) => {
+        this.currentSlug = slugify(name ?? '');
+      })
+    );
+
+    this.loadDropdownOptions();
   }
 
-  private loadProductDetails(id: string): void {
+  ngOnDestroy(): void {
+    this.sub.unsubscribe();
+    this.revokeObjectUrl();
+  }
+
+  private loadDropdownOptions(): void {
+    this.sub.add(
+      forkJoin({
+        categories: this.categoryService.listCategories({ is_active: true }),
+        units: this.productUnitService.listActive(),
+      }).subscribe({
+        next: ({ categories, units }) => {
+          this.categories.set(categories.data);
+          this.units.set(units);
+        },
+        error: (err) => {
+          this.toastService.error(err?.message || 'Failed to load categories/units.');
+        },
+      })
+    );
+  }
+
+  private loadProductDetails(id: number): void {
     this.fetching.set(true);
-    setTimeout(() => {
-      const product = this.productService.products().find((p) => p.id === id);
-      if (product) {
+    this.loadError.set(null);
+
+    this.productService.getProduct(id).subscribe({
+      next: (product) => {
+        this.fetching.set(false);
         this.productForm.patchValue({
           name: product.name,
-          sku: product.sku || '',
+          category_id: product.category?.id ?? null,
+          unit_id: product.unit?.id ?? null,
+          sku: product.sku ?? '',
           price: product.price,
-          stock: product.stock,
-          category: product.category,
-          brand: product.brand || '',
-          unit: product.unit || 'per bag',
-          lowStockThreshold: product.lowStockThreshold ?? 20,
-          status: product.status || 'Available',
-          description: product.description || '',
+          compare_at_price: product.compare_at_price,
+          stock_quantity: product.stock_quantity,
+          description: product.description ?? '',
         });
-        if (product.imageUrl) {
-          this.selectedImage.set(product.imageUrl);
-        }
-      } else {
-        this.toastService.error('Product not found.');
+        this.imagePreviewUrl.set(product.image_url);
+      },
+      error: (err) => {
+        this.fetching.set(false);
+        this.toastService.error(err?.message || 'Product not found.');
         this.router.navigate(['/products']);
-      }
-      this.fetching.set(false);
-    }, 500);
+      },
+    });
   }
 
-  /**
-   * Action when the category selector changes:
-   * Dynamically sets a default category SVG icon as the preview image.
-   */
-  onCategoryChange(): void {
-    const selectedCat = this.productForm.get('category')?.value;
-    if (selectedCat) {
-      const match = this.categories.find((c) => c.name === selectedCat);
-      if (match) {
-        this.selectedImage.set(match.iconPath);
-      }
+  onImageSelect(event: Event): void {
+    const inputEl = event.target as HTMLInputElement;
+    if (!inputEl.files || inputEl.files.length === 0) return;
+
+    const file = inputEl.files[0];
+    this.imageError.set(null);
+
+    if (!file.type.startsWith('image/')) {
+      this.imageError.set('Only image files (PNG, JPG, WEBP) are allowed.');
+      inputEl.value = '';
+      return;
     }
+
+    if (file.size > MAX_IMAGE_SIZE) {
+      this.imageError.set('File size exceeds 2MB limit. Please upload a smaller image.');
+      inputEl.value = '';
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    const probe = new Image();
+    probe.onload = () => {
+      if (probe.width < MIN_IMAGE_DIMENSION || probe.height < MIN_IMAGE_DIMENSION) {
+        this.imageError.set(`Image must be at least ${MIN_IMAGE_DIMENSION}x${MIN_IMAGE_DIMENSION}px.`);
+        URL.revokeObjectURL(objectUrl);
+        inputEl.value = '';
+        return;
+      }
+
+      this.revokeObjectUrl();
+      this.objectUrl = objectUrl;
+      this.selectedImageFile.set(file);
+      this.imagePreviewUrl.set(objectUrl);
+    };
+    probe.onerror = () => {
+      this.imageError.set('Failed to read image file.');
+      URL.revokeObjectURL(objectUrl);
+      inputEl.value = '';
+    };
+    probe.src = objectUrl;
   }
 
-  removeSelectedImage(): void {
-    this.selectedImage.set(null);
-  }
-
-  /**
-   * Simulates a drag-and-drop or file upload and sets a mock image.
-   */
-  simulateUpload(): void {
-    const selectedCat = this.productForm.get('category')?.value || 'Miscellaneous';
-    const match = this.categories.find((c) => c.name === selectedCat) || this.categories[17];
-
-    this.selectedImage.set(match.iconPath);
-    this.toastService.success('Simulated file upload: Product photo applied successfully.');
+  private revokeObjectUrl(): void {
+    if (this.objectUrl) {
+      URL.revokeObjectURL(this.objectUrl);
+      this.objectUrl = null;
+    }
   }
 
   onSubmit(): void {
@@ -118,60 +209,47 @@ export class AddProductComponent implements OnInit {
       return;
     }
 
+    const id = this.productId();
+    if (!id && !this.selectedImageFile()) {
+      this.imageError.set('A product image is required.');
+      return;
+    }
+
+    const { name, category_id, unit_id, sku, price, compare_at_price, stock_quantity, description } =
+      this.productForm.getRawValue();
+
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('slug', this.currentSlug || slugify(name));
+    formData.append('price', String(price));
+    formData.append('stock_quantity', String(stock_quantity));
+    if (description) formData.append('description', description);
+    if (sku) formData.append('sku', sku);
+    if (category_id !== null && category_id !== undefined) formData.append('category_id', String(category_id));
+    if (unit_id !== null && unit_id !== undefined) formData.append('unit_id', String(unit_id));
+    if (compare_at_price !== null && compare_at_price !== undefined && compare_at_price !== ('' as unknown)) {
+      formData.append('compare_at_price', String(compare_at_price));
+    }
+
+    const file = this.selectedImageFile();
+    if (file) {
+      formData.append('image', file, file.name);
+    }
+
     this.loading.set(true);
 
-    const formVal = this.productForm.value;
+    const request$ = id ? this.productService.updateProduct(id, formData) : this.productService.createProduct(formData);
 
-    // Generate SKU if not present
-    let skuVal = formVal.sku;
-    if (!skuVal) {
-      const storePrefix = this.currentUser()
-        ? this.currentUser()!.storeName.toUpperCase().split(' ').map((w: string) => w[0]).join('').replace(/[^A-Z]/g, '')
-        : 'MYB';
-      const catAbbr = formVal.category ? formVal.category.substring(0, 3).toUpperCase().replace(/[^A-Z]/g, '') : 'GEN';
-      const prodAbbr = formVal.name ? formVal.name.toUpperCase().split(' ').slice(0, 2).map((w: string) => w[0]).join('').replace(/[^A-Z]/g, '') : 'ITM';
-      const randNum = Math.floor(100 + Math.random() * 900);
-      skuVal = `${storePrefix}-${catAbbr}-${prodAbbr || 'ITM'}-${randNum}`;
-    }
-
-    const productData = {
-      name: formVal.name,
-      sku: skuVal,
-      price: Number(formVal.price),
-      stock: Number(formVal.stock),
-      category: formVal.category,
-      brand: formVal.brand,
-      unit: formVal.unit,
-      lowStockThreshold: Number(formVal.lowStockThreshold),
-      status: formVal.status,
-      description: formVal.description,
-      imageUrl: this.selectedImage() || undefined,
-    };
-
-    if (this.isEditMode() && this.productId) {
-      this.productService.updateProduct(this.productId, productData).subscribe({
-        next: () => {
-          this.toastService.success(`Updated "${productData.name}" successfully.`);
-          this.loading.set(false);
-          this.router.navigate(['/products']);
-        },
-        error: (err) => {
-          this.toastService.error(err?.message || 'Failed to update product.');
-          this.loading.set(false);
-        },
-      });
-    } else {
-      this.productService.addProduct(productData).subscribe({
-        next: () => {
-          this.toastService.success(`Listed "${productData.name}" in your catalog.`);
-          this.loading.set(false);
-          this.router.navigate(['/products']);
-        },
-        error: (err) => {
-          this.toastService.error(err?.message || 'Failed to list product.');
-          this.loading.set(false);
-        },
-      });
-    }
+    request$.subscribe({
+      next: (product) => {
+        this.loading.set(false);
+        this.toastService.success(`${id ? 'Updated' : 'Listed'} "${product.name}" successfully.`);
+        this.router.navigate(['/products']);
+      },
+      error: (err) => {
+        this.loading.set(false);
+        this.toastService.error(err?.message || `Failed to ${id ? 'update' : 'list'} product.`);
+      },
+    });
   }
 }

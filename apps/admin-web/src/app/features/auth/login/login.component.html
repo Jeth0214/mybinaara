@@ -60,7 +60,7 @@
           </div>
           @if (form.get("email")?.hasError("required") && form.get("email")?.touched) {
             <p class="field-error">Please enter a valid email address.</p>
-          } @else if (form.get("email")?.hasError("email") && form.get("email")?.touched) {
+          } @else if (form.get("email")?.hasError("pattern") && form.get("email")?.touched) {
             <p class="field-error">Please enter a valid email address.</p>
           }
         </div>

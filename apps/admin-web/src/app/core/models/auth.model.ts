@@ -38,11 +38,16 @@ export const ADMIN_PERMISSIONS = {
   STORES_CREATE:     'stores.create',
   STORES_EDIT:       'stores.edit',
   STORES_VERIFY:     'stores.verify',
+  VENDORS_EDIT:      'vendors.edit',
   USERS_VIEW:        'users.view',
   USERS_MANAGE:      'users.manage',
   CATALOG_VIEW:      'catalog.view',
   CATALOG_MANAGE:    'catalog.manage',
   ADMIN_USERS_MANAGE:'admin.users.manage',
+  PRODUCT_UNITS_VIEW:   'product_units.view',
+  PRODUCT_UNITS_CREATE: 'product_units.create',
+  PRODUCT_UNITS_EDIT:   'product_units.edit',
+  PRODUCT_UNITS_DELETE: 'product_units.delete',
 } as const;
 
 /** Default permissions per role */

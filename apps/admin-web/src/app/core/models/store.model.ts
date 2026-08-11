@@ -13,19 +13,10 @@ export interface StoreScheduleDay {
 
 /** Mirrors StoreResource's `location` object exactly. */
 export interface StoreLocation {
-  full_address: string | null;
-  building_number: string | null;
-  street_name: string | null;
-  district: string | null;
-  district_id: number | null;
-  city: string | null;
-  city_id: number | null;
-  postal_code: string | null;
-  additional_number: string | null;
-  country: string | null;
   latitude: number | null;
   longitude: number | null;
-  plus_code: string | null;
+  city: string | null;
+  formatted_address: string | null;
 }
 
 export interface StoreOwner {

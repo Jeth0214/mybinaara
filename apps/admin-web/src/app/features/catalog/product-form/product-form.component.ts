@@ -6,10 +6,12 @@ import { Subscription, forkJoin } from 'rxjs';
 import { ProductService } from '../../../core/services/product.service';
 import { StoreService } from '../../../core/services/store.service';
 import { CategoryService } from '../../../core/services/category.service';
+import { ProductUnitService } from '../../../core/services/product-unit.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { Product } from '../../../core/models/product.model';
 import { Store as StoreRecord } from '../../../core/models/store.model';
 import { Category } from '../../../core/models/category.model';
+import { ProductUnit } from '../../../core/models/product-unit.model';
 
 function slugify(value: string): string {
   return value
@@ -50,6 +52,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   private readonly productService = inject(ProductService);
   private readonly storeService = inject(StoreService);
   private readonly categoryService = inject(CategoryService);
+  private readonly productUnitService = inject(ProductUnitService);
   private readonly toast = inject(ToastService);
   private readonly fb = inject(FormBuilder);
   private sub = new Subscription();
@@ -65,6 +68,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
 
   readonly stores = signal<StoreRecord[]>([]);
   readonly categories = signal<Category[]>([]);
+  readonly units = signal<ProductUnit[]>([]);
 
   private slugTouched = false;
 
@@ -76,6 +80,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   readonly form = this.fb.group({
     store_id: [null as number | null, [Validators.required]],
     category_id: [null as number | null],
+    unit_id: [null as number | null],
     name: ['', [Validators.required, Validators.maxLength(150)]],
     slug: ['', [Validators.required, Validators.maxLength(180), Validators.pattern(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)]],
     description: ['', [Validators.maxLength(2000)]],
@@ -108,6 +113,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
           this.form.patchValue({
             store_id: product.store.id,
             category_id: product.category?.id ?? null,
+            unit_id: product.unit?.id ?? null,
             name: product.name,
             slug: product.slug,
             description: product.description ?? '',
@@ -168,13 +174,15 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       forkJoin({
         stores: this.storeService.listStores({}),
         categories: this.categoryService.listCategories({ is_active: true }),
+        units: this.productUnitService.listProductUnits({ is_active: true }),
       }).subscribe({
-        next: ({ stores, categories }) => {
+        next: ({ stores, categories, units }) => {
           this.stores.set(stores.data);
           this.categories.set(categories.data);
+          this.units.set(units.data);
         },
         error: (err) => {
-          this.toast.error(err?.message ?? 'Failed to load stores/categories.');
+          this.toast.error(err?.message ?? 'Failed to load stores/categories/units.');
         },
       })
     );
@@ -257,7 +265,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const { store_id, category_id, name, slug, description, sku, price, compare_at_price, stock_quantity } =
+    const { store_id, category_id, unit_id, name, slug, description, sku, price, compare_at_price, stock_quantity } =
       this.form.getRawValue();
 
     const formData = new FormData();
@@ -268,6 +276,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     if (description) formData.append('description', description);
     if (sku) formData.append('sku', sku);
     if (category_id !== null && category_id !== undefined) formData.append('category_id', String(category_id));
+    if (unit_id !== null && unit_id !== undefined) formData.append('unit_id', String(unit_id));
     if (compare_at_price !== null && compare_at_price !== undefined && compare_at_price !== ('' as unknown)) {
       formData.append('compare_at_price', String(compare_at_price));
     }

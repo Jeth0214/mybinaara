@@ -2,11 +2,11 @@
 
   <!-- Limit Warning Banner -->
   @if (isLimitReached()) {
-    <div class="alert alert-warning border-warning border-opacity-25 d-flex justify-content-between align-items-center flex-wrap gap-3 p-3 mb-4 animate__animated animate__fadeIn" style="background: linear-gradient(135deg, #fffcf6 0%, #fff9e6 100%); border-radius: 12px;">
+    <div class="alert alert-warning border-warning border-opacity-25 d-flex justify-content-between align-items-center flex-wrap gap-3 p-3 mb-4" style="background: linear-gradient(135deg, #fffcf6 0%, #fff9e6 100%); border-radius: 12px;">
       <div class="d-flex align-items-center gap-3">
         <i class="bi bi-exclamation-triangle-fill text-warning fs-4"></i>
         <div>
-          <h6 class="mb-0 font-weight-bold text-dark">Product Limit Reached ({{ productsCount() }} / {{ productsLimit() }})</h6>
+          <h6 class="mb-0 font-weight-bold text-dark">Product Limit Reached ({{ maxProducts }} / {{ maxProducts }})</h6>
           <p class="small text-muted mb-0">Your store has listed the maximum allowable products.</p>
         </div>
       </div>
@@ -20,20 +20,16 @@
       <p class="text-muted small mb-0">Browse, manage, and monitor your listed inventory items.</p>
     </div>
     <div class="d-flex align-items-center gap-2 mt-3 mt-md-0">
-      <a class="btn btn-outline-success font-weight-bold px-3 py-2 d-flex align-items-center gap-2" [routerLink]="['/products/bulk-import']">
-        <i class="bi bi-upload"></i> Bulk Import
-      </a>
-      <a 
-        class="btn btn-success font-weight-bold px-4 py-2 d-flex align-items-center gap-2" 
+      <a
+        class="btn btn-success font-weight-bold px-4 py-2 d-flex align-items-center gap-2"
         [routerLink]="['/products/add']"
         [class.disabled]="isLimitReached()"
-        [title]="isLimitReached() ? 'Upgrade your subscription to list more products.' : 'Add new product'"
+        [title]="isLimitReached() ? 'Remove or update existing products to add new ones.' : 'Add new product'"
       >
         <i class="bi bi-plus-circle"></i> Add Product
       </a>
     </div>
   </div>
-
 
   <!-- Search and Filter Toolbar -->
   <div class="card p-4 border shadow-sm mb-4">
@@ -42,40 +38,34 @@
       <div class="col-lg-6 col-md-5">
         <div class="input-wrap">
           <i class="bi bi-search"></i>
-          <input 
-            type="text" 
-            class="form-control" 
-            [value]="searchText()"
-            (input)="onSearchChange($event)"
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Search by name..."
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+            [disabled]="busy()"
           />
         </div>
       </div>
 
       <!-- Category Filter -->
       <div class="col-lg-3 col-md-4 col-sm-6">
-        <select 
-          class="form-select" 
-          [value]="selectedCategory()"
-          (change)="onCategoryChange($event)"
-        >
-          <option value="All">All Categories</option>
-          @for (cat of categories; track cat.name) {
-            <option [value]="cat.name">{{ cat.name }}</option>
+        <select class="form-select" [ngModel]="categoryFilter()" (ngModelChange)="categoryFilter.set($event)" [disabled]="busy()">
+          <option [ngValue]="'all'">All Categories</option>
+          @for (cat of categories(); track cat.id) {
+            <option [ngValue]="cat.id">{{ cat.name }}</option>
           }
         </select>
       </div>
 
-      <!-- Stock Filter -->
+      <!-- Status Filter -->
       <div class="col-lg-3 col-md-3 col-sm-6">
-        <select 
-          class="form-select" 
-          [value]="selectedStockStatus()"
-          (change)="onStockStatusChange($event)"
-        >
-          <option value="All">All Stock Levels</option>
-          <option value="InStock">In Stock (>10)</option>
-          <option value="LowStock">Low Stock (1-10)</option>
-          <option value="OutOfStock">Out of Stock (0)</option>
+        <select class="form-select" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)" [disabled]="busy()">
+          <option value="all">All Statuses</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+          <option value="suspended">Suspended</option>
         </select>
       </div>
     </div>
@@ -83,12 +73,25 @@
 
   <!-- Products List Card -->
   <div class="card border shadow-sm overflow-hidden mb-4">
-    @if (filteredProducts().length > 0) {
+    @if (loading()) {
+      <div class="d-flex align-items-center justify-content-center gap-2 text-muted py-5">
+        <div class="spinner-border spinner-border-sm text-success" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        Loading products...
+      </div>
+    } @else if (loadError()) {
+      <div class="text-center py-5">
+        <div class="text-danger small mb-3">{{ loadError() }}</div>
+        <button type="button" class="btn btn-light btn-sm" (click)="loadProducts(meta()?.current_page ?? 1)">Retry</button>
+      </div>
+    } @else if (products().length > 0) {
       <div class="table-responsive">
         <table class="table products-table table-hover align-middle mb-0">
           <thead>
             <tr>
               <th>Product</th>
+              <th>Category / Unit</th>
               <th>Price</th>
               <th>Status</th>
               <th>Stock Qty</th>
@@ -96,71 +99,71 @@
             </tr>
           </thead>
           <tbody>
-            @for (p of filteredProducts(); track p.id) {
+            @for (p of products(); track p.id) {
               <tr>
                 <!-- Product Column (Image + Info) -->
                 <td>
                   <div class="d-flex align-items-center gap-3">
                     <div class="product-img-wrapper" style="cursor: pointer;" (click)="openViewDetailsModal(p)">
-                      <img 
-                        [src]="p.imageUrl || getCategoryIcon(p.category)" 
-                        [alt]="p.name"
-                        onerror="this.src='images/category-icons/miscellaneous.svg'"
-                      />
+                      @if (p.image_url) {
+                        <img [src]="p.image_url" [alt]="p.name" />
+                      } @else {
+                        <i class="bi bi-box-seam text-muted"></i>
+                      }
                     </div>
                     <div class="product-info-wrap">
-                      <div 
-                        class="product-name font-weight-bold" 
-                        style="cursor: pointer;" 
-                        (click)="openViewDetailsModal(p)"
-                        title="View specifications"
-                      >
+                      <div class="product-name font-weight-bold" style="cursor: pointer;" (click)="openViewDetailsModal(p)" title="View specifications">
                         {{ p.name }}
                       </div>
-                      <div class="product-subtext text-muted small">
-                        {{ getProductSubtext(p) }}
-                      </div>
+                      <div class="product-subtext text-muted small">SKU: {{ p.sku || '—' }}</div>
                     </div>
                   </div>
+                </td>
+
+                <!-- Category / Unit Column -->
+                <td>
+                  <span class="category-badge">{{ p.category?.name || 'Uncategorized' }}</span>
+                  <div class="text-muted small mt-1">{{ p.unit?.name || '—' }}</div>
                 </td>
 
                 <!-- Price Column -->
                 <td>
                   <div class="price-text">
-                    <span class="price-val">{{ p.price.toFixed(2) }}</span>
-                    <span class="price-unit">/ {{ getProductUnit(p) }}</span>
+                    <span class="price-val">{{ p.price | number:'1.2-2' }}</span> SAR
+                    @if (p.compare_at_price) {
+                      <div class="text-muted small text-decoration-line-through">{{ p.compare_at_price | number:'1.2-2' }} SAR</div>
+                    }
                   </div>
                 </td>
 
                 <!-- Status Column -->
                 <td>
                   <div class="status-cell-wrap d-flex align-items-center gap-2">
-                    <div class="form-check form-switch mb-0">
-                      <input 
-                        class="form-check-input status-toggle-input" 
-                        type="checkbox" 
-                        role="switch" 
-                        [checked]="p.status !== 'Unavailable'"
-                        (click)="onStatusToggle(p, $event)"
-                      >
-                    </div>
-                    <span class="status-badge" [class.available]="p.status !== 'Unavailable'" [class.unavailable]="p.status === 'Unavailable'">
-                      {{ p.status !== 'Unavailable' ? 'Available' : 'Unavailable' }}
-                    </span>
+                    @if (p.status !== 'suspended') {
+                      <div class="form-check form-switch mb-0">
+                        <input
+                          class="form-check-input status-toggle-input"
+                          type="checkbox"
+                          role="switch"
+                          [checked]="p.status === 'active'"
+                          [disabled]="busy()"
+                          (click)="onStatusToggle(p, $event)"
+                        />
+                      </div>
+                    }
+                    <span class="status-badge" [class]="p.status">{{ p.status }}</span>
                   </div>
                 </td>
 
                 <!-- Stock Qty Column -->
                 <td>
-                  <div class="stock-qty-text">
-                    {{ p.stock }} {{ getProductUnit(p) }}{{ p.stock === 1 ? '' : 's' }}
-                  </div>
+                  <div class="stock-qty-text">{{ p.stock_quantity }}</div>
                 </td>
 
                 <!-- Actions Dropdown Column -->
                 <td>
                   <div ngbDropdown class="d-inline-block" container="body">
-                    <button class="btn btn-icon-ellipsis border-0 bg-transparent" ngbDropdownToggle [id]="'actionsDropdown-' + p.id" aria-label="Product actions">
+                    <button class="btn btn-icon-ellipsis border-0 bg-transparent" ngbDropdownToggle [id]="'actionsDropdown-' + p.id" aria-label="Product actions" [disabled]="busy()">
                       <i class="bi bi-three-dots-vertical"></i>
                     </button>
                     <div ngbDropdownMenu [attr.aria-labelledby]="'actionsDropdown-' + p.id" class="dropdown-menu-custom shadow border">
@@ -189,23 +192,32 @@
           </tbody>
         </table>
       </div>
+      @if (meta() && meta()!.total > 0) {
+        <mat-paginator
+          [length]="meta()!.total"
+          [pageSize]="20"
+          [hidePageSize]="true"
+          [pageIndex]="meta()!.current_page - 1"
+          [disabled]="mutating()"
+          (page)="handlePageEvent($event)"
+          aria-label="Select page"
+          class="border-top"
+        />
+      }
     } @else {
       <!-- Empty State -->
       <div class="p-5 text-center my-4">
         <i class="bi bi-box-seam text-muted opacity-50 mb-3" style="font-size: 3.5rem; display: block;"></i>
         <h3 class="h5 font-weight-bold text-dark mb-2">No products found</h3>
         <p class="text-muted mx-auto mb-4" style="max-width: 450px; font-size: 0.95rem;">
-          @if (productService.productsCount() === 0) {
+          @if (!hasActiveFilters()) {
             You haven't listed any products yet. List your first building material item and make your store discoverable!
           } @else {
             No products match the selected filters or search terms. Try clearing filters or revising search queries.
           }
         </p>
         <div class="d-flex justify-content-center gap-2">
-          @if (productService.productsCount() === 0) {
-            <a class="btn btn-outline-success font-weight-bold px-3 py-2" [routerLink]="['/products/bulk-import']">
-              Bulk CSV Import
-            </a>
+          @if (!hasActiveFilters()) {
             <a class="btn btn-success font-weight-bold px-4 py-2" [routerLink]="['/products/add']">
               List First Product
             </a>
@@ -219,7 +231,4 @@
     }
   </div>
 
-
 </div>
-
-

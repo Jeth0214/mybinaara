@@ -32,266 +32,285 @@
     <div class="form-inner">
       <p class="eyebrow">Store Portal</p>
       <h1>Activate Store Account</h1>
-      <p class="subtitle">Complete the steps below to set up your verified store.</p>
+      <p class="subtitle">
+        Complete the steps below to set up your verified store.
+      </p>
       <div class="divider"></div>
 
       <!-- Error Display using Bootstrap Alert -->
       @if (errorMsg()) {
-        <div class="alert alert-danger d-flex align-items-center gap-2 mb-4 py-2 px-3 border-0 rounded-3 text-danger fs-7">
+        <div
+          class="alert alert-danger d-flex align-items-center gap-2 mb-4 py-2 px-3 border-0 rounded-3 text-danger fs-7"
+        >
           <i class="bi bi-exclamation-triangle-fill"></i>
           <span>{{ errorMsg() }}</span>
         </div>
       }
 
-      <!-- Angular Material Stepper -->
-      <mat-stepper linear #stepper class="brand-stepper">
-        <!-- Step 1: Credentials -->
-        <mat-step [stepControl]="step1Form">
-          <ng-template matStepLabel>Credentials</ng-template>
-          <form [formGroup]="step1Form" (ngSubmit)="onSubmitStep1(stepper)" novalidate class="mt-4">
-            <div class="field" [class.has-error]="step1Form.get('email')?.invalid && step1Form.get('email')?.touched">
-              <label for="email">Email Address or Phone Number</label>
-              <div class="input-wrap">
-                <i class="bi bi-envelope"></i>
-                <input
-                  type="text"
-                  id="email"
-                  formControlName="email"
-                  autocomplete="email"
-                />
+      @if (!token()) {
+        <div
+          class="alert alert-warning d-flex align-items-start gap-2 mb-4 py-2 px-3 border-0 rounded-3"
+        >
+          <i class="bi bi-shield-fill-exclamation text-warning fs-5"></i>
+          <div>
+            <strong class="text-warning fs-7">Invalid Activation Link</strong>
+            <p class="mb-0 text-muted fs-7">
+              This activation link is invalid or incomplete. Please check your
+              email for the correct link, or contact support.
+            </p>
+          </div>
+        </div>
+      } @else {
+        <!-- Angular Material Stepper -->
+        <mat-stepper linear #stepper class="brand-stepper">
+          <!-- Step 1: Credentials -->
+          <mat-step [stepControl]="step1Form">
+            <ng-template matStepLabel>Credentials</ng-template>
+            <form
+              [formGroup]="step1Form"
+              (ngSubmit)="onSubmitStep1(stepper)"
+              novalidate
+              class="mt-4"
+            >
+              <div
+                class="field"
+                [class.has-error]="
+                  step1Form.get('email')?.invalid &&
+                  step1Form.get('email')?.touched
+                "
+              >
+                <label for="email">Registered Email Address</label>
+                <div class="input-wrap">
+                  <i class="bi bi-envelope"></i>
+                  <input
+                    type="email"
+                    id="email"
+                    formControlName="email"
+                    autocomplete="email"
+                  />
+                </div>
+                @if (
+                  step1Form.get("email")?.hasError("required") &&
+                  step1Form.get("email")?.touched
+                ) {
+                  <p class="field-error">
+                    Please enter your registered email address.
+                  </p>
+                } @else if (
+                  step1Form.get("email")?.hasError("pattern") &&
+                  step1Form.get("email")?.touched
+                ) {
+                  <p class="field-error">Please enter a valid email address.</p>
+                }
               </div>
-              @if (step1Form.get('email')?.hasError('required') && step1Form.get('email')?.touched) {
-                <p class="field-error">Please enter your registered email or phone number.</p>
-              }
-            </div>
 
-            <div class="field" [class.has-error]="step1Form.get('tempPassword')?.invalid && step1Form.get('tempPassword')?.touched">
-              <label for="tempPassword">Temporary Password</label>
-              <div class="input-wrap">
-                <i class="bi bi-lock"></i>
-                <input
-                  [type]="tempPasswordVisible() ? 'text' : 'password'"
-                  id="tempPassword"
-                  formControlName="tempPassword"
-                  autocomplete="current-password"
-                />
-                <button
-                  type="button"
-                  class="toggle-pw"
-                  (click)="toggleTempPassword()"
-                  aria-label="Toggle password visibility"
-                >
-                  <i [class]="tempPasswordVisible() ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
-                </button>
+              <div
+                class="field"
+                [class.has-error]="
+                  step1Form.get('currentPassword')?.invalid &&
+                  step1Form.get('currentPassword')?.touched
+                "
+              >
+                <label for="currentPassword">Temporary Password</label>
+                <div class="input-wrap">
+                  <i class="bi bi-lock"></i>
+                  <input
+                    [type]="tempPasswordVisible() ? 'text' : 'password'"
+                    id="currentPassword"
+                    formControlName="currentPassword"
+                    autocomplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    class="toggle-pw"
+                    (click)="toggleTempPassword()"
+                    aria-label="Toggle password visibility"
+                  >
+                    <i
+                      [class]="
+                        tempPasswordVisible() ? 'bi bi-eye-slash' : 'bi bi-eye'
+                      "
+                    ></i>
+                  </button>
+                </div>
+                @if (
+                  step1Form.get("currentPassword")?.hasError("required") &&
+                  step1Form.get("currentPassword")?.touched
+                ) {
+                  <p class="field-error">Temporary password is required.</p>
+                }
               </div>
-              @if (step1Form.get('tempPassword')?.hasError('required') && step1Form.get('tempPassword')?.touched) {
-                <p class="field-error">Temporary password is required.</p>
-              }
-            </div>
 
-            <button type="submit" class="btn-signin mt-3" [class.loading]="loading()" [disabled]="loading()">
-              <span>{{ loading() ? "Verifying..." : "Verify Credentials" }}</span>
-              @if (!loading()) {
-                <i class="bi bi-arrow-right"></i>
-              }
-            </button>
-          </form>
-        </mat-step>
-
-        <!-- Step 2: Password -->
-        <mat-step [stepControl]="step2Form">
-          <ng-template matStepLabel>Password</ng-template>
-          <form [formGroup]="step2Form" (ngSubmit)="onSubmitStep2(stepper)" novalidate class="mt-4">
-            <div class="alert alert-success d-flex align-items-start gap-2 mb-4 py-2 px-3 border-0 rounded-3">
-              <i class="bi bi-patch-check-fill text-success fs-5"></i>
-              <div>
-                <strong class="text-success fs-7">Credentials Verified</strong>
-                <p class="mb-0 text-muted fs-7">Setup verified for <strong>{{ userEmail() }}</strong>. Please set a new permanent password.</p>
-              </div>
-            </div>
-
-            <div class="field" [class.has-error]="(step2Form.get('newPassword')?.invalid || step2Form.hasError('sameAsTemporary')) && step2Form.get('newPassword')?.touched">
-              <label for="newPassword">New Password</label>
-              <div class="input-wrap">
-                <i class="bi bi-key"></i>
-                <input
-                  [type]="newPasswordVisible() ? 'text' : 'password'"
-                  id="newPassword"
-                  formControlName="newPassword"
-                  autocomplete="new-password"
-                />
-                <button
-                  type="button"
-                  class="toggle-pw"
-                  (click)="toggleNewPassword()"
-                  aria-label="Toggle password visibility"
-                >
-                  <i [class]="newPasswordVisible() ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
-                </button>
-              </div>
-              @if (step2Form.get('newPassword')?.hasError('required') && step2Form.get('newPassword')?.touched) {
-                <p class="field-error">Password cannot be empty.</p>
-              } @else if (step2Form.get('newPassword')?.hasError('minlength') && step2Form.get('newPassword')?.touched) {
-                <p class="field-error">Password must be at least 8 characters long.</p>
-              } @else if (step2Form.hasError('sameAsTemporary') && step2Form.get('newPassword')?.touched) {
-                <p class="field-error">New password cannot be the same as your temporary password.</p>
-              }
-            </div>
-
-            <div class="field" [class.has-error]="(step2Form.get('confirmPassword')?.invalid || step2Form.hasError('passwordMismatch')) && step2Form.get('confirmPassword')?.touched">
-              <label for="confirmPassword">Confirm New Password</label>
-              <div class="input-wrap">
-                <i class="bi bi-shield-lock"></i>
-                <input
-                  [type]="confirmPasswordVisible() ? 'text' : 'password'"
-                  id="confirmPassword"
-                  formControlName="confirmPassword"
-                  autocomplete="new-password"
-                />
-                <button
-                  type="button"
-                  class="toggle-pw"
-                  (click)="toggleConfirmPassword()"
-                  aria-label="Toggle password visibility"
-                >
-                  <i [class]="confirmPasswordVisible() ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
-                </button>
-              </div>
-              @if (step2Form.get('confirmPassword')?.hasError('required') && step2Form.get('confirmPassword')?.touched) {
-                <p class="field-error">Please confirm your password.</p>
-              } @else if (step2Form.hasError('passwordMismatch') && step2Form.get('confirmPassword')?.touched) {
-                <p class="field-error">Passwords do not match.</p>
-              }
-            </div>
-
-            <div class="d-flex gap-3 mt-4">
-              <button type="button" class="btn-secondary" matStepperPrevious [disabled]="loading()">
-                <i class="bi bi-arrow-left"></i> Back
-              </button>
-              <button type="submit" class="btn-signin" [class.loading]="loading()" [disabled]="loading() || step2Form.invalid">
-                <span>{{ loading() ? "Updating..." : "Update Password" }}</span>
+              <button
+                type="submit"
+                class="btn-signin mt-3"
+                [class.loading]="loading()"
+                [disabled]="loading()"
+              >
+                <span>{{
+                  loading() ? "Verifying..." : "Verify & Continue"
+                }}</span>
                 @if (!loading()) {
                   <i class="bi bi-arrow-right"></i>
                 }
               </button>
-            </div>
-          </form>
-        </mat-step>
+            </form>
+          </mat-step>
 
-        <!-- Step 3: Verification -->
-        <mat-step [stepControl]="step3Form">
-          <ng-template matStepLabel>Verification</ng-template>
-          <form [formGroup]="step3Form" (ngSubmit)="onSubmitStep3()" novalidate class="mt-4">
-            <div class="alert alert-warning d-flex align-items-start gap-2 mb-4 py-2 px-3 border-0 rounded-3">
-              <i class="bi bi-shield-fill-exclamation text-warning fs-5"></i>
-              <div>
-                <strong class="text-warning fs-7">Security Verification</strong>
-                <p class="mb-0 text-muted fs-7">We've sent a 6-digit verification code to <strong>{{ userEmail() }}</strong>.</p>
+          <!-- Step 2: Password -->
+          <mat-step [stepControl]="step2Form">
+            <ng-template matStepLabel>Password</ng-template>
+            <form
+              [formGroup]="step2Form"
+              (ngSubmit)="onSubmitStep2()"
+              novalidate
+              class="mt-4"
+            >
+              <div
+                class="alert alert-success d-flex align-items-start gap-2 mb-4 py-2 px-3 border-0 rounded-3"
+              >
+                <i class="bi bi-patch-check-fill text-success fs-5"></i>
+                <div>
+                  <strong class="text-success fs-7">Almost done</strong>
+                  <p class="mb-0 text-muted fs-7">
+                    Please set a new permanent password to complete activation.
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <div class="field" [class.has-error]="step3Form.get('otp')?.invalid && step3Form.get('otp')?.touched">
-              <label for="otp">One-Time Verification Code (OTP)</label>
-              <div class="input-wrap">
-                <i class="bi bi-hash"></i>
-                <input
-                  type="text"
-                  id="otp"
-                  formControlName="otp"
-                  autocomplete="one-time-code"
-                  maxlength="6"
-                />
-              </div>
-              @if (step3Form.get('otp')?.hasError('required') && step3Form.get('otp')?.touched) {
-                <p class="field-error">Please enter the 6-digit OTP code.</p>
-              } @else if (step3Form.get('otp')?.hasError('pattern') && step3Form.get('otp')?.touched) {
-                <p class="field-error">Code must be exactly 6 digits.</p>
-              }
-            </div>
-
-            <div class="d-flex justify-content-end mb-4">
-              @if (otpResendCountdown() > 0) {
-                <span class="text-muted fs-7">Resend code in <strong>{{ otpResendCountdown() }}s</strong></span>
-              } @else {
-                <button type="button" class="btn btn-link p-0 text-gold text-decoration-none fw-semibold fs-7" (click)="resendOtp()" [disabled]="otpResending()">
-                  {{ otpResending() ? "Resending..." : "Resend Verification Code" }}
-                </button>
-              }
-            </div>
-
-            <div class="d-flex gap-3">
-              <button type="button" class="btn-secondary" matStepperPrevious [disabled]="loading()">
-                <i class="bi bi-arrow-left"></i> Back
-              </button>
-              <button type="submit" class="btn-signin" [class.loading]="loading()" [disabled]="loading() || step3Form.invalid">
-                <span>{{ loading() ? "Activating..." : "Complete Activation" }}</span>
-                @if (!loading()) {
-                  <i class="bi bi-check-circle"></i>
+              <div
+                class="field"
+                [class.has-error]="
+                  (step2Form.get('newPassword')?.invalid ||
+                    step2Form.hasError('sameAsTemporary')) &&
+                  step2Form.get('newPassword')?.touched
+                "
+              >
+                <label for="newPassword">New Password</label>
+                <div class="input-wrap">
+                  <i class="bi bi-key"></i>
+                  <input
+                    [type]="newPasswordVisible() ? 'text' : 'password'"
+                    id="newPassword"
+                    formControlName="newPassword"
+                    autocomplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    class="toggle-pw"
+                    (click)="toggleNewPassword()"
+                    aria-label="Toggle password visibility"
+                  >
+                    <i
+                      [class]="
+                        newPasswordVisible() ? 'bi bi-eye-slash' : 'bi bi-eye'
+                      "
+                    ></i>
+                  </button>
+                </div>
+                @if (
+                  step2Form.get("newPassword")?.hasError("required") &&
+                  step2Form.get("newPassword")?.touched
+                ) {
+                  <p class="field-error">Password cannot be empty.</p>
+                } @else if (
+                  step2Form.get("newPassword")?.hasError("minlength") &&
+                  step2Form.get("newPassword")?.touched
+                ) {
+                  <p class="field-error">
+                    Password must be at least 8 characters long.
+                  </p>
+                } @else if (
+                  step2Form.hasError("sameAsTemporary") &&
+                  step2Form.get("newPassword")?.touched
+                ) {
+                  <p class="field-error">
+                    New password cannot be the same as your temporary password.
+                  </p>
                 }
-              </button>
-            </div>
-          </form>
-        </mat-step>
-      </mat-stepper>
+              </div>
+
+              <div
+                class="field"
+                [class.has-error]="
+                  (step2Form.get('confirmPassword')?.invalid ||
+                    step2Form.hasError('passwordMismatch')) &&
+                  step2Form.get('confirmPassword')?.touched
+                "
+              >
+                <label for="confirmPassword">Confirm New Password</label>
+                <div class="input-wrap">
+                  <i class="bi bi-shield-lock"></i>
+                  <input
+                    [type]="confirmPasswordVisible() ? 'text' : 'password'"
+                    id="confirmPassword"
+                    formControlName="confirmPassword"
+                    autocomplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    class="toggle-pw"
+                    (click)="toggleConfirmPassword()"
+                    aria-label="Toggle password visibility"
+                  >
+                    <i
+                      [class]="
+                        confirmPasswordVisible()
+                          ? 'bi bi-eye-slash'
+                          : 'bi bi-eye'
+                      "
+                    ></i>
+                  </button>
+                </div>
+                @if (
+                  step2Form.get("confirmPassword")?.hasError("required") &&
+                  step2Form.get("confirmPassword")?.touched
+                ) {
+                  <p class="field-error">Please confirm your password.</p>
+                } @else if (
+                  step2Form.hasError("passwordMismatch") &&
+                  step2Form.get("confirmPassword")?.touched
+                ) {
+                  <p class="field-error">Passwords do not match.</p>
+                }
+              </div>
+
+              <div class="d-flex gap-3 mt-4">
+                <button
+                  type="button"
+                  class="btn-secondary"
+                  matStepperPrevious
+                  [disabled]="loading()"
+                >
+                  <i class="bi bi-arrow-left"></i> Back
+                </button>
+                <button
+                  type="submit"
+                  class="btn-signin"
+                  [class.loading]="loading()"
+                  [disabled]="loading() || step2Form.invalid"
+                >
+                  <span>{{
+                    loading() ? "Activating..." : "Complete Activation"
+                  }}</span>
+                  @if (!loading()) {
+                    <i class="bi bi-check-circle"></i>
+                  }
+                </button>
+              </div>
+            </form>
+          </mat-step>
+        </mat-stepper>
+      }
 
       <!-- Info Banner -->
       <div class="info-banner mt-4">
         <i class="bi bi-info-circle"></i>
         <p>
           <strong>Already activated?</strong>
-          <a href="/login" class="login-link"> Sign in to your store portal</a> instead.
+          <a href="/login" class="login-link"> Sign in to your store portal</a>
+          instead.
         </p>
-      </div>
-
-      <!-- Credentials Helper Panel -->
-      <div class="credentials-helper-card mt-4 p-3 rounded border bg-light-subtle">
-        <div class="d-flex align-items-center gap-2 mb-2">
-          <i class="bi bi-key-fill text-success"></i>
-          <span class="fw-bold text-dark small">Mock Activation Credentials</span>
-        </div>
-        <div class="credentials-list small">
-          <div class="credentials-item d-flex justify-content-between align-items-center py-1.5 border-bottom border-light-subtle">
-            <span class="text-muted">Pending Email:</span>
-            <div class="d-flex align-items-center gap-2">
-              <code class="text-success fw-semibold bg-light px-2 py-0.5 rounded" style="font-size: 0.8rem;">pending@example.com</code>
-              <button type="button" class="btn btn-sm btn-link p-0 text-success animate__animated" (click)="copyText('pending@example.com', 'pendingEmail')" title="Copy Email">
-                <i class="bi" [class.bi-clipboard]="copiedType() !== 'pendingEmail'" [class.bi-clipboard-check-fill]="copiedType() === 'pendingEmail'"></i>
-              </button>
-            </div>
-          </div>
-          <div class="credentials-item d-flex justify-content-between align-items-center py-1.5 border-bottom border-light-subtle">
-            <span class="text-muted">Pending Phone:</span>
-            <div class="d-flex align-items-center gap-2">
-              <code class="text-success fw-semibold bg-light px-2 py-0.5 rounded" style="font-size: 0.8rem;">+966559876543</code>
-              <button type="button" class="btn btn-sm btn-link p-0 text-success animate__animated" (click)="copyText('+966559876543', 'pendingPhone')" title="Copy Phone">
-                <i class="bi" [class.bi-clipboard]="copiedType() !== 'pendingPhone'" [class.bi-clipboard-check-fill]="copiedType() === 'pendingPhone'"></i>
-              </button>
-            </div>
-          </div>
-          <div class="credentials-item d-flex justify-content-between align-items-center py-1.5 border-bottom border-light-subtle">
-            <span class="text-muted">Temp Password:</span>
-            <div class="d-flex align-items-center gap-2">
-              <code class="text-success fw-semibold bg-light px-2 py-0.5 rounded" style="font-size: 0.8rem;">TempPass123!</code>
-              <button type="button" class="btn btn-sm btn-link p-0 text-success animate__animated" (click)="copyText('TempPass123!', 'tempPassword')" title="Copy Temp Password">
-                <i class="bi" [class.bi-clipboard]="copiedType() !== 'tempPassword'" [class.bi-clipboard-check-fill]="copiedType() === 'tempPassword'"></i>
-              </button>
-            </div>
-          </div>
-          <div class="credentials-item d-flex justify-content-between align-items-center py-1.5">
-            <span class="text-muted">OTP Code:</span>
-            <div class="d-flex align-items-center gap-2">
-              <code class="text-success fw-semibold bg-light px-2 py-0.5 rounded" style="font-size: 0.8rem;">123456</code>
-              <button type="button" class="btn btn-sm btn-link p-0 text-success animate__animated" (click)="copyText('123456', 'otpCode')" title="Copy OTP">
-                <i class="bi" [class.bi-clipboard]="copiedType() !== 'otpCode'" [class.bi-clipboard-check-fill]="copiedType() === 'otpCode'"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-        @if (copiedType()) {
-          <div class="text-success text-center small mt-2 fw-semibold animate__animated animate__fadeIn">
-            Copied!
-          </div>
-        }
       </div>
 
       <!-- Footer -->
@@ -303,11 +322,17 @@
       </div>
     </div>
   </div>
-  
+
   <!-- Fullscreen Video Splash / Intro Overlay -->
   @if (showIntroOverlay()) {
-    <div class="video-overlay-container d-flex align-items-center justify-content-center">
-      <button type="button" class="btn skip-btn d-flex align-items-center gap-1" (click)="onSkipIntro()">
+    <div
+      class="video-overlay-container d-flex align-items-center justify-content-center"
+    >
+      <button
+        type="button"
+        class="btn skip-btn d-flex align-items-center gap-1"
+        (click)="onSkipIntro()"
+      >
         Skip <i class="bi bi-skip-forward-fill"></i>
       </button>
       <div class="video-wrapper">

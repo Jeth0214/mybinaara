@@ -5,8 +5,10 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CityController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\DistrictController;
+use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\ProductUnitController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\RegionController;
 use App\Http\Controllers\Api\StaffController;
@@ -25,6 +27,9 @@ Route::get('/user', function (Request $request) {
 
 Route::post('/login', [AuthController::class, 'login']);
 
+Route::post('/forgot-password', [PasswordResetController::class, 'forgotPassword'])->middleware('throttle:3,1');
+Route::post('/reset-password', [PasswordResetController::class, 'reset']);
+
 Route::middleware(['auth:sanctum', EnsureAccountIsActive::class, EnsureVendorStoreIsActive::class])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 });
@@ -41,6 +46,11 @@ Route::get('/cities/{city}', [CityController::class, 'show']);
 Route::get('/districts', [DistrictController::class, 'index']);
 Route::get('/districts/{district}', [DistrictController::class, 'show']);
 
+Route::get('/product-units', [ProductUnitController::class, 'index']);
+Route::get('/product-units/active', [ProductUnitController::class, 'active']);
+Route::get('/product-units/{product_unit}', [ProductUnitController::class, 'show']);
+
+Route::post('/stores/activate/verify', [StoreActivationController::class, 'verify']);
 Route::post('/stores/activate', [StoreActivationController::class, 'activate']);
 Route::post('/staff/accept-invite', [StaffInvitationController::class, 'accept']);
 
@@ -50,6 +60,10 @@ Route::middleware(['auth:sanctum', EnsureAccountIsActive::class, EnsureVendorSto
     Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
     Route::patch('/categories/{category}/toggle-status', [CategoryController::class, 'toggleStatus']);
 
+    Route::post('/product-units', [ProductUnitController::class, 'store']);
+    Route::patch('/product-units/{product_unit}', [ProductUnitController::class, 'update']);
+    Route::delete('/product-units/{product_unit}', [ProductUnitController::class, 'destroy']);
+
     Route::get('/stores/me', [StoreController::class, 'me']);
     Route::get('/stores', [StoreController::class, 'index']);
     Route::get('/stores/{store}', [StoreController::class, 'show']);
@@ -57,10 +71,10 @@ Route::middleware(['auth:sanctum', EnsureAccountIsActive::class, EnsureVendorSto
     Route::patch('/stores/{store}', [StoreController::class, 'update']);
     Route::delete('/stores/{store}', [StoreController::class, 'destroy']);
     Route::patch('/stores/{store}/status', [StoreController::class, 'updateStatus']);
-    Route::patch('/stores/{store}/address', [StoreController::class, 'updateAddress']);
     Route::patch('/stores/{store}/location', [StoreController::class, 'updateLocation']);
     Route::post('/stores/{store}/logo', [StoreController::class, 'updateLogo']);
     Route::put('/stores/{store}/schedule', [StoreController::class, 'updateSchedule']);
+    Route::patch('/stores/{store}/owner', [StoreController::class, 'updateOwner']);
 
     Route::get('/staff', [StaffController::class, 'index']);
     Route::get('/staff/{staff}', [StaffController::class, 'show']);

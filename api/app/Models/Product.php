@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
-    'store_id', 'category_id', 'name', 'slug', 'description', 'sku',
+    'store_id', 'category_id', 'unit_id', 'name', 'slug', 'description', 'sku',
     'price', 'compare_at_price', 'stock_quantity', 'image_url', 'status',
     'created_by', 'updated_by',
 ])]
@@ -42,6 +42,11 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function unit(): BelongsTo
+    {
+        return $this->belongsTo(ProductUnit::class, 'unit_id');
     }
 
     public function creator(): BelongsTo

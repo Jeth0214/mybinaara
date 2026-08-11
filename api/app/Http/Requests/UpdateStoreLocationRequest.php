@@ -25,6 +25,6 @@ class UpdateStoreLocationRequest extends FormRequest
      */
     public function rules(): array
     {
-        return $this->storeLocationRules();
+        return $this->storeLocationRules(requirePresence: true);
     }
 }

@@ -5,6 +5,7 @@ import { Store } from '@ngxs/store';
 import { Subscription } from 'rxjs';
 import { AdminAuthState } from '../../../core/state/auth.state';
 import { AdminLogin, ClearAdminAuthError } from '../../../core/state/auth.actions';
+import { EMAIL_PATTERN } from '../../../core/validators/email.validator';
 
 @Component({
   selector: 'app-login',
@@ -25,7 +26,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   readonly errorMsg = signal<string | null>(null);
 
   readonly form = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
+    email: ['', [Validators.required, Validators.pattern(EMAIL_PATTERN)]],
     password: ['', [Validators.required]],
     remember: [false],
   });

@@ -18,6 +18,7 @@ export class ProductService {
     status?: ProductStatus | 'all';
     store_id?: number;
     category_id?: number;
+    unit_id?: number;
     sort?: ProductSort;
   }): Observable<PaginatedProducts> {
     let httpParams = new HttpParams();
@@ -35,6 +36,9 @@ export class ProductService {
     }
     if (params.category_id) {
       httpParams = httpParams.set('category_id', params.category_id);
+    }
+    if (params.unit_id) {
+      httpParams = httpParams.set('unit_id', params.unit_id);
     }
     if (params.sort) {
       httpParams = httpParams.set('sort', params.sort);

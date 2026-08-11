@@ -2,15 +2,18 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@ang
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Store } from '@ngxs/store';
+import { forkJoin, of } from 'rxjs';
 import { AuthState } from '../../../../../core/state/auth.state';
-import { UpdateProfile } from '../../../../../core/state/auth.actions';
+import { RefreshStore, UpdateProfile, UpdateStoreLocation } from '../../../../../core/state/auth.actions';
 import { StoreSchedule } from '../../../../../core/models/auth.model';
+import { StoreLocation } from '../../../../../core/models/store-location.model';
 import { ToastService } from '../../../../../core/services/toast.service';
+import { StoreLocationPickerComponent } from './store-location-picker/store-location-picker.component';
 
 @Component({
   selector: 'app-store-info-tab',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, StoreLocationPickerComponent],
   templateUrl: './store-info-tab.component.html',
   styleUrl: './store-info-tab.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -22,11 +25,15 @@ export class StoreInfoTabComponent implements OnInit {
 
   // State Signals
   readonly currentUser = this.store.selectSignal(AuthState.user);
-  readonly loading = this.store.selectSignal(AuthState.loading);
 
   infoForm!: FormGroup;
   logoPreview = signal<string | null>(null);
   successMessage = signal<string | null>(null);
+  readonly saving = signal(false);
+
+  /** Latest location from the map picker — kept separate from infoForm since
+   *  the picker manages its own pin/geocode state, not a form control. */
+  private pendingLocation: StoreLocation | null = null;
 
   // Days list for working hours
   readonly days: Array<{ key: 'sat' | 'sun' | 'mon' | 'tue' | 'wed' | 'thu' | 'fri'; label: string }> = [
@@ -61,6 +68,16 @@ export class StoreInfoTabComponent implements OnInit {
 
   ngOnInit(): void {
     this.initForms();
+
+    // Re-pull the store's current data on every visit to this tab — the
+    // cached session can be stale (e.g. an admin changed the schedule).
+    // Only re-populate the form if the user hasn't started editing yet, so
+    // we never clobber unsaved changes.
+    this.store.dispatch(new RefreshStore()).subscribe(() => {
+      if (this.infoForm.pristine) {
+        this.initForms();
+      }
+    });
   }
 
   private initForms(): void {
@@ -125,6 +142,10 @@ export class StoreInfoTabComponent implements OnInit {
     });
   }
 
+  onLocationChange(location: StoreLocation): void {
+    this.pendingLocation = location;
+  }
+
   onSaveInfo(): void {
     if (this.infoForm.invalid) {
       this.infoForm.markAllAsTouched();
@@ -133,22 +154,24 @@ export class StoreInfoTabComponent implements OnInit {
 
     const val = this.infoForm.getRawValue();
 
-    const payload = {
-      storeName: val.storeName,
-      logoUrl: this.logoPreview() || undefined,
-      city: val.city,
-      phone: val.phone,
-      whatsapp: val.whatsapp,
-      workingHours: val.workingHours as StoreSchedule,
-    };
+    // Store name, phone, whatsapp, business/certificate IDs are shown
+    // read-only on this tab (disabled controls above) — only working hours
+    // and the map location are actually editable and persisted here, both
+    // saved together so there's a single, reliable "Save changes" action.
+    this.saving.set(true);
 
-    this.store.dispatch(new UpdateProfile(payload)).subscribe({
+    forkJoin([
+      this.store.dispatch(new UpdateProfile({ workingHours: val.workingHours as StoreSchedule })),
+      this.pendingLocation ? this.store.dispatch(new UpdateStoreLocation(this.pendingLocation)) : of(null),
+    ]).subscribe({
       next: () => {
+        this.saving.set(false);
         this.toastService.success('Store profile updated successfully.');
       },
       error: (err) => {
-        console.error('Failed to update profile:', err);
-        this.toastService.error(err?.message || 'Failed to update profile.');
+        this.saving.set(false);
+        console.error('Failed to update store profile:', err);
+        this.toastService.error(err?.message || 'Failed to update store profile.');
       }
     });
   }

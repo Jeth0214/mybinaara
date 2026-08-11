@@ -15,8 +15,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 #[Fillable([
     'name', 'cr_number', 'vat_number', 'status', 'is_activated', 'activated_at', 'logo_url', 'rejection_reason', 'created_by',
-    'full_address', 'building_number', 'street_name', 'district', 'district_id', 'city', 'city_id',
-    'postal_code', 'additional_number', 'country', 'latitude', 'longitude', 'plus_code',
+    'latitude', 'longitude', 'city', 'formatted_address',
 ])]
 class Store extends Model
 {
@@ -51,16 +50,6 @@ class Store extends Model
     public function activationTokens(): HasMany
     {
         return $this->hasMany(StoreActivationToken::class);
-    }
-
-    public function cityRef(): BelongsTo
-    {
-        return $this->belongsTo(City::class, 'city_id');
-    }
-
-    public function districtRef(): BelongsTo
-    {
-        return $this->belongsTo(District::class, 'district_id');
     }
 
     public function schedules(): HasMany

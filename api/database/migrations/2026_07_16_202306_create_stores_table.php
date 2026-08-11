@@ -17,8 +17,13 @@ return new class extends Migration
             $table->string('vat_number', 15)->unique();
             $table->string('status')->default('pending');
             $table->boolean('is_activated')->default(false);
+            $table->timestamp('activated_at')->nullable();
             $table->string('logo_url', 2048)->nullable();
             $table->string('rejection_reason', 500)->nullable();
+            $table->string('city', 150)->nullable();
+            $table->string('formatted_address', 500)->nullable();
+            $table->decimal('latitude', 9, 6)->nullable();
+            $table->decimal('longitude', 9, 6)->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
 

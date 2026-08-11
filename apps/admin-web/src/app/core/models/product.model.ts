@@ -11,6 +11,12 @@ export interface ProductCategoryRef {
   slug: string;
 }
 
+export interface ProductUnitRef {
+  id: number;
+  name: string;
+  abbreviation: string | null;
+}
+
 export interface ProductActorRef {
   id: number;
   name: string;
@@ -30,6 +36,7 @@ export interface Product {
   status: ProductStatus;
   store: ProductStoreRef;
   category: ProductCategoryRef | null;
+  unit: ProductUnitRef | null;
   created_by: ProductActorRef | null;
   updated_by: ProductActorRef | null;
   created_at: string | null;

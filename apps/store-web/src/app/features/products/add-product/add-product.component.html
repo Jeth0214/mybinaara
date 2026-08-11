@@ -1,259 +1,208 @@
 <div class="container py-4" style="max-width: 1200px;">
 
-  <!-- CASE 1: BLOCKED (Subscription limit reached - only for ADD mode) -->
-  @if (isLimitReached() && !isEditMode()) {
-    <div class="card border border-light-subtle shadow-sm p-5 text-center mx-auto animate__animated animate__fadeIn" style="max-width: 600px; margin-top: 4rem;">
-      <div class="blocker-icon-circle mb-4">
-        <i class="bi bi-lock-fill"></i>
-      </div>
-      <h2 class="h4 font-weight-bold text-dark mb-2">Product Limit Reached</h2>
-      <p class="text-muted mb-4 fs-6">
-        You have listed the maximum of <strong>{{ productsLimit() }}</strong> products.<br>
-        Remove or update existing products to add new ones.
+  <!-- Page Header -->
+  <div class="d-md-flex justify-content-between align-items-center mb-4 pb-2">
+    <div>
+      <h1 class="h3 font-weight-bold text-dark mb-1">{{ isEditMode() ? 'Edit Product Details' : 'Add New Product' }}</h1>
+      <p class="text-muted small mb-0">
+        {{ isEditMode() ? 'Update the details and stock metrics of your product listing.' : 'Create a new building material listing for your store.' }}
       </p>
-      <div class="d-flex justify-content-center gap-3">
-        <a class="btn btn-outline-success font-weight-bold px-4 py-2 border" [routerLink]="['/products']">
-          Back to Products
-        </a>
-      </div>
+    </div>
+    <div>
+      <a
+        class="btn btn-outline-success font-weight-bold px-4 py-2 border d-flex mt-4 mt-md-0 align-items-center gap-2"
+        [routerLink]="loading() || fetching() ? null : ['/products']"
+        [class.disabled]="loading() || fetching()"
+        [style.pointer-events]="loading() || fetching() ? 'none' : 'auto'"
+      >
+        <i class="bi bi-list-ul"></i> View Products
+      </a>
+    </div>
+  </div>
+
+  @if (fetching()) {
+    <div class="text-center py-5">
+      <span class="spinner-border text-success" role="status" aria-hidden="true" style="width: 3rem; height: 3rem;"></span>
+      <p class="text-muted mt-3 font-weight-bold">Loading product details...</p>
     </div>
   } @else {
+    <!-- Form & Media Container -->
+    <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="row g-4">
 
-    <!-- Page Header -->
-    <div class="d-md-flex justify-content-between align-items-center mb-4 pb-2">
-      <div>
-        <h1 class="h3 font-weight-bold text-dark mb-1">{{ isEditMode() ? 'Edit Product Details' : 'Add New Product' }}</h1>
-        <p class="text-muted small mb-0">
-          {{ isEditMode() ? 'Update the details and stock metrics of your product listing.' : 'Create a new building material listing for your store.' }}
-        </p>
-      </div>
-      <div>
-        <a 
-          class="btn btn-outline-success font-weight-bold px-4 py-2 border d-flex mt-4 mt-md-0 align-items-center gap-2"
-          [routerLink]="loading() || fetching() ? null : ['/products']"
-          [class.disabled]="loading() || fetching()"
-          [style.pointer-events]="loading() || fetching() ? 'none' : 'auto'"
-        >
-          <i class="bi bi-list-ul"></i> View Products
-        </a>
-      </div>
-    </div>
+      <!-- Left: Details Form -->
+      <div class="col-lg-7 d-flex flex-column gap-4">
 
-    @if (fetching()) {
-      <div class="text-center py-5">
-        <span class="spinner-border text-success" role="status" aria-hidden="true" style="width: 3rem; height: 3rem;"></span>
-        <p class="text-muted mt-3 font-weight-bold">Loading product details...</p>
-      </div>
-    } @else {
-      <!-- Form & Media Container -->
-      <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="row g-4">
-        
-        <!-- Left: Details Form -->
-        <div class="col-lg-7 d-flex flex-column gap-4">
-          
-          <!-- Card 1: Product info -->
-          <div class="card p-4 border shadow-sm">
-            <!-- Product Name -->
-            <div class="mb-3">
-              <label class="form-label font-weight-bold">Product name *</label>
-              <input 
-                type="text" 
-                class="form-control" 
-                formControlName="name"
-                [class.is-invalid]="productForm.get('name')?.touched && productForm.get('name')?.invalid"
-              />
-              @if (productForm.get('name')?.touched && productForm.get('name')?.invalid) {
-                <div class="text-danger small mt-1">Product name is required.</div>
-              }
-            </div>
-
-            <!-- Category & Brand -->
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label class="form-label font-weight-bold">Category *</label>
-                <select 
-                  class="form-select" 
-                  formControlName="category"
-                  [class.is-invalid]="productForm.get('category')?.touched && productForm.get('category')?.invalid"
-                  (change)="onCategoryChange()"
-                >
-                  <option value="" disabled>Select category...</option>
-                  @for (cat of categories; track cat.name) {
-                    <option [value]="cat.name">{{ cat.name }}</option>
-                  }
-                </select>
-                @if (productForm.get('category')?.touched && productForm.get('category')?.invalid) {
-                  <div class="text-danger small mt-1">Category is required.</div>
-                }
-              </div>
-              <div class="col-md-6 mb-3">
-                <label class="form-label font-weight-bold">Brand *</label>
-                <input 
-                  type="text" 
-                  class="form-control" 
-                  formControlName="brand"
-                  [class.is-invalid]="productForm.get('brand')?.touched && productForm.get('brand')?.invalid"
-                />
-                @if (productForm.get('brand')?.touched && productForm.get('brand')?.invalid) {
-                  <div class="text-danger small mt-1">Brand is required.</div>
-                }
-              </div>
-            </div>
-          </div>
-
-          <!-- Card 2: Pricing & Stock -->
-          <div class="card p-4 border shadow-sm">
-            <h3 class="h6 font-weight-bold text-dark border-bottom pb-2 mb-3">Pricing & stock</h3>
-
-            <!-- Price and Unit -->
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label class="form-label font-weight-bold">Price (SAR) *</label>
-                <div class="input-group">
-                  <input 
-                    type="number" 
-                    step="0.01" 
-                    class="form-control" 
-                    formControlName="price"
-                    [class.is-invalid]="productForm.get('price')?.touched && productForm.get('price')?.invalid"
-                  />
-                  <span class="input-group-text bg-white text-muted">SAR</span>
-                </div>
-                @if (productForm.get('price')?.touched && productForm.get('price')?.invalid) {
-                  <div class="text-danger small mt-1">Price must be a positive number.</div>
-                }
-              </div>
-              <div class="col-md-6 mb-3">
-                <label class="form-label font-weight-bold">Unit *</label>
-                <select 
-                  class="form-select" 
-                  formControlName="unit"
-                  [class.is-invalid]="productForm.get('unit')?.touched && productForm.get('unit')?.invalid"
-                >
-                  <option value="per bag">per bag</option>
-                  <option value="per ton">per ton</option>
-                  <option value="per unit">per unit</option>
-                  <option value="per piece">per piece</option>
-                  <option value="per pack">per pack</option>
-                  <option value="per block">per block</option>
-                  <option value="per meter">per meter</option>
-                </select>
-                @if (productForm.get('unit')?.touched && productForm.get('unit')?.invalid) {
-                  <div class="text-danger small mt-1">Unit is required.</div>
-                }
-              </div>
-            </div>
-
-            <!-- Stock Quantity -->
-            <div class="mb-3">
-              <label class="form-label font-weight-bold">Stock quantity *</label>
-              <div class="input-group">
-                <input 
-                  type="number" 
-                  class="form-control" 
-                  formControlName="stock"
-                  [class.is-invalid]="productForm.get('stock')?.touched && productForm.get('stock')?.invalid"
-                />
-                <span class="input-group-text bg-white text-muted">units</span>
-              </div>
-              @if (productForm.get('stock')?.touched && productForm.get('stock')?.invalid) {
-                <div class="text-danger small mt-1">Stock must be a non-negative integer.</div>
-              }
-            </div>
-
-
-            <!-- Available Toggle Switch -->
-            <div class="p-3 bg-light rounded border d-flex justify-content-between align-items-center mt-3">
-              <div>
-                <h4 class="h6 mb-0 font-weight-bold text-dark">Available for customers</h4>
-                <p class="small text-muted mb-0">Toggle off to hide this product temporarily</p>
-              </div>
-              <div class="form-check form-switch mb-0">
-                <input 
-                  class="form-check-input" 
-                  type="checkbox" 
-                  role="switch" 
-                  style="width: 2.5rem; height: 1.25rem; cursor: pointer;"
-                  [checked]="productForm.get('status')?.value !== 'Unavailable'"
-                  (change)="productForm.get('status')?.setValue($any($event.target).checked ? 'Available' : 'Unavailable')"
-                />
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        <!-- Right: Media & Description Section -->
-        <div class="col-lg-5 d-flex flex-column gap-4">
-          
-          <!-- Product Image Card -->
-          <div class="card p-4 border shadow-sm text-center">
-            <h3 class="h6 font-weight-bold text-dark text-start mb-3">Product image</h3>
-
-            @if (selectedImage()) {
-              <!-- Preview of Selected Image -->
-              <div class="preview-container">
-                <div class="preview-img-box animate__animated animate__zoomIn">
-                  <img [src]="selectedImage()" alt="Product image preview" />
-                </div>
-                <button 
-                  type="button" 
-                  class="btn-remove-preview mt-2"
-                  (click)="removeSelectedImage()"
-                  [disabled]="loading()"
-                >
-                  <i class="bi bi-trash"></i> Remove Image
-                </button>
-              </div>
-            } @else {
-              <!-- Upload Simulation box -->
-              <div class="image-upload-box py-4" (click)="simulateUpload()">
-                <i class="bi bi-cloud-arrow-up upload-icon fs-2 text-success mb-2"></i>
-                <div class="upload-title font-weight-bold">Upload image</div>
-                <p class="upload-desc text-muted small mb-0">PNG, JPG up to 2MB</p>
-              </div>
+        <!-- Card 1: Product info -->
+        <div class="card p-4 border shadow-sm">
+          <!-- Product Name -->
+          <div class="mb-3">
+            <label class="form-label font-weight-bold">Product name *</label>
+            <input
+              type="text"
+              class="form-control"
+              formControlName="name"
+              [class.is-invalid]="productForm.get('name')?.touched && productForm.get('name')?.invalid"
+            />
+            @if (productForm.get('name')?.touched && productForm.get('name')?.invalid) {
+              <div class="text-danger small mt-1">Product name is required (max 150 characters).</div>
             }
           </div>
 
-          <!-- Description Card -->
-          <div class="card p-4 border shadow-sm">
-            <h3 class="h6 font-weight-bold text-dark mb-3">Description</h3>
-            <div class="mb-3">
-              <textarea 
-                class="form-control" 
-                rows="5"
-                formControlName="description"
-                [class.is-invalid]="productForm.get('description')?.touched && productForm.get('description')?.invalid"
-              ></textarea>
-              @if (productForm.get('description')?.touched && productForm.get('description')?.invalid) {
-                <div class="text-danger small mt-1">Description is required.</div>
+          <!-- Category & Unit -->
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label font-weight-bold">Category</label>
+              <select class="form-select" formControlName="category_id">
+                <option [ngValue]="null">No category</option>
+                @for (cat of categories(); track cat.id) {
+                  <option [ngValue]="cat.id">{{ cat.name }}</option>
+                }
+              </select>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label font-weight-bold">Unit</label>
+              <select class="form-select" formControlName="unit_id">
+                <option [ngValue]="null">No unit</option>
+                @for (unit of units(); track unit.id) {
+                  <option [ngValue]="unit.id">{{ unit.name }}{{ unit.abbreviation ? ' (' + unit.abbreviation + ')' : '' }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <!-- SKU -->
+          <div class="mb-3">
+            <label class="form-label font-weight-bold">SKU</label>
+            <input type="text" class="form-control" formControlName="sku" />
+          </div>
+        </div>
+
+        <!-- Card 2: Pricing & Stock -->
+        <div class="card p-4 border shadow-sm">
+          <h3 class="h6 font-weight-bold text-dark border-bottom pb-2 mb-3">Pricing & stock</h3>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label font-weight-bold">Price (SAR) *</label>
+              <div class="input-group">
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  class="form-control"
+                  formControlName="price"
+                  [class.is-invalid]="productForm.get('price')?.touched && productForm.get('price')?.invalid"
+                />
+                <span class="input-group-text bg-white text-muted">SAR</span>
+              </div>
+              @if (productForm.get('price')?.touched && productForm.get('price')?.invalid) {
+                <div class="text-danger small mt-1">Price must be a positive number.</div>
+              }
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label font-weight-bold">Compare-at Price (SAR)</label>
+              <div class="input-group">
+                <input type="number" step="0.01" min="0" class="form-control" formControlName="compare_at_price" />
+                <span class="input-group-text bg-white text-muted">SAR</span>
+              </div>
+              @if (productForm.get('compare_at_price')?.touched && productForm.get('compare_at_price')?.hasError('gtPrice')) {
+                <div class="text-danger small mt-1">Compare-at price must be greater than the price.</div>
               }
             </div>
           </div>
 
-          <!-- Action Buttons Row -->
-          <div class="d-flex justify-content-end gap-3 mt-2">
-            <a class="btn btn-light px-4 py-2 font-weight-bold border" [routerLink]="['/products']" [class.disabled]="loading()">
-              Cancel
-            </a>
-            <button 
-              type="submit" 
-              class="btn btn-success px-4 py-2 text-white font-weight-bold d-flex align-items-center gap-2"
-              [disabled]="productForm.invalid || loading()"
-            >
-              @if (loading()) {
-                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                Saving...
-              } @else {
-                Save product <i class="bi bi-arrow-right"></i>
-              }
-            </button>
+          <!-- Stock Quantity -->
+          <div class="mb-3">
+            <label class="form-label font-weight-bold">Stock quantity *</label>
+            <div class="input-group">
+              <input
+                type="number"
+                min="0"
+                class="form-control"
+                formControlName="stock_quantity"
+                [class.is-invalid]="productForm.get('stock_quantity')?.touched && productForm.get('stock_quantity')?.invalid"
+              />
+              <span class="input-group-text bg-white text-muted">units</span>
+            </div>
+            @if (productForm.get('stock_quantity')?.touched && productForm.get('stock_quantity')?.invalid) {
+              <div class="text-danger small mt-1">Stock must be a non-negative integer.</div>
+            }
           </div>
+        </div>
+      </div>
 
+      <!-- Right: Media & Description Section -->
+      <div class="col-lg-5 d-flex flex-column gap-4">
+
+        <!-- Product Image Card -->
+        <div class="card p-4 border shadow-sm text-center">
+          <h3 class="h6 font-weight-bold text-dark text-start mb-3">Product image {{ isEditMode() ? '' : '*' }}</h3>
+
+          @if (imagePreviewUrl(); as preview) {
+            <div class="preview-container">
+              <div class="preview-img-box">
+                <img [src]="preview" alt="Product image preview" />
+              </div>
+              <div class="d-flex justify-content-center gap-2 mt-2">
+                <input #prodImageFileInput type="file" class="d-none" accept="image/*" (change)="onImageSelect($event)" />
+                <button type="button" class="btn btn-sm btn-outline-success" (click)="prodImageFileInput.click()">
+                  <i class="bi bi-pencil-square"></i> Change Image
+                </button>
+              </div>
+            </div>
+          } @else {
+            <div class="image-upload-box py-4" (click)="prodImageFileInput.click()">
+              <input #prodImageFileInput type="file" class="d-none" accept="image/*" (change)="onImageSelect($event)" />
+              <i class="bi bi-cloud-arrow-up upload-icon fs-2 text-success mb-2"></i>
+              <div class="upload-title font-weight-bold">Upload image</div>
+              <p class="upload-desc text-muted small mb-0">PNG, JPG, WEBP. Min: 300x300px. Max: 2MB.</p>
+            </div>
+          }
+
+          @if (imageError(); as err) {
+            <div class="alert alert-danger d-flex align-items-center gap-2 py-2 px-3 mt-2 small border-0">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              <span>{{ err }}</span>
+            </div>
+          }
         </div>
 
-      </form>
-    }
+        <!-- Description Card -->
+        <div class="card p-4 border shadow-sm">
+          <h3 class="h6 font-weight-bold text-dark mb-3">Description</h3>
+          <div class="mb-3">
+            <textarea
+              class="form-control"
+              rows="5"
+              formControlName="description"
+              [class.is-invalid]="productForm.get('description')?.touched && productForm.get('description')?.invalid"
+            ></textarea>
+            @if (productForm.get('description')?.touched && productForm.get('description')?.invalid) {
+              <div class="text-danger small mt-1">Description must be under 2000 characters.</div>
+            }
+          </div>
+        </div>
 
+        <!-- Action Buttons Row -->
+        <div class="d-flex justify-content-end gap-3 mt-2">
+          <a class="btn btn-light px-4 py-2 font-weight-bold border" [routerLink]="['/products']" [class.disabled]="loading()">
+            Cancel
+          </a>
+          <button
+            type="submit"
+            class="btn btn-success px-4 py-2 text-white font-weight-bold d-flex align-items-center gap-2"
+            [disabled]="productForm.invalid || loading()"
+          >
+            @if (loading()) {
+              <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+              Saving...
+            } @else {
+              Save product <i class="bi bi-arrow-right"></i>
+            }
+          </button>
+        </div>
+      </div>
+
+    </form>
   }
 </div>

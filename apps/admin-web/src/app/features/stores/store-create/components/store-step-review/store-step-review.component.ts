@@ -1,6 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal, OnDestroy } from '@angular/core';
 import { MatStepperModule } from '@angular/material/stepper';
-import { AddressService } from '../../../../../core/services/address.service';
 
 @Component({
   selector: 'app-store-step-review',
@@ -10,8 +9,6 @@ import { AddressService } from '../../../../../core/services/address.service';
   templateUrl: './store-step-review.component.html'
 })
 export class StoreStepReviewComponent implements OnDestroy {
-  private readonly addressService = inject(AddressService);
-
   readonly step1 = input.required<any>();
   readonly step2 = input.required<any>();
   readonly step3 = input.required<any>();
@@ -26,22 +23,9 @@ export class StoreStepReviewComponent implements OnDestroy {
   readonly logoPreviewUrl = signal<string | null>(null);
   private previousObjectUrl: string | null = null;
 
-  readonly cityName = computed(() => {
-    const cityId = this.step2()?.location?.city_id;
-    if (!cityId) return null;
+  readonly city = computed<string | null>(() => this.step2()?.location?.city || null);
 
-    return this.addressService.getCities().find((c) => c.city_id === cityId)?.name_en ?? null;
-  });
-
-  readonly districtName = computed(() => {
-    const cityId = this.step2()?.location?.city_id;
-    const districtId = this.step2()?.location?.district_id;
-    if (!cityId || !districtId) return null;
-
-    return this.addressService.getDistrictsByCity(cityId).find((d) => d.district_id === districtId)?.name_en ?? null;
-  });
-
-  readonly fullAddress = computed<string | null>(() => this.step2()?.location?.full_address || null);
+  readonly formattedAddress = computed<string | null>(() => this.step2()?.location?.formatted_address || null);
 
   constructor() {
     effect(() => {

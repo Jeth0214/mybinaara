@@ -23,12 +23,15 @@ class StoreActivationTest extends TestCase
 
     private const TEMP_PASSWORD = 'TempPass123!';
 
+    private const OWNER_EMAIL = 'owner@example.com';
+
     public function test_owner_can_activate_with_valid_token_and_temp_password(): void
     {
         $store = $this->createPendingStore();
 
         $response = $this->postJson('/api/stores/activate', [
             'token' => self::RAW_TOKEN,
+            'email' => self::OWNER_EMAIL,
             'current_password' => self::TEMP_PASSWORD,
             'new_password' => 'BrandNewPass456!',
             'new_password_confirmation' => 'BrandNewPass456!',
@@ -50,7 +53,23 @@ class StoreActivationTest extends TestCase
 
         $response = $this->postJson('/api/stores/activate', [
             'token' => self::RAW_TOKEN,
+            'email' => self::OWNER_EMAIL,
             'current_password' => 'wrong-password',
+            'new_password' => 'BrandNewPass456!',
+            'new_password_confirmation' => 'BrandNewPass456!',
+        ]);
+
+        $response->assertStatus(401);
+    }
+
+    public function test_activation_fails_with_wrong_email(): void
+    {
+        $this->createPendingStore();
+
+        $response = $this->postJson('/api/stores/activate', [
+            'token' => self::RAW_TOKEN,
+            'email' => 'not-the-owner@example.com',
+            'current_password' => self::TEMP_PASSWORD,
             'new_password' => 'BrandNewPass456!',
             'new_password_confirmation' => 'BrandNewPass456!',
         ]);
@@ -64,6 +83,7 @@ class StoreActivationTest extends TestCase
 
         $response = $this->postJson('/api/stores/activate', [
             'token' => 'not-a-real-token',
+            'email' => self::OWNER_EMAIL,
             'current_password' => self::TEMP_PASSWORD,
             'new_password' => 'BrandNewPass456!',
             'new_password_confirmation' => 'BrandNewPass456!',
@@ -78,6 +98,7 @@ class StoreActivationTest extends TestCase
 
         $response = $this->postJson('/api/stores/activate', [
             'token' => self::RAW_TOKEN,
+            'email' => self::OWNER_EMAIL,
             'current_password' => self::TEMP_PASSWORD,
             'new_password' => 'BrandNewPass456!',
             'new_password_confirmation' => 'BrandNewPass456!',
@@ -96,6 +117,7 @@ class StoreActivationTest extends TestCase
 
         $response = $this->postJson('/api/stores/activate', [
             'token' => self::RAW_TOKEN,
+            'email' => self::OWNER_EMAIL,
             'current_password' => self::TEMP_PASSWORD,
             'new_password' => 'BrandNewPass456!',
             'new_password_confirmation' => 'BrandNewPass456!',
@@ -115,6 +137,7 @@ class StoreActivationTest extends TestCase
 
         $response = $this->postJson('/api/stores/activate', [
             'token' => self::RAW_TOKEN,
+            'email' => self::OWNER_EMAIL,
             'current_password' => self::TEMP_PASSWORD,
             'new_password' => 'BrandNewPass456!',
             'new_password_confirmation' => 'BrandNewPass456!',
@@ -129,9 +152,120 @@ class StoreActivationTest extends TestCase
 
         $response = $this->postJson('/api/stores/activate', [
             'token' => self::RAW_TOKEN,
+            'email' => self::OWNER_EMAIL,
             'current_password' => self::TEMP_PASSWORD,
             'new_password' => 'BrandNewPass456!',
             'new_password_confirmation' => 'BrandNewPass456!',
+        ]);
+
+        $response->assertStatus(403);
+    }
+
+    public function test_owner_can_verify_credentials_with_valid_token(): void
+    {
+        $store = $this->createPendingStore();
+
+        $response = $this->postJson('/api/stores/activate/verify', [
+            'token' => self::RAW_TOKEN,
+            'email' => self::OWNER_EMAIL,
+            'current_password' => self::TEMP_PASSWORD,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('verified', true)
+            ->assertJsonPath('store_name', $store->name);
+
+        // Verifying must not mutate anything: the store is still pending/unactivated.
+        $this->assertDatabaseHas('stores', ['id' => $store->id, 'is_activated' => 0]);
+        $this->assertSame(0, StoreActivationToken::query()->whereNotNull('verified_at')->count());
+    }
+
+    public function test_verify_fails_with_wrong_temporary_password(): void
+    {
+        $this->createPendingStore();
+
+        $response = $this->postJson('/api/stores/activate/verify', [
+            'token' => self::RAW_TOKEN,
+            'email' => self::OWNER_EMAIL,
+            'current_password' => 'wrong-password',
+        ]);
+
+        $response->assertStatus(401);
+    }
+
+    public function test_verify_fails_with_wrong_email(): void
+    {
+        $this->createPendingStore();
+
+        $response = $this->postJson('/api/stores/activate/verify', [
+            'token' => self::RAW_TOKEN,
+            'email' => 'not-the-owner@example.com',
+            'current_password' => self::TEMP_PASSWORD,
+        ]);
+
+        $response->assertStatus(401);
+    }
+
+    public function test_verify_fails_with_invalid_token(): void
+    {
+        $this->createPendingStore();
+
+        $response = $this->postJson('/api/stores/activate/verify', [
+            'token' => 'not-a-real-token',
+            'email' => self::OWNER_EMAIL,
+            'current_password' => self::TEMP_PASSWORD,
+        ]);
+
+        $response->assertStatus(404);
+    }
+
+    public function test_verify_fails_with_expired_token(): void
+    {
+        $this->createPendingStore(expiresAt: now()->subDay());
+
+        $response = $this->postJson('/api/stores/activate/verify', [
+            'token' => self::RAW_TOKEN,
+            'email' => self::OWNER_EMAIL,
+            'current_password' => self::TEMP_PASSWORD,
+        ]);
+
+        $response->assertStatus(410);
+    }
+
+    public function test_verify_fails_for_an_already_activated_store(): void
+    {
+        $this->createPendingStore(status: StoreStatus::Active, isActivated: true, tokenVerified: true);
+
+        $response = $this->postJson('/api/stores/activate/verify', [
+            'token' => self::RAW_TOKEN,
+            'email' => self::OWNER_EMAIL,
+            'current_password' => self::TEMP_PASSWORD,
+        ]);
+
+        $response->assertStatus(409);
+    }
+
+    public function test_verify_fails_for_a_suspended_store(): void
+    {
+        $this->createPendingStore(status: StoreStatus::Suspended);
+
+        $response = $this->postJson('/api/stores/activate/verify', [
+            'token' => self::RAW_TOKEN,
+            'email' => self::OWNER_EMAIL,
+            'current_password' => self::TEMP_PASSWORD,
+        ]);
+
+        $response->assertStatus(403);
+    }
+
+    public function test_verify_fails_for_a_rejected_store(): void
+    {
+        $this->createPendingStore(status: StoreStatus::Rejected);
+
+        $response = $this->postJson('/api/stores/activate/verify', [
+            'token' => self::RAW_TOKEN,
+            'email' => self::OWNER_EMAIL,
+            'current_password' => self::TEMP_PASSWORD,
         ]);
 
         $response->assertStatus(403);
@@ -146,6 +280,7 @@ class StoreActivationTest extends TestCase
         $owner = User::factory()->create([
             'user_type' => UserType::StoreOwner,
             'status' => UserStatus::Active,
+            'email' => self::OWNER_EMAIL,
             'password' => self::TEMP_PASSWORD,
         ]);
 

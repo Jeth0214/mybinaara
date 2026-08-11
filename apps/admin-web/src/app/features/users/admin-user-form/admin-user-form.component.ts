@@ -9,6 +9,7 @@ import { ToastService } from '../../../core/services/toast.service';
 import { CreateStaffPayload, StaffMember, StaffRole, UpdateStaffPayload } from '../../../core/models/staff.model';
 import { AdminAuthState } from '../../../core/state/auth.state';
 import { SAUDI_PHONE_PATTERN } from '../../../core/validators/phone.validator';
+import { EMAIL_PATTERN } from '../../../core/validators/email.validator';
 
 @Component({
   selector: 'app-admin-user-form',
@@ -51,7 +52,7 @@ export class AdminUserFormComponent implements OnInit, OnDestroy {
 
   readonly form = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(3)]],
-    email: ['', [Validators.required, Validators.email]],
+    email: ['', [Validators.required, Validators.pattern(EMAIL_PATTERN)]],
     phone: ['', [Validators.required, Validators.maxLength(13), Validators.pattern(SAUDI_PHONE_PATTERN)]],
     whatsapp: ['', [Validators.required, Validators.maxLength(13), Validators.pattern(SAUDI_PHONE_PATTERN)]],
     roleTier: ['staff' as StaffRole, [Validators.required]],

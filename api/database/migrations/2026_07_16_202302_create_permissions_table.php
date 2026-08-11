@@ -13,6 +13,8 @@ return new class extends Migration
         Schema::create('permissions', function (Blueprint $table) {
             $table->id();
             $table->string('key', 100)->unique();
+            $table->string('category', 50);
+            $table->string('label', 100);
             $table->timestamps();
         });
     }

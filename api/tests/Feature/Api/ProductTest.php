@@ -10,6 +10,7 @@ use App\Enums\UserType;
 use App\Models\Category;
 use App\Models\Permission;
 use App\Models\Product;
+use App\Models\ProductUnit;
 use App\Models\Store;
 use App\Models\User;
 use Database\Seeders\PermissionSeeder;
@@ -153,6 +154,33 @@ class ProductTest extends TestCase
             ->post('/api/products', $this->validPayload(['category_id' => 999999]))
             ->assertStatus(422)
             ->assertJsonValidationErrors(['category_id']);
+    }
+
+    public function test_creating_product_with_unit_persists_and_returns_nested_unit(): void
+    {
+        $store = Store::factory()->active()->create();
+        $owner = $this->ownerFor($store);
+        $unit = ProductUnit::factory()->create(['name' => 'Bag', 'abbreviation' => 'bag']);
+
+        $response = $this->actingAs($owner, 'sanctum')
+            ->post('/api/products', $this->validPayload(['unit_id' => $unit->id]));
+
+        $response->assertStatus(201)
+            ->assertJsonPath('data.unit.id', $unit->id)
+            ->assertJsonPath('data.unit.name', 'Bag')
+            ->assertJsonPath('data.unit.abbreviation', 'bag');
+        $this->assertDatabaseHas('products', ['unit_id' => $unit->id]);
+    }
+
+    public function test_creating_product_validates_unit_existence(): void
+    {
+        $store = Store::factory()->active()->create();
+        $owner = $this->ownerFor($store);
+
+        $this->actingAs($owner, 'sanctum')
+            ->post('/api/products', $this->validPayload(['unit_id' => 999999]))
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['unit_id']);
     }
 
     public function test_admin_with_products_create_can_create_product_for_any_store(): void
@@ -368,6 +396,19 @@ class ProductTest extends TestCase
 
         $this->actingAs($admin, 'sanctum')
             ->getJson("/api/products?category_id={$category->id}&status=active")
+            ->assertOk()
+            ->assertJsonCount(1, 'data');
+    }
+
+    public function test_products_can_be_filtered_by_unit(): void
+    {
+        $unit = ProductUnit::factory()->create();
+        Product::factory()->create(['unit_id' => $unit->id]);
+        Product::factory()->create();
+        $admin = $this->adminWithPermissions(['products.view']);
+
+        $this->actingAs($admin, 'sanctum')
+            ->getJson("/api/products?unit_id={$unit->id}")
             ->assertOk()
             ->assertJsonCount(1, 'data');
     }

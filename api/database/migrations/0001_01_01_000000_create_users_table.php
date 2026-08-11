@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('user_type');
+            $table->foreignId('role_id')->nullable()->constrained('roles')->nullOnDelete();
             $table->string('name');
             $table->string('email')->unique();
             $table->string('phone', 13);
@@ -21,6 +22,9 @@ return new class extends Migration
             $table->string('password');
             $table->string('avatar_url', 2048)->nullable();
             $table->string('status')->default('active');
+            $table->unsignedInteger('failed_login_attempts')->default(0);
+            $table->timestamp('locked_until')->nullable();
+            $table->boolean('requires_admin_unlock')->default(false);
             $table->timestamp('email_verified_at')->nullable();
             $table->timestamp('last_login_at')->nullable();
             $table->rememberToken();

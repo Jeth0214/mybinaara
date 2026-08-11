@@ -85,6 +85,12 @@
           <div class="fs-7-5 fw-medium text-dark">{{ prod.category?.name || 'Uncategorized' }}</div>
         </div>
         <div class="col-md-4">
+          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">Unit</div>
+          <div class="fs-7-5 fw-medium text-dark">
+            {{ prod.unit ? prod.unit.name + (prod.unit.abbreviation ? ' (' + prod.unit.abbreviation + ')' : '') : '—' }}
+          </div>
+        </div>
+        <div class="col-md-4">
           <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">Store</div>
           <div class="fs-7-5 fw-medium text-dark">{{ prod.store.name }}</div>
         </div>

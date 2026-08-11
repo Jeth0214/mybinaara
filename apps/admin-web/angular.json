@@ -38,10 +38,15 @@
                 "glob": "**/*",
                 "input": "../../lib/shared-assets/images/category-icons",
                 "output": "/images/category-icons"
+              },
+              {
+                "glob": "mapbox-gl-csp-worker.js",
+                "input": "../../node_modules/mapbox-gl/dist"
               }
             ],
             "styles": [
-              "src/styles.scss"
+              "src/styles.scss",
+              "../../node_modules/mapbox-gl/dist/mapbox-gl.css"
             ]
           },
           "configurations": {

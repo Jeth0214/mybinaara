@@ -6,8 +6,7 @@ namespace Tests\Feature\Api;
 
 use App\Enums\StoreUserRole;
 use App\Enums\UserType;
-use App\Models\City;
-use App\Models\District;
+use App\Models\Permission;
 use App\Models\Store;
 use App\Models\User;
 use Database\Seeders\PermissionSeeder;
@@ -27,14 +26,16 @@ class StoreLocationTest extends TestCase
         $this->seed([RoleSeeder::class, PermissionSeeder::class, RolePermissionSeeder::class]);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function payload(array $overrides = []): array
     {
         return array_merge([
-            'full_address' => '123 King Fahd Road',
-            'city' => 'Riyadh',
-            'district' => 'Al Olaya',
             'latitude' => 24.7136,
             'longitude' => 46.6753,
+            'city' => 'Riyadh',
+            'formatted_address' => '123 King Fahd Road, Al Olaya, Riyadh 12214, Saudi Arabia',
         ], $overrides);
     }
 
@@ -89,44 +90,122 @@ class StoreLocationTest extends TestCase
             ->assertStatus(403);
     }
 
-    public function test_admin_can_update_location(): void
+    public function test_admin_with_stores_edit_can_update_location(): void
+    {
+        $admin = User::factory()->admin()->withRole('staff')->create();
+        $admin->permissions()->sync(Permission::query()->where('key', 'stores.edit')->pluck('id'));
+        $store = Store::factory()->create();
+
+        $this->actingAs($admin, 'sanctum')
+            ->patchJson("/api/stores/{$store->id}/location", $this->payload())
+            ->assertOk();
+    }
+
+    public function test_admin_without_stores_edit_cannot_update_location(): void
+    {
+        $admin = User::factory()->admin()->withRole('staff')->create();
+        $admin->permissions()->sync(Permission::query()->where('key', 'stores.view')->pluck('id'));
+        $store = Store::factory()->create();
+
+        $this->actingAs($admin, 'sanctum')
+            ->patchJson("/api/stores/{$store->id}/location", $this->payload())
+            ->assertStatus(403);
+    }
+
+    public function test_location_is_persisted_and_returned(): void
     {
         $admin = User::factory()->admin()->create();
         $store = Store::factory()->create();
-        $city = City::factory()->create(['name_en' => 'Riyadh']);
-        $district = District::factory()->create(['city_id' => $city->id, 'name_en' => 'Al Olaya']);
 
         $response = $this->actingAs($admin, 'sanctum')->patchJson(
             "/api/stores/{$store->id}/location",
-            $this->payload(['city_id' => $city->id, 'district_id' => $district->id]),
+            $this->payload(),
         );
 
         $response->assertOk()
-            ->assertJsonPath('data.location.full_address', '123 King Fahd Road')
-            ->assertJsonPath('data.location.city', 'Riyadh')
-            ->assertJsonPath('data.location.city_id', $city->id)
-            ->assertJsonPath('data.location.district_id', $district->id)
             ->assertJsonPath('data.location.latitude', 24.7136)
-            ->assertJsonPath('data.location.longitude', 46.6753);
+            ->assertJsonPath('data.location.longitude', 46.6753)
+            ->assertJsonPath('data.location.city', 'Riyadh')
+            ->assertJsonPath('data.location.formatted_address', '123 King Fahd Road, Al Olaya, Riyadh 12214, Saudi Arabia');
 
         $this->assertDatabaseHas('stores', [
             'id' => $store->id,
-            'city_id' => $city->id,
-            'district_id' => $district->id,
+            'city' => 'Riyadh',
+            'formatted_address' => '123 King Fahd Road, Al Olaya, Riyadh 12214, Saudi Arabia',
         ]);
     }
 
-    public function test_full_address_is_required(): void
+    public function test_existing_location_can_be_edited(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $store = Store::factory()->create([
+            'latitude' => 21.4225,
+            'longitude' => 39.8262,
+            'city' => 'Mecca',
+            'formatted_address' => 'Old address',
+        ]);
+
+        $response = $this->actingAs($admin, 'sanctum')->patchJson(
+            "/api/stores/{$store->id}/location",
+            $this->payload(),
+        );
+
+        $response->assertOk()
+            ->assertJsonPath('data.location.city', 'Riyadh')
+            ->assertJsonPath('data.location.formatted_address', '123 King Fahd Road, Al Olaya, Riyadh 12214, Saudi Arabia');
+    }
+
+    public function test_location_can_be_cleared_with_nulls(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $store = Store::factory()->create([
+            'latitude' => 21.4225,
+            'longitude' => 39.8262,
+            'city' => 'Mecca',
+            'formatted_address' => 'Old address',
+        ]);
+
+        $response = $this->actingAs($admin, 'sanctum')->patchJson(
+            "/api/stores/{$store->id}/location",
+            ['latitude' => null, 'longitude' => null, 'city' => null, 'formatted_address' => null],
+        );
+
+        $response->assertOk()
+            ->assertJsonPath('data.location.latitude', null)
+            ->assertJsonPath('data.location.longitude', null)
+            ->assertJsonPath('data.location.city', null)
+            ->assertJsonPath('data.location.formatted_address', null);
+
+        $this->assertDatabaseHas('stores', [
+            'id' => $store->id,
+            'latitude' => null,
+            'longitude' => null,
+            'city' => null,
+            'formatted_address' => null,
+        ]);
+    }
+
+    public function test_empty_payload_is_rejected(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $store = Store::factory()->create();
+
+        $response = $this->actingAs($admin, 'sanctum')->patchJson("/api/stores/{$store->id}/location", []);
+
+        $response->assertStatus(422)->assertJsonValidationErrors(['latitude', 'longitude', 'city', 'formatted_address']);
+    }
+
+    public function test_partial_location_is_rejected(): void
     {
         $admin = User::factory()->admin()->create();
         $store = Store::factory()->create();
 
         $response = $this->actingAs($admin, 'sanctum')->patchJson(
             "/api/stores/{$store->id}/location",
-            $this->payload(['full_address' => '']),
+            ['latitude' => 24.7136, 'longitude' => 46.6753, 'city' => null, 'formatted_address' => null],
         );
 
-        $response->assertStatus(422)->assertJsonValidationErrors('full_address');
+        $response->assertStatus(422)->assertJsonValidationErrors(['city', 'formatted_address']);
     }
 
     public function test_latitude_out_of_range_is_rejected(): void
@@ -155,29 +234,29 @@ class StoreLocationTest extends TestCase
         $response->assertStatus(422)->assertJsonValidationErrors('longitude');
     }
 
-    public function test_city_id_must_exist(): void
+    public function test_non_numeric_coordinates_are_rejected(): void
     {
         $admin = User::factory()->admin()->create();
         $store = Store::factory()->create();
 
         $response = $this->actingAs($admin, 'sanctum')->patchJson(
             "/api/stores/{$store->id}/location",
-            $this->payload(['city_id' => 999999]),
+            $this->payload(['latitude' => 'abc']),
         );
 
-        $response->assertStatus(422)->assertJsonValidationErrors('city_id');
+        $response->assertStatus(422)->assertJsonValidationErrors('latitude');
     }
 
-    public function test_district_id_must_exist(): void
+    public function test_formatted_address_length_is_capped(): void
     {
         $admin = User::factory()->admin()->create();
         $store = Store::factory()->create();
 
         $response = $this->actingAs($admin, 'sanctum')->patchJson(
             "/api/stores/{$store->id}/location",
-            $this->payload(['district_id' => 999999]),
+            $this->payload(['formatted_address' => str_repeat('a', 501)]),
         );
 
-        $response->assertStatus(422)->assertJsonValidationErrors('district_id');
+        $response->assertStatus(422)->assertJsonValidationErrors('formatted_address');
     }
 }

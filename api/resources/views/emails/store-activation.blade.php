@@ -17,6 +17,6 @@
         <a href="{{ $activationUrl }}">Activate your store account</a>
     </p>
 
-    <p>This link expires in 7 days.</p>
+    <p>This link expires on {{ $expiresAt->format('F j, Y \a\t g:i A') }} ({{ $expiresAt->diffForHumans() }}).</p>
 </body>
 </html>

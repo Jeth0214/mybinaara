@@ -7,7 +7,7 @@
   <div class="p-3 bg-light rounded border mb-4 text-center">
     <div class="small text-muted font-weight-bold mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">CURRENT STOCK</div>
     <div class="h5 font-weight-bold mb-0 text-dark">
-      {{ product.stock }} {{ getProductUnit(product) }}{{ product.stock === 1 ? '' : 's' }}
+      {{ product.stock_quantity }} {{ product.unit?.name || 'units' }}
     </div>
   </div>
   <div class="mb-3">

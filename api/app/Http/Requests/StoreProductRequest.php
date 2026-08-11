@@ -29,6 +29,7 @@ class StoreProductRequest extends FormRequest
         return [
             'store_id' => [$isStoreUser ? 'sometimes' : 'required', 'integer', Rule::exists('stores', 'id')],
             'category_id' => ['nullable', 'integer', Rule::exists('categories', 'id')],
+            'unit_id' => ['nullable', 'integer', Rule::exists('product_units', 'id')],
             'name' => ['required', 'string', 'max:150'],
             'slug' => [
                 'required', 'string', 'max:180',

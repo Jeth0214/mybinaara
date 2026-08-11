@@ -74,9 +74,9 @@
           <i class="bi bi-person-badge-fill text-success"></i> Owner & Representative Contacts
         </h6>
 
-        @if (isEditMode()) {
+        @if (isEditMode() && !canEditOwner()) {
           <div class="alert alert-light border fs-8 mb-3">
-            <i class="bi bi-info-circle me-1"></i> Owner details cannot be changed after the store is created.
+            <i class="bi bi-info-circle me-1"></i> You don't have permission to edit owner details. Contact an administrator with vendor management access.
           </div>
         }
 

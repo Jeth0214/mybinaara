@@ -193,6 +193,35 @@ export const routes: Routes = [
               },
             ],
           },
+          {
+            path: 'product-units',
+            children: [
+              {
+                path: '',
+                loadComponent: () =>
+                  import('./features/catalog/product-unit-management/product-unit-management.component').then(
+                    (m) => m.ProductUnitManagementComponent
+                  ),
+                data: { title: 'Product Units', icon: 'bi-rulers' },
+              },
+              {
+                path: 'create',
+                loadComponent: () =>
+                  import('./features/catalog/product-unit-form/product-unit-form.component').then(
+                    (m) => m.ProductUnitFormComponent
+                  ),
+                data: { title: 'Create Unit', icon: 'bi-plus-circle' },
+              },
+              {
+                path: ':id/edit',
+                loadComponent: () =>
+                  import('./features/catalog/product-unit-form/product-unit-form.component').then(
+                    (m) => m.ProductUnitFormComponent
+                  ),
+                data: { title: 'Edit Unit', icon: 'bi-pencil' },
+              },
+            ],
+          },
         ],
       },
     ],

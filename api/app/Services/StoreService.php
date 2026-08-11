@@ -9,8 +9,6 @@ use App\Enums\StoreUserRole;
 use App\Enums\UserStatus;
 use App\Enums\UserType;
 use App\Mail\StoreActivationMail;
-use App\Models\City;
-use App\Models\District;
 use App\Models\Role;
 use App\Models\Store;
 use App\Models\StoreActivationToken;
@@ -31,7 +29,7 @@ class StoreService
     ) {}
 
     /**
-     * @param  array{status?: string, search?: string, city_id?: int}  $filters
+     * @param  array{status?: string, search?: string, city?: string}  $filters
      */
     public function list(array $filters = [], int $perPage = 20): LengthAwarePaginator
     {
@@ -40,7 +38,7 @@ class StoreService
             ->withCount('products')
             ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
             ->when($filters['search'] ?? null, fn ($query, $search) => $query->where('name', 'like', "%{$search}%"))
-            ->when($filters['city_id'] ?? null, fn ($query, $cityId) => $query->where('city_id', $cityId))
+            ->when($filters['city'] ?? null, fn ($query, $city) => $query->where('city', $city))
             ->latest()
             ->paginate($perPage);
     }
@@ -84,19 +82,20 @@ class StoreService
             $this->activityLogs->record($store, 'registration', 'New store registered', $creator);
 
             $rawToken = Str::random(64);
+            $expiresAt = now()->addDays(7);
 
             StoreActivationToken::query()->create([
                 'store_id' => $store->id,
                 'token_hash' => hash('sha256', $rawToken),
-                'expires_at' => now()->addDays(7),
+                'expires_at' => $expiresAt,
             ]);
 
             $activationUrl = rtrim((string) config('services.store_web_url'), '/').'/activate?token='.$rawToken;
 
-            Mail::to($owner->email)->send(new StoreActivationMail($store, $owner, $temporaryPassword, $activationUrl));
+            Mail::to($owner->email)->send(new StoreActivationMail($store, $owner, $temporaryPassword, $activationUrl, $expiresAt));
 
             if (! empty($data['location'])) {
-                $this->updateAddress($store, $data['location']);
+                $this->updateLocation($store, $data['location']);
             }
 
             $this->schedules->replace($store, $data['schedule']);
@@ -132,37 +131,25 @@ class StoreService
     /**
      * @param  array<string, mixed>  $data
      */
-    public function updateAddress(Store $store, array $data): Store
-    {
-        $store->update($this->resolveLocationNames($data));
-
-        return $store;
-    }
-
-    /**
-     * @param  array<string, mixed>  $data
-     */
     public function updateLocation(Store $store, array $data): Store
     {
-        $store->update($this->resolveLocationNames($data));
+        $store->update($data);
 
         return $store;
     }
 
     /**
      * @param  array<string, mixed>  $data
-     * @return array<string, mixed>
      */
-    private function resolveLocationNames(array $data): array
+    public function updateOwner(Store $store, array $data): Store
     {
-        if (! empty($data['city_id'])) {
-            $data['city'] = City::query()->find($data['city_id'])?->name_en ?? $data['city'] ?? null;
-        }
-        if (! empty($data['district_id'])) {
-            $data['district'] = District::query()->find($data['district_id'])?->name_en ?? $data['district'] ?? null;
+        $owner = $store->owners()->first();
+
+        if ($owner !== null) {
+            $owner->update($data);
         }
 
-        return $data;
+        return $store;
     }
 
     public function updateLogo(Store $store, UploadedFile $file): Store

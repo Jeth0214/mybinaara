@@ -50,7 +50,13 @@
   <!-- Footer -->
   <div class="sidebar-footer">
     <div class="user-row d-flex align-items-center">
-      <div class="user-avatar">{{ getInitials(currentUser()?.storeName) }}</div>
+      <div class="user-avatar">
+        @if (currentUser()?.logoUrl) {
+          <img [src]="currentUser()!.logoUrl" alt="Store logo" />
+        } @else {
+          <i class="bi bi-shop" aria-hidden="true"></i>
+        }
+      </div>
       @if (expanded) {
         <div class="user-info flex-grow-1">
           <span class="user-name">{{ currentUser()?.storeName || 'Store Portal' }}</span>

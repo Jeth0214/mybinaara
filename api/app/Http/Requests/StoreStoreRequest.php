@@ -36,7 +36,7 @@ class StoreStoreRequest extends FormRequest
             'owner_whatsapp' => ['required', 'string', 'max:13', PhoneRules::SAUDI_MOBILE],
             'logo' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'location' => ['nullable', 'array'],
-        ], $this->storeLocationRules('location', required: false, includeCoordinates: false), $this->scheduleRules());
+        ], $this->storeLocationRules('location', requirePresence: false), $this->scheduleRules());
     }
 
     public function withValidator(Validator $validator): void

@@ -35,7 +35,12 @@
       <p class="subtitle">Sign in with your store credentials to continue.</p>
       <div class="divider"></div>
 
-      @if (errorMsg()) {
+      @if (isLocked()) {
+        <div class="error-banner">
+          <i class="bi bi-lock-fill"></i>
+          <span>Too many failed attempts. Try again in {{ remainingTimeLabel() }}.</span>
+        </div>
+      } @else if (errorMsg()) {
         <div class="error-banner">
           <i class="bi bi-exclamation-triangle-fill"></i>
           <span>{{ errorMsg() }}</span>
@@ -56,11 +61,12 @@
               id="email"
               formControlName="email"
               autocomplete="email"
+              [attr.disabled]="isLocked() ? true : null"
             />
           </div>
           @if (form.get("email")?.hasError("required") && form.get("email")?.touched) {
             <p class="field-error">Please enter a valid email address.</p>
-          } @else if (form.get("email")?.hasError("email") && form.get("email")?.touched) {
+          } @else if (form.get("email")?.hasError("pattern") && form.get("email")?.touched) {
             <p class="field-error">Please enter a valid email address.</p>
           }
         </div>
@@ -78,12 +84,14 @@
               id="password"
               formControlName="password"
               autocomplete="current-password"
+              [attr.disabled]="isLocked() ? true : null"
             />
             <button
               type="button"
               class="toggle-pw"
               (click)="togglePassword()"
               aria-label="Toggle password visibility"
+              [disabled]="isLocked()"
             >
               <i [class]="passwordVisible() ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
             </button>
@@ -99,7 +107,7 @@
             <input type="checkbox" formControlName="remember" />
             Keep me signed in
           </label>
-          <a href="#" class="forgot">Forgot password?</a>
+          <a routerLink="/forgot-password" class="forgot">Forgot password?</a>
         </div>
 
         <!-- Sign In button -->
@@ -107,10 +115,10 @@
           type="submit"
           class="btn-signin"
           [class.loading]="loading()"
-          [disabled]="loading()"
+          [disabled]="loading() || isLocked()"
         >
-          <span>{{ loading() ? "Signing in…" : "Sign In" }}</span>
-          @if (!loading()) {
+          <span>{{ isLocked() ? "Locked (" + remainingTimeLabel() + ")" : loading() ? "Signing in…" : "Sign In" }}</span>
+          @if (!loading() && !isLocked()) {
             <i class="bi bi-arrow-right"></i>
           }
         </button>
@@ -123,39 +131,6 @@
           <strong>First time signing in?</strong> Use the temporary credentials
           sent to you by the MyBinaara team. <a routerLink="/activate" class="login-link">Activate your credentials here</a>.
         </p>
-      </div>
-
-      <!-- Credentials Helper Panel -->
-      <div class="credentials-helper-card mt-4 p-3 rounded border bg-light-subtle">
-        <div class="d-flex align-items-center gap-2 mb-2">
-          <i class="bi bi-key-fill text-success"></i>
-          <span class="fw-bold text-dark small">Mock Test Credentials</span>
-        </div>
-        <div class="credentials-list small">
-          <div class="credentials-item d-flex justify-content-between align-items-center py-1.5 border-bottom border-light-subtle">
-            <span class="text-muted">Active Email:</span>
-            <div class="d-flex align-items-center gap-2">
-              <code class="text-success fw-semibold bg-light px-2 py-0.5 rounded" style="font-size: 0.8rem;">active@example.com</code>
-              <button type="button" class="btn btn-sm btn-link p-0 text-success animate__animated" (click)="copyText('active@example.com', 'activeEmail')" title="Copy Email">
-                <i class="bi" [class.bi-clipboard]="copiedType() !== 'activeEmail'" [class.bi-clipboard-check-fill]="copiedType() === 'activeEmail'"></i>
-              </button>
-            </div>
-          </div>
-          <div class="credentials-item d-flex justify-content-between align-items-center py-1.5">
-            <span class="text-muted">Password:</span>
-            <div class="d-flex align-items-center gap-2">
-              <code class="text-success fw-semibold bg-light px-2 py-0.5 rounded" style="font-size: 0.8rem;">ActivePass123!</code>
-              <button type="button" class="btn btn-sm btn-link p-0 text-success animate__animated" (click)="copyText('ActivePass123!', 'activePassword')" title="Copy Password">
-                <i class="bi" [class.bi-clipboard]="copiedType() !== 'activePassword'" [class.bi-clipboard-check-fill]="copiedType() === 'activePassword'"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-        @if (copiedType()) {
-          <div class="text-success text-center small mt-2 fw-semibold animate__animated animate__fadeIn">
-            Copied!
-          </div>
-        }
       </div>
 
       <!-- Footer -->
