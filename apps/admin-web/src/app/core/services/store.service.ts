@@ -92,10 +92,12 @@ export class StoreService {
     );
   }
 
-  updateStoreStatus(id: number, status: StoreStatus, rejectionReason?: string): Observable<Store> {
-    const payload: { status: StoreStatus; rejection_reason?: string } = { status };
+  updateStoreStatus(id: number, status: StoreStatus, reason?: string): Observable<Store> {
+    const payload: { status: StoreStatus; rejection_reason?: string; suspension_reason?: string } = { status };
     if (status === 'rejected') {
-      payload.rejection_reason = rejectionReason;
+      payload.rejection_reason = reason;
+    } else if (status === 'suspended') {
+      payload.suspension_reason = reason;
     }
 
     return this.http.patch<{ data: Store }>(`${environment.apiUrl}/stores/${id}/status`, payload).pipe(

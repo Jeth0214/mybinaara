@@ -82,11 +82,10 @@ export class StoreCreateComponent implements OnInit {
     ),
     workingHours: this.fb.group(
       SCHEDULE_DAYS.reduce((acc, dayKey) => {
-        const isFri = dayKey === 'fri';
         acc[dayKey] = this.fb.group({
-          openTime: [{ value: isFri ? '' : DEFAULT_OPEN_TIME, disabled: isFri }],
-          closeTime: [{ value: isFri ? '' : DEFAULT_CLOSE_TIME, disabled: isFri }],
-          isOff: [isFri]
+          openTime: [DEFAULT_OPEN_TIME],
+          closeTime: [DEFAULT_CLOSE_TIME],
+          isOff: [false]
         });
         return acc;
       }, {} as any)
@@ -175,9 +174,9 @@ export class StoreCreateComponent implements OnInit {
   private defaultSchedule(): StoreScheduleDay[] {
     return SCHEDULE_DAYS.map((day) => ({
       day,
-      is_off: day === 'fri',
-      open_time: day === 'fri' ? null : DEFAULT_OPEN_TIME,
-      close_time: day === 'fri' ? null : DEFAULT_CLOSE_TIME
+      is_off: false,
+      open_time: DEFAULT_OPEN_TIME,
+      close_time: DEFAULT_CLOSE_TIME
     }));
   }
 

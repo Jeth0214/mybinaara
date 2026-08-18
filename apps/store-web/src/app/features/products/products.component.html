@@ -1,13 +1,22 @@
-<div class="container py-4" style="max-width: 1600px;">
-
+<div class="container py-4" style="max-width: 1600px">
   <!-- Limit Warning Banner -->
   @if (isLimitReached()) {
-    <div class="alert alert-warning border-warning border-opacity-25 d-flex justify-content-between align-items-center flex-wrap gap-3 p-3 mb-4" style="background: linear-gradient(135deg, #fffcf6 0%, #fff9e6 100%); border-radius: 12px;">
+    <div
+      class="alert alert-warning border-warning border-opacity-25 d-flex justify-content-between align-items-center flex-wrap gap-3 p-3 mb-4"
+      style="
+        background: linear-gradient(135deg, #fffcf6 0%, #fff9e6 100%);
+        border-radius: 12px;
+      "
+    >
       <div class="d-flex align-items-center gap-3">
         <i class="bi bi-exclamation-triangle-fill text-warning fs-4"></i>
         <div>
-          <h6 class="mb-0 font-weight-bold text-dark">Product Limit Reached ({{ maxProducts }} / {{ maxProducts }})</h6>
-          <p class="small text-muted mb-0">Your store has listed the maximum allowable products.</p>
+          <h6 class="mb-0 font-weight-bold text-dark">
+            Product Limit Reached ({{ maxProducts }} / {{ maxProducts }})
+          </h6>
+          <p class="small text-muted mb-0">
+            Your store has listed the maximum allowable products.
+          </p>
         </div>
       </div>
     </div>
@@ -17,14 +26,20 @@
   <div class="d-md-flex justify-content-between align-items-center mb-4 pb-2">
     <div>
       <h1 class="h3 font-weight-bold text-dark mb-1">My Products</h1>
-      <p class="text-muted small mb-0">Browse, manage, and monitor your listed inventory items.</p>
+      <p class="text-muted small mb-0">
+        Browse, manage, and monitor your listed inventory items.
+      </p>
     </div>
     <div class="d-flex align-items-center gap-2 mt-3 mt-md-0">
       <a
         class="btn btn-success font-weight-bold px-4 py-2 d-flex align-items-center gap-2"
         [routerLink]="['/products/add']"
         [class.disabled]="isLimitReached()"
-        [title]="isLimitReached() ? 'Remove or update existing products to add new ones.' : 'Add new product'"
+        [title]="
+          isLimitReached()
+            ? 'Remove or update existing products to add new ones.'
+            : 'Add new product'
+        "
       >
         <i class="bi bi-plus-circle"></i> Add Product
       </a>
@@ -51,7 +66,12 @@
 
       <!-- Category Filter -->
       <div class="col-lg-3 col-md-4 col-sm-6">
-        <select class="form-select" [ngModel]="categoryFilter()" (ngModelChange)="categoryFilter.set($event)" [disabled]="busy()">
+        <select
+          class="form-select"
+          [ngModel]="categoryFilter()"
+          (ngModelChange)="categoryFilter.set($event)"
+          [disabled]="busy()"
+        >
           <option [ngValue]="'all'">All Categories</option>
           @for (cat of categories(); track cat.id) {
             <option [ngValue]="cat.id">{{ cat.name }}</option>
@@ -61,7 +81,12 @@
 
       <!-- Status Filter -->
       <div class="col-lg-3 col-md-3 col-sm-6">
-        <select class="form-select" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)" [disabled]="busy()">
+        <select
+          class="form-select"
+          [ngModel]="statusFilter()"
+          (ngModelChange)="statusFilter.set($event)"
+          [disabled]="busy()"
+        >
           <option value="all">All Statuses</option>
           <option value="active">Active</option>
           <option value="inactive">Inactive</option>
@@ -74,8 +99,13 @@
   <!-- Products List Card -->
   <div class="card border shadow-sm overflow-hidden mb-4">
     @if (loading()) {
-      <div class="d-flex align-items-center justify-content-center gap-2 text-muted py-5">
-        <div class="spinner-border spinner-border-sm text-success" role="status">
+      <div
+        class="d-flex align-items-center justify-content-center gap-2 text-muted py-5"
+      >
+        <div
+          class="spinner-border spinner-border-sm text-success"
+          role="status"
+        >
           <span class="visually-hidden">Loading...</span>
         </div>
         Loading products...
@@ -83,7 +113,13 @@
     } @else if (loadError()) {
       <div class="text-center py-5">
         <div class="text-danger small mb-3">{{ loadError() }}</div>
-        <button type="button" class="btn btn-light btn-sm" (click)="loadProducts(meta()?.current_page ?? 1)">Retry</button>
+        <button
+          type="button"
+          class="btn btn-light btn-sm"
+          (click)="loadProducts(meta()?.current_page ?? 1)"
+        >
+          Retry
+        </button>
       </div>
     } @else if (products().length > 0) {
       <div class="table-responsive">
@@ -91,11 +127,12 @@
           <thead>
             <tr>
               <th>Product</th>
-              <th>Category / Unit</th>
+              <th>Category</th>
+              <th>Unit</th>
               <th>Price</th>
               <th>Status</th>
               <th>Stock Qty</th>
-              <th style="width: 80px;">Actions</th>
+              <th style="width: 80px">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -104,84 +141,99 @@
                 <!-- Product Column (Image + Info) -->
                 <td>
                   <div class="d-flex align-items-center gap-3">
-                    <div class="product-img-wrapper" style="cursor: pointer;" (click)="openViewDetailsModal(p)">
+                    <div
+                      class="product-img-wrapper"
+                      style="cursor: pointer"
+                      (click)="openViewDetailsModal(p)"
+                    >
                       @if (p.image_url) {
-                        <img [src]="p.image_url" [alt]="p.name" />
+                        <img [src]="p.image_url" [alt]="p.name" class="w-100" />
                       } @else {
                         <i class="bi bi-box-seam text-muted"></i>
                       }
                     </div>
                     <div class="product-info-wrap">
-                      <div class="product-name font-weight-bold" style="cursor: pointer;" (click)="openViewDetailsModal(p)" title="View specifications">
+                      <div
+                        class="product-name font-weight-bold"
+                        style="cursor: pointer"
+                        (click)="openViewDetailsModal(p)"
+                        title="View specifications"
+                      >
                         {{ p.name }}
                       </div>
-                      <div class="product-subtext text-muted small">SKU: {{ p.sku || '—' }}</div>
                     </div>
                   </div>
                 </td>
 
-                <!-- Category / Unit Column -->
+                <!-- Category -->
                 <td>
-                  <span class="category-badge">{{ p.category?.name || 'Uncategorized' }}</span>
-                  <div class="text-muted small mt-1">{{ p.unit?.name || '—' }}</div>
+                  {{ p.category?.name || "Uncategorized" }}
+                </td>
+
+                <!-- Unit Column -->
+                <td>
+                  {{ p.unit?.name || "—" }}
                 </td>
 
                 <!-- Price Column -->
                 <td>
                   <div class="price-text">
-                    <span class="price-val">{{ p.price | number:'1.2-2' }}</span> SAR
-                    @if (p.compare_at_price) {
-                      <div class="text-muted small text-decoration-line-through">{{ p.compare_at_price | number:'1.2-2' }} SAR</div>
-                    }
+                    {{ p.price | number: "1.2-2" }}
                   </div>
                 </td>
 
                 <!-- Status Column -->
                 <td>
                   <div class="status-cell-wrap d-flex align-items-center gap-2">
-                    @if (p.status !== 'suspended') {
-                      <div class="form-check form-switch mb-0">
-                        <input
-                          class="form-check-input status-toggle-input"
-                          type="checkbox"
-                          role="switch"
-                          [checked]="p.status === 'active'"
-                          [disabled]="busy()"
-                          (click)="onStatusToggle(p, $event)"
-                        />
-                      </div>
-                    }
-                    <span class="status-badge" [class]="p.status">{{ p.status }}</span>
+                    <app-product-status-badge [status]="p.status" />
                   </div>
                 </td>
 
                 <!-- Stock Qty Column -->
                 <td>
-                  <div class="stock-qty-text">{{ p.stock_quantity }}</div>
+                  {{ p.stock_quantity }}
                 </td>
 
                 <!-- Actions Dropdown Column -->
                 <td>
                   <div ngbDropdown class="d-inline-block" container="body">
-                    <button class="btn btn-icon-ellipsis border-0 bg-transparent" ngbDropdownToggle [id]="'actionsDropdown-' + p.id" aria-label="Product actions" [disabled]="busy()">
+                    <button
+                      class="btn btn-icon-ellipsis border-0 bg-transparent"
+                      ngbDropdownToggle
+                      [id]="'actionsDropdown-' + p.id"
+                      aria-label="Product actions"
+                      [disabled]="busy()"
+                    >
                       <i class="bi bi-three-dots-vertical"></i>
                     </button>
-                    <div ngbDropdownMenu [attr.aria-labelledby]="'actionsDropdown-' + p.id" class="dropdown-menu-custom shadow border">
+                    <div
+                      ngbDropdownMenu
+                      [attr.aria-labelledby]="'actionsDropdown-' + p.id"
+                      class="dropdown-menu-custom shadow border"
+                    >
                       <!-- View Product -->
                       <button ngbDropdownItem (click)="openViewDetailsModal(p)">
                         <i class="bi bi-eye me-2 text-muted"></i> View product
                       </button>
                       <!-- Edit -->
-                      <a ngbDropdownItem [routerLink]="['/products/edit', p.id]">
+                      <a
+                        ngbDropdownItem
+                        [routerLink]="['/products/edit', p.id]"
+                      >
                         <i class="bi bi-pencil me-2 text-muted"></i> Edit
                       </a>
                       <!-- Quick Stock Update -->
                       <button ngbDropdownItem (click)="openQuickStockModal(p)">
-                        <i class="bi bi-arrow-repeat me-2 text-muted"></i> Quick Stock Update
+                        <i class="bi bi-arrow-repeat me-2 text-muted"></i> Quick
+                        Stock Update
                       </button>
                       <div class="dropdown-divider"></div>
                       <!-- Delete -->
-                      <button ngbDropdownItem class="text-danger" (click)="openDeleteConfirmModal(p)">
+                      <button
+                        ngbDropdownItem
+                        class="text-danger"
+                        (click)="openDeleteConfirmModal(p)"
+                      >
                         <i class="bi bi-trash me-2"></i> Delete
                       </button>
                     </div>
@@ -207,22 +259,36 @@
     } @else {
       <!-- Empty State -->
       <div class="p-5 text-center my-4">
-        <i class="bi bi-box-seam text-muted opacity-50 mb-3" style="font-size: 3.5rem; display: block;"></i>
+        <i
+          class="bi bi-box-seam text-muted opacity-50 mb-3"
+          style="font-size: 3.5rem; display: block"
+        ></i>
         <h3 class="h5 font-weight-bold text-dark mb-2">No products found</h3>
-        <p class="text-muted mx-auto mb-4" style="max-width: 450px; font-size: 0.95rem;">
+        <p
+          class="text-muted mx-auto mb-4"
+          style="max-width: 450px; font-size: 0.95rem"
+        >
           @if (!hasActiveFilters()) {
-            You haven't listed any products yet. List your first building material item and make your store discoverable!
+            You haven't listed any products yet. List your first building
+            material item and make your store discoverable!
           } @else {
-            No products match the selected filters or search terms. Try clearing filters or revising search queries.
+            No products match the selected filters or search terms. Try clearing
+            filters or revising search queries.
           }
         </p>
         <div class="d-flex justify-content-center gap-2">
           @if (!hasActiveFilters()) {
-            <a class="btn btn-success font-weight-bold px-4 py-2" [routerLink]="['/products/add']">
+            <a
+              class="btn btn-success font-weight-bold px-4 py-2"
+              [routerLink]="['/products/add']"
+            >
               List First Product
             </a>
           } @else {
-            <button class="btn btn-outline-success font-weight-bold px-4 py-2" (click)="resetFilters()">
+            <button
+              class="btn btn-outline-success font-weight-bold px-4 py-2"
+              (click)="resetFilters()"
+            >
               Clear Filters
             </button>
           }
@@ -230,5 +296,4 @@
       </div>
     }
   </div>
-
 </div>

@@ -77,9 +77,9 @@ export class StoreDetailScheduleComponent {
       ? s.schedule
       : SCHEDULE_DAYS.map((day) => ({
           day,
-          is_off: day === 'fri',
-          open_time: day === 'fri' ? null : '08:00 AM',
-          close_time: day === 'fri' ? null : '09:00 PM'
+          is_off: false,
+          open_time: '08:00 AM',
+          close_time: '09:00 PM'
         }));
 
     this.scheduleForm = this.fb.group({

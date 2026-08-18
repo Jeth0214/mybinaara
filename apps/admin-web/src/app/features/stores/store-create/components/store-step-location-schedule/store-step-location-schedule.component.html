@@ -10,10 +10,30 @@
           <i class="bi bi-map text-success"></i> Store location <span class="text-muted fw-normal fs-8">(optional)</span>
         </h6>
 
-        <app-store-location-picker
-          [initialLocation]="existingLocation()"
-          (locationChange)="onLocationChange($event)"
-        />
+        @if (!showPicker()) {
+          <div class="d-flex flex-column align-items-start gap-2">
+            @if (committedLocation().latitude) {
+              <p class="mb-0 fs-8 text-dark">
+                <i class="bi bi-geo-alt-fill text-success"></i>
+                {{ committedLocation().formatted_address || committedLocation().city || 'Location set' }}
+              </p>
+            } @else {
+              <p class="mb-0 fs-8 text-muted">Location not set</p>
+            }
+            <button type="button" class="btn btn-outline-success btn-sm" (click)="onSetLocation()">
+              Set Location
+            </button>
+          </div>
+        } @else {
+          <app-store-location-picker
+            [initialLocation]="lastCommitted() ?? existingLocation()"
+            [isEditMode]="isEditMode()"
+            (locationChange)="onLocationChange($event)"
+          />
+          <button type="button" class="btn btn-success btn-sm mt-2" [disabled]="!draftLocation()" (click)="onSaveLocation()">
+            Save Location
+          </button>
+        }
       </div>
 
       <!-- Working Hours Section -->

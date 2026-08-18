@@ -29,6 +29,7 @@ class ProductResource extends JsonResource
             'stock_quantity' => $this->stock_quantity,
             'image_url' => $this->image_url,
             'status' => $this->status,
+            'suspension_reason' => $this->suspension_reason,
             'store' => $this->whenLoaded('store', fn () => [
                 'id' => $this->store->id,
                 'name' => $this->store->name,

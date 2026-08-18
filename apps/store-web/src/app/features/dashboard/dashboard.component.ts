@@ -2,10 +2,13 @@ import { ChangeDetectionStrategy, Component, inject, signal, computed, OnInit } 
 import { CommonModule } from '@angular/common';
 import { Store } from '@ngxs/store';
 import { AuthState } from '../../core/state/auth.state';
-import { ProductService } from '../../core/services/product.service';
+import { StoreService } from '../../core/services/store.service';
 import { MAX_PRODUCTS_PER_STORE } from '../../core/models/product.model';
+import { StoreDashboardCategoryCount, StoreDashboardDailyCount } from '../../core/models/store-dashboard.model';
 import { DashboardGreetingComponent } from './components/dashboard-greeting/dashboard-greeting.component';
 import { DashboardProductsComponent } from './components/dashboard-products/dashboard-products.component';
+import { DashboardCatalogInsightsComponent } from './components/dashboard-catalog-insights/dashboard-catalog-insights.component';
+import { DashboardTrendChartComponent } from './components/dashboard-trend-chart/dashboard-trend-chart.component';
 import { DashboardFooterComponent } from './components/dashboard-footer/dashboard-footer.component';
 
 @Component({
@@ -15,6 +18,8 @@ import { DashboardFooterComponent } from './components/dashboard-footer/dashboar
     CommonModule,
     DashboardGreetingComponent,
     DashboardProductsComponent,
+    DashboardCatalogInsightsComponent,
+    DashboardTrendChartComponent,
     DashboardFooterComponent,
   ],
   templateUrl: './dashboard.component.html',
@@ -22,15 +27,20 @@ import { DashboardFooterComponent } from './components/dashboard-footer/dashboar
 })
 export class DashboardComponent implements OnInit {
   private readonly store = inject(Store);
-  private readonly productService = inject(ProductService);
+  private readonly storeService = inject(StoreService);
 
   readonly user = this.store.selectSignal(AuthState.user);
 
   readonly productsLimit = signal(MAX_PRODUCTS_PER_STORE);
   readonly productsCount = signal(0);
+  readonly remainingCount = signal(MAX_PRODUCTS_PER_STORE);
   readonly inStockCount = signal(0);
   readonly lowStockCount = signal(0);
   readonly outOfStockCount = signal(0);
+  readonly activeCount = signal(0);
+  readonly suspendedCount = signal(0);
+  readonly byCategory = signal<StoreDashboardCategoryCount[]>([]);
+  readonly addedOverTime = signal<StoreDashboardDailyCount[]>([]);
 
   readonly progressPercent = computed(() => {
     const limit = this.productsLimit();
@@ -42,15 +52,19 @@ export class DashboardComponent implements OnInit {
   ngOnInit(): void {
     this.loading.set(true);
 
-    // Dashboard stock counters only reflect the products returned by this
-    // single unfiltered page — there is no dedicated stats endpoint.
-    this.productService.listProducts({}).subscribe({
-      next: (response) => {
+    this.storeService.getDashboardStats().subscribe({
+      next: (stats) => {
         this.loading.set(false);
-        this.productsCount.set(response.meta.total);
-        this.inStockCount.set(response.data.filter((p) => p.stock_quantity > 10).length);
-        this.lowStockCount.set(response.data.filter((p) => p.stock_quantity > 0 && p.stock_quantity <= 10).length);
-        this.outOfStockCount.set(response.data.filter((p) => p.stock_quantity === 0).length);
+        this.productsCount.set(stats.total);
+        this.productsLimit.set(stats.limit);
+        this.remainingCount.set(stats.remaining);
+        this.inStockCount.set(stats.inStock);
+        this.lowStockCount.set(stats.lowStock);
+        this.outOfStockCount.set(stats.outOfStock);
+        this.activeCount.set(stats.active);
+        this.suspendedCount.set(stats.suspended);
+        this.byCategory.set(stats.byCategory);
+        this.addedOverTime.set(stats.addedOverTime);
       },
       error: () => {
         this.loading.set(false);

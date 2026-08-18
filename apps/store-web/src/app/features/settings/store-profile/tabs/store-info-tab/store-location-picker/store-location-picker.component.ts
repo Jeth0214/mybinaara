@@ -50,14 +50,21 @@ export class StoreLocationPickerComponent implements OnInit {
       ? 'mapbox://styles/mapbox/satellite-streets-v12'
       : 'mapbox://styles/mapbox/streets-v12'
   );
-  readonly mapCenter = signal<[number, number]>([
-    environment.mapboxDefaultCenter.lng,
-    environment.mapboxDefaultCenter.lat,
-  ]);
-  readonly markerPosition = signal<PinPosition>({
-    lat: environment.mapboxDefaultCenter.lat,
-    lng: environment.mapboxDefaultCenter.lng,
-  });
+  // When a store's real location is already known at creation time (resolved
+  // before this component is instantiated), start the map there directly.
+  // Otherwise the map would first render at the arbitrary default center and then
+  // `flyTo` across a potentially huge distance to the real location, which can
+  // fail to fully load tiles for a long-haul flight.
+  private readonly initialPin: PinPosition = (() => {
+    const existing = this.existingLocation();
+    if (existing) {
+      return { lat: existing.latitude, lng: existing.longitude };
+    }
+    return { lat: environment.mapboxDefaultCenter.lat, lng: environment.mapboxDefaultCenter.lng };
+  })();
+
+  readonly mapCenter = signal<[number, number]>([this.initialPin.lng, this.initialPin.lat]);
+  readonly markerPosition = signal<PinPosition>(this.initialPin);
   readonly markerLngLat = computed<[number, number]>(() => [this.markerPosition().lng, this.markerPosition().lat]);
 
   readonly city = signal<string>('');
@@ -67,6 +74,14 @@ export class StoreLocationPickerComponent implements OnInit {
   readonly locating = signal(false);
   readonly geocoding = signal(false);
   readonly locationNotice = signal<string | null>(null);
+
+  /** True once the user has moved the pin themselves. Once set, the
+   *  `existingLocation` resync effect below must stop overwriting their
+   *  in-progress edit — otherwise a slow background refresh (e.g. Store
+   *  Web's RefreshStore, dispatched on every tab visit) that resolves
+   *  after the user has already dragged the pin snaps it back to the
+   *  stale server value, silently discarding their change. */
+  private readonly hasUserEdited = signal(false);
 
   constructor() {
     effect(() => {
@@ -78,6 +93,24 @@ export class StoreLocationPickerComponent implements OnInit {
       if (!city && !formattedAddress) return;
 
       this.locationChange.emit({ latitude: lat, longitude: lng, city, formattedAddress });
+    });
+
+    // Re-sync the pin/city/address whenever a fresh `existingLocation` comes in
+    // from the parent — not just once at creation. Without this, a parent that
+    // re-fetches and patches a new location into this input (e.g. Store Web's
+    // RefreshStore, or Admin Web loading a different store into the same routed
+    // component) would leave the map showing stale data indefinitely, since
+    // Angular reuses this component instance instead of recreating it.
+    effect(() => {
+      const existing = this.existingLocation();
+      if (existing && !this.hasUserEdited()) {
+        const current = this.markerPosition();
+        if (current.lat !== existing.latitude || current.lng !== existing.longitude) {
+          this.setPin({ lat: existing.latitude, lng: existing.longitude }, { recenter: true, silent: true });
+        }
+        this.city.set(existing.city);
+        this.formattedAddress.set(existing.formattedAddress);
+      }
     });
   }
 
@@ -98,15 +131,14 @@ export class StoreLocationPickerComponent implements OnInit {
         this.formattedAddress.set(result.formattedAddress);
       });
 
-    const existing = this.existingLocation();
-    if (existing) {
-      this.setPin({ lat: existing.latitude, lng: existing.longitude }, { recenter: true });
-      this.city.set(existing.city);
-      this.formattedAddress.set(existing.formattedAddress);
-      return;
-    }
-
-    this.locateUser();
+    // Deliberately no auto-geolocate fallback here: this tab always edits an
+    // already-existing store, and the real location can arrive asynchronously
+    // shortly after this component is created (e.g. right after activation,
+    // before the first RefreshStore resolves). Browser geolocation is slow
+    // enough that an automatic call here could resolve after the real location
+    // and silently overwrite it — see the constructor effect above, which is
+    // the sole source of truth for existing data. If the store genuinely has
+    // no location yet, the vendor can use the "Use my current location" button.
   }
 
   setMapViewMode(mode: 'street' | 'satellite'): void {
@@ -137,11 +169,14 @@ export class StoreLocationPickerComponent implements OnInit {
     this.setPin({ lat, lng }, { recenter: false });
   }
 
-  private setPin(pos: PinPosition, options: { recenter: boolean }): void {
+  private setPin(pos: PinPosition, options: { recenter: boolean; silent?: boolean }): void {
     this.markerPosition.set(pos);
     if (options.recenter) {
       this.mapCenter.set([pos.lng, pos.lat]);
     }
-    this.pinChange$.next(pos);
+    if (!options.silent) {
+      this.hasUserEdited.set(true);
+      this.pinChange$.next(pos);
+    }
   }
 }

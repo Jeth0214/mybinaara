@@ -34,6 +34,7 @@ export interface Product {
   stock_quantity: number;
   image_url: string | null;
   status: ProductStatus;
+  suspension_reason: string | null;
   store: ProductStoreRef;
   category: ProductCategoryRef | null;
   unit: ProductUnitRef | null;

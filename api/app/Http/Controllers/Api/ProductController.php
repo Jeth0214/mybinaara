@@ -30,6 +30,7 @@ class ProductController extends Controller
 
         $filters = $request->validate([
             'store_id' => ['sometimes', 'integer'],
+            'store_name' => ['sometimes', 'string', 'max:150'],
             'category_id' => ['sometimes', 'integer'],
             'unit_id' => ['sometimes', 'integer'],
             'status' => ['sometimes', 'string'],
@@ -88,7 +89,12 @@ class ProductController extends Controller
 
     public function updateStatus(UpdateProductStatusRequest $request, Product $product): JsonResponse
     {
-        $product = $this->products->updateStatus($product, $request->enum('status', ProductStatus::class), $request->user());
+        $product = $this->products->updateStatus(
+            $product,
+            $request->enum('status', ProductStatus::class),
+            $request->user(),
+            $request->input('suspension_reason')
+        );
 
         return (new ProductResource($product->load(['store', 'category', 'unit', 'creator', 'editor'])))->response();
     }

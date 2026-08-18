@@ -1,0 +1,42 @@
+<div class="card overview-card p-3 p-md-4 rounded-3 border-0 bg-white shadow-sm h-100 d-flex flex-column">
+  <div class="mb-3">
+    <h3 class="overview-card-title font-weight-bold mb-1">Catalog Insights</h3>
+    <p class="overview-card-subtitle text-muted small mb-0">
+      Listing status and category breakdown across your catalog.
+    </p>
+  </div>
+
+  <!-- Listing Status -->
+  <div class="row g-3 mb-4">
+    <div class="col-6">
+      <div class="stock-box text-center p-2 rounded border border-light-subtle h-100 d-flex flex-column justify-content-center">
+        <span class="stock-count text-success font-weight-bold">{{ activeCount() }}</span>
+        <span class="stock-label text-muted small mt-1">Active</span>
+      </div>
+    </div>
+    <div class="col-6">
+      <div class="stock-box text-center p-2 rounded border border-light-subtle h-100 d-flex flex-column justify-content-center">
+        <span class="stock-count text-danger font-weight-bold">{{ suspendedCount() }}</span>
+        <span class="stock-label text-muted small mt-1">Suspended</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Breakdown -->
+  <div class="flex-grow-1 d-flex flex-column">
+    <span class="small font-weight-bold text-dark d-block mb-2">Products by Category</span>
+
+    @if (hasCategories()) {
+      <div class="chart-container flex-grow-1" style="min-height: 220px;">
+        <canvas
+          baseChart
+          [data]="pieChartData()"
+          [options]="pieChartOptions"
+          [type]="'pie'"
+        ></canvas>
+      </div>
+    } @else {
+      <p class="small text-muted mb-0">No categorized products yet.</p>
+    }
+  </div>
+</div>

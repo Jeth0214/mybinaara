@@ -25,6 +25,6 @@ class StoreAccountNotActiveException extends RuntimeException
             StoreStatus::Active => 'Your store account is not currently active.',
         };
 
-        return response()->json(['message' => $message], 403);
+        return response()->json(['message' => $message, 'code' => 'store_inactive'], 403);
     }
 }

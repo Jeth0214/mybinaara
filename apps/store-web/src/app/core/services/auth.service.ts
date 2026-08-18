@@ -3,9 +3,9 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
 import { catchError, delay, finalize, map, switchMap, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { StoreUser, StoreSchedule, DaySchedule, ActivateStoreResponse, LoginResponse, StoreMeResponse, StoreScheduleEntry } from '../models/auth.model';
-import { StoreLocation } from '../models/store-location.model';
+import { StoreUser, StoreSchedule, ActivateStoreResponse, LoginResponse, StoreMeResponse } from '../models/auth.model';
 import { mapHttpError } from '../utils/http-error.util';
+import { mapScheduleEntries, mapStoreLocation } from '../utils/store-schedule.util';
 import { clearToken, setToken } from './token-storage';
 
 const DEVICE_NAME = 'store-web';
@@ -134,7 +134,7 @@ export class AuthService {
 
           return this.http.get<StoreMeResponse>(`${environment.apiUrl}/stores/me`).pipe(
             map((storeRes) => this.mapToStoreUser(res.user, storeRes.data)),
-            tap((user) => this.saveUser(user, remember))
+            tap((user) => this.cacheUser(user, remember))
           );
         }),
         catchError((err) => throwError(() => mapHttpError(err)))
@@ -164,12 +164,13 @@ export class AuthService {
           city: store.location?.city ?? undefined,
           businessId: store.cr_number ?? undefined,
           certificateId: store.vat_number ?? undefined,
-          location: this.mapStoreLocation(store.location),
-          workingHours: this.mapScheduleEntries(store.schedule),
+          ownerName: store.owner?.name ?? undefined,
+          ownerEmail: store.owner?.email ?? undefined,
+          location: mapStoreLocation(store.location),
+          workingHours: mapScheduleEntries(store.schedule),
         };
 
-        const remember = !!localStorage.getItem(STORAGE_SESSION_KEY);
-        this.saveUser(updatedUser, remember);
+        this.cacheUser(updatedUser, this.isRemembering());
         return updatedUser;
       }),
       catchError((err) => throwError(() => mapHttpError(err)))
@@ -192,63 +193,28 @@ export class AuthService {
       whatsapp: user.whatsapp ?? undefined,
       businessId: store.cr_number ?? undefined,
       certificateId: store.vat_number ?? undefined,
+      ownerName: store.owner?.name ?? undefined,
+      ownerEmail: store.owner?.email ?? undefined,
       permissions: user.permissions,
       role: user.role,
       userType: user.user_type,
-      location: this.mapStoreLocation(store.location),
-      workingHours: this.mapScheduleEntries(store.schedule),
+      location: mapStoreLocation(store.location),
+      workingHours: mapScheduleEntries(store.schedule),
     };
   }
 
-  /** Backend returns schedule as an array of per-day entries (snake_case);
-   *  the frontend model keeps it as a day-keyed object (camelCase). */
-  private mapScheduleEntries(entries?: StoreScheduleEntry[]): StoreSchedule | undefined {
-    if (!entries || entries.length === 0) {
-      return undefined;
-    }
-
-    const schedule = {} as StoreSchedule;
-    for (const entry of entries) {
-      schedule[entry.day] = {
-        openTime: entry.open_time ?? '',
-        closeTime: entry.close_time ?? '',
-        isOff: entry.is_off,
-      };
-    }
-    return schedule;
-  }
-
-  /** Inverse of mapScheduleEntries, for submitting to PUT /stores/{id}/schedule. */
-  private buildScheduleEntries(schedule: StoreSchedule): StoreScheduleEntry[] {
-    const days: StoreScheduleEntry['day'][] = ['sat', 'sun', 'mon', 'tue', 'wed', 'thu', 'fri'];
-
-    return days.map((day) => {
-      const daySchedule: DaySchedule = schedule[day];
-      return {
-        day,
-        is_off: daySchedule.isOff,
-        open_time: daySchedule.isOff ? null : daySchedule.openTime || null,
-        close_time: daySchedule.isOff ? null : daySchedule.closeTime || null,
-      };
-    });
-  }
-
-  private mapStoreLocation(location: StoreMeResponse['data']['location']): StoreLocation | undefined {
-    if (!location || location.latitude === null || location.longitude === null) {
-      return undefined;
-    }
-
-    return {
-      latitude: location.latitude,
-      longitude: location.longitude,
-      city: location.city ?? '',
-      formattedAddress: location.formatted_address ?? '',
-    };
-  }
-
-  private saveUser(user: StoreUser, remember: boolean): void {
+  /** Persists the session cache. Public so other store-web services (e.g.
+   *  StoreService) can refresh the cached user after editing store data
+   *  without duplicating session-storage handling. */
+  cacheUser(user: StoreUser, remember: boolean): void {
     const storage = remember ? localStorage : sessionStorage;
     storage.setItem(STORAGE_SESSION_KEY, JSON.stringify(user));
+  }
+
+  /** Whether the current session was persisted with "remember me" (localStorage)
+   *  rather than just for this tab (sessionStorage). */
+  isRemembering(): boolean {
+    return !!localStorage.getItem(STORAGE_SESSION_KEY);
   }
 
   /** Best-effort revoke of a token issued to an account without Store Portal access. */
@@ -322,69 +288,12 @@ export class AuthService {
             whatsapp: response.user.whatsapp ?? undefined,
             businessId: response.store.cr_number ?? undefined,
             certificateId: response.store.vat_number ?? undefined,
-            location: this.mapStoreLocation(response.store.location),
+            location: mapStoreLocation(response.store.location),
           };
 
           setToken(response.token);
-          this.saveUser(user, true);
+          this.cacheUser(user, true);
           return user;
-        }),
-        catchError((err) => throwError(() => mapHttpError(err)))
-      );
-  }
-
-  /** Only workingHours is actually editable on the Store Info tab (name, city,
-   *  phone, whatsapp, business/certificate IDs are shown read-only there — the
-   *  backend has no owner-facing endpoint to change those; only an admin can),
-   *  so this saves the schedule via the real PUT /stores/{id}/schedule route. */
-  updateProfile(storeId: number, workingHours: StoreSchedule): Observable<StoreUser> {
-    const schedule = this.buildScheduleEntries(workingHours);
-
-    return this.http
-      .put<{ data: StoreMeResponse['data'] }>(`${environment.apiUrl}/stores/${storeId}/schedule`, { schedule })
-      .pipe(
-        map((response) => {
-          const current = this.getCurrentUser();
-          if (!current) {
-            throw new Error('Not authenticated');
-          }
-
-          const updatedUser: StoreUser = {
-            ...current,
-            workingHours: this.mapScheduleEntries(response.data.schedule),
-          };
-
-          const remember = !!localStorage.getItem(STORAGE_SESSION_KEY);
-          this.saveUser(updatedUser, remember);
-          return updatedUser;
-        }),
-        catchError((err) => throwError(() => mapHttpError(err)))
-      );
-  }
-
-  updateStoreLocation(storeId: number, payload: StoreLocation): Observable<StoreUser> {
-    return this.http
-      .patch<{ data: { location: StoreMeResponse['data']['location'] } }>(`${environment.apiUrl}/stores/${storeId}/location`, {
-        latitude: payload.latitude,
-        longitude: payload.longitude,
-        city: payload.city,
-        formatted_address: payload.formattedAddress,
-      })
-      .pipe(
-        map((response) => {
-          const current = this.getCurrentUser();
-          if (!current) {
-            throw new Error('Not authenticated');
-          }
-
-          const updatedUser: StoreUser = {
-            ...current,
-            location: this.mapStoreLocation(response.data.location),
-          };
-
-          const remember = !!localStorage.getItem(STORAGE_SESSION_KEY);
-          this.saveUser(updatedUser, remember);
-          return updatedUser;
         }),
         catchError((err) => throwError(() => mapHttpError(err)))
       );

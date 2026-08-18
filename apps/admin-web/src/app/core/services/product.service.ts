@@ -16,7 +16,7 @@ export class ProductService {
     search?: string;
     page?: number;
     status?: ProductStatus | 'all';
-    store_id?: number;
+    store_name?: string;
     category_id?: number;
     unit_id?: number;
     sort?: ProductSort;
@@ -31,8 +31,8 @@ export class ProductService {
     if (params.status && params.status !== 'all') {
       httpParams = httpParams.set('status', params.status);
     }
-    if (params.store_id) {
-      httpParams = httpParams.set('store_id', params.store_id);
+    if (params.store_name) {
+      httpParams = httpParams.set('store_name', params.store_name);
     }
     if (params.category_id) {
       httpParams = httpParams.set('category_id', params.category_id);
@@ -78,8 +78,13 @@ export class ProductService {
     );
   }
 
-  updateProductStatus(id: number, status: ProductStatus): Observable<Product> {
-    return this.http.patch<{ data: Product }>(`${environment.apiUrl}/products/${id}/status`, { status }).pipe(
+  updateProductStatus(id: number, status: ProductStatus, suspensionReason?: string): Observable<Product> {
+    const payload: { status: ProductStatus; suspension_reason?: string } = { status };
+    if (status === 'suspended') {
+      payload.suspension_reason = suspensionReason;
+    }
+
+    return this.http.patch<{ data: Product }>(`${environment.apiUrl}/products/${id}/status`, payload).pipe(
       map((response) => response.data),
       catchError((err) => throwError(() => mapHttpError(err)))
     );

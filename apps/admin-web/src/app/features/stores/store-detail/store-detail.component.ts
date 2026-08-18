@@ -125,6 +125,11 @@ export class StoreDetailComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (status === 'suspended' && !this.statusReason().trim()) {
+      this.toast.error('Please provide a reason for suspending this store.');
+      return;
+    }
+
     this.mutating.set(true);
     this.closeStatusModal();
 

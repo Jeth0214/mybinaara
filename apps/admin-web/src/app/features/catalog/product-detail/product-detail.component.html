@@ -1,10 +1,15 @@
-<div class="container py-4" style="max-width: 1200px;">
-  <a routerLink="/catalog/products" class="text-decoration-none text-muted fs-7 d-inline-flex align-items-center gap-2 mb-3">
+<div class="container py-4" style="max-width: 1200px">
+  <a
+    routerLink="/catalog/products"
+    class="text-decoration-none text-muted fs-7 d-inline-flex align-items-center gap-2 mb-3"
+  >
     <i class="bi bi-arrow-left"></i> Back to Products
   </a>
 
   @if (loading()) {
-    <div class="d-flex align-items-center justify-content-center gap-2 text-muted py-5">
+    <div
+      class="d-flex align-items-center justify-content-center gap-2 text-muted py-5"
+    >
       <div class="spinner-border spinner-border-sm text-success" role="status">
         <span class="visually-hidden">Loading...</span>
       </div>
@@ -14,20 +19,36 @@
     <div class="text-center py-5 my-5">
       <i class="bi bi-box-seam fs-1 text-muted opacity-40"></i>
       <h5 class="text-muted mt-3">Product record not found</h5>
-      <a routerLink="/catalog/products" class="btn btn-success mt-3 btn-sm">Back to Products</a>
+      <a routerLink="/catalog/products" class="btn btn-success mt-3 btn-sm"
+        >Back to Products</a
+      >
     </div>
   } @else if (loadError()) {
     <div class="text-center py-5 my-5">
       <div class="text-danger fs-7-5 mb-3">{{ loadError() }}</div>
-      <button type="button" class="btn btn-light btn-sm" (click)="fetchProduct(+productId()!)">Retry</button>
+      <button
+        type="button"
+        class="btn btn-light btn-sm"
+        (click)="fetchProduct(+productId()!)"
+      >
+        Retry
+      </button>
     </div>
   } @else if (product(); as prod) {
     <!-- Header -->
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+    <div
+      class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4"
+    >
       <div class="d-flex align-items-center gap-3">
-        <div class="product-thumb bg-light rounded text-muted d-flex align-items-center justify-content-center overflow-hidden">
+        <div
+          class="product-thumb bg-light rounded text-muted d-flex align-items-center justify-content-center overflow-hidden"
+        >
           @if (prod.image_url) {
-            <img [src]="prod.image_url" [alt]="prod.name" style="width: 100%; height: 100%; object-fit: cover;" />
+            <img
+              [src]="prod.image_url"
+              [alt]="prod.name"
+              style="width: 100%; height: 100%; object-fit: contain"
+            />
           } @else {
             <i class="bi bi-box-seam fs-3"></i>
           }
@@ -35,7 +56,9 @@
         <div>
           <div class="d-flex align-items-center gap-2">
             <h4 class="fw-bold mb-0">{{ prod.name }}</h4>
-            <span [class]="'status-badge status-badge--' + prod.status">{{ prod.status }}</span>
+            <span [class]="'status-badge status-badge--' + prod.status">{{
+              prod.status
+            }}</span>
           </div>
           <code class="fs-7-5 text-muted d-block mt-1">/{{ prod.slug }}</code>
         </div>
@@ -44,12 +67,18 @@
       <div class="d-flex align-items-center gap-2">
         @if (canChangeStatus() && availableStatusActions().length > 0) {
           <div ngbDropdown class="d-inline-block">
-            <button class="btn btn-outline-secondary d-flex align-items-center gap-2" ngbDropdownToggle [disabled]="busy()">
+            <button
+              class="btn btn-outline-secondary d-flex align-items-center gap-2"
+              ngbDropdownToggle
+              [disabled]="busy()"
+            >
               <i class="bi bi-arrow-repeat"></i> Change Status
             </button>
             <div ngbDropdownMenu class="dropdown-menu-custom shadow border">
               @for (action of availableStatusActions(); track action.target) {
-                <button ngbDropdownItem (click)="changeStatus(action.target)">{{ action.label }}</button>
+                <button ngbDropdownItem (click)="changeStatus(action.target)">
+                  {{ action.label }}
+                </button>
               }
             </div>
           </div>
@@ -66,69 +95,132 @@
           </a>
         }
         @if (canDelete()) {
-          <button class="btn btn-outline-danger d-flex align-items-center gap-2" [disabled]="busy()" (click)="deleteProduct()">
+          <button
+            class="btn btn-outline-danger d-flex align-items-center gap-2"
+            [disabled]="busy()"
+            (click)="deleteProduct()"
+          >
             <i class="bi bi-trash"></i> Delete
           </button>
         }
       </div>
     </div>
 
+    <!-- Suspension reason -->
+    @if (prod.status === "suspended" && prod.suspension_reason) {
+      <div
+        class="alert alert-danger p-3 fs-7 mb-4 d-flex align-items-start gap-2"
+      >
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <div>
+          <div class="fw-bold d-block mb-1 fs-8 text-uppercase">
+            This product has been suspended
+          </div>
+          <h5>Reason: {{ prod.suspension_reason }}</h5>
+        </div>
+      </div>
+    }
+
     <!-- Details Card -->
     <div class="card border-0 shadow-sm p-4 mb-4">
       <div class="row g-4">
         <div class="col-md-4">
           <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">SKU</div>
-          <div class="fs-7-5 fw-medium text-dark">{{ prod.sku || '—' }}</div>
+          <div class="fs-7-5 fw-medium text-dark">{{ prod.sku || "—" }}</div>
         </div>
         <div class="col-md-4">
-          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">Category</div>
-          <div class="fs-7-5 fw-medium text-dark">{{ prod.category?.name || 'Uncategorized' }}</div>
-        </div>
-        <div class="col-md-4">
-          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">Unit</div>
+          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">
+            Category
+          </div>
           <div class="fs-7-5 fw-medium text-dark">
-            {{ prod.unit ? prod.unit.name + (prod.unit.abbreviation ? ' (' + prod.unit.abbreviation + ')' : '') : '—' }}
+            {{ prod.category?.name || "Uncategorized" }}
           </div>
         </div>
         <div class="col-md-4">
-          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">Store</div>
+          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">
+            Unit
+          </div>
+          <div class="fs-7-5 fw-medium text-dark">
+            {{
+              prod.unit
+                ? prod.unit.name +
+                  (prod.unit.abbreviation
+                    ? " (" + prod.unit.abbreviation + ")"
+                    : "")
+                : "—"
+            }}
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">
+            Store
+          </div>
           <div class="fs-7-5 fw-medium text-dark">{{ prod.store.name }}</div>
         </div>
         <div class="col-md-4">
-          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">Price</div>
+          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">
+            Price
+          </div>
           <div class="fs-7-5 fw-bold text-success">
-            {{ prod.price | number:'1.2-2' }} SAR
+            {{ prod.price | number: "1.2-2" }} SAR
             @if (prod.compare_at_price) {
-              <span class="text-muted fw-normal text-decoration-line-through ms-2">{{ prod.compare_at_price | number:'1.2-2' }} SAR</span>
+              <span
+                class="text-muted fw-normal text-decoration-line-through ms-2"
+                >{{ prod.compare_at_price | number: "1.2-2" }} SAR</span
+              >
             }
           </div>
         </div>
         <div class="col-md-4">
-          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">Stock Quantity</div>
-          <div class="fs-7-5 fw-medium text-dark">{{ prod.stock_quantity }}</div>
+          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">
+            Stock Quantity
+          </div>
+          <div class="fs-7-5 fw-medium text-dark">
+            {{ prod.stock_quantity }}
+          </div>
         </div>
         <div class="col-md-4">
-          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">Status</div>
-          <div class="fs-7-5 fw-medium text-dark text-capitalize">{{ prod.status }}</div>
+          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">
+            Status
+          </div>
+          <div class="fs-7-5 fw-medium text-dark text-capitalize">
+            {{ prod.status }}
+          </div>
         </div>
         <div class="col-12">
-          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">Description</div>
-          <p class="fs-7-5 text-dark mb-0">{{ prod.description || 'No description provided.' }}</p>
+          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">
+            Description
+          </div>
+          <p class="fs-7-5 text-dark mb-0">
+            {{ prod.description || "No description provided." }}
+          </p>
         </div>
         <div class="col-md-4">
-          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">Created By</div>
-          <div class="fs-7-5 fw-medium text-dark">{{ prod.created_by?.name || '—' }}</div>
-        </div>
-        <div class="col-md-4">
-          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">Created On</div>
-          <div class="fs-7-5 fw-medium text-dark">{{ prod.created_at | date:'medium' }}</div>
-        </div>
-        <div class="col-md-4">
-          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">Last Updated</div>
+          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">
+            Created By
+          </div>
           <div class="fs-7-5 fw-medium text-dark">
-            {{ prod.updated_at | date:'medium' }}
+            {{ prod.created_by?.name || "—" }}
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">
+            Created On
+          </div>
+          <div class="fs-7-5 fw-medium text-dark">
+            {{ prod.created_at | date: "medium" }}
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="fs-8 text-uppercase text-muted fw-semibold mb-1">
+            Last Updated
+          </div>
+          <div class="fs-7-5 fw-medium text-dark">
+            {{ prod.updated_at | date: "medium" }}
             @if (prod.updated_by?.name) {
-              <span class="text-muted d-block fs-8">by {{ prod.updated_by?.name }}</span>
+              <span class="text-muted d-block fs-8"
+                >by {{ prod.updated_by?.name }}</span
+              >
             }
           </div>
         </div>

@@ -28,6 +28,14 @@
       </div>
     }
 
+    <!-- Suspension reason -->
+    @if (store().status === 'suspended' && store().suspension_reason) {
+      <div class="alert alert-danger p-2.5 fs-7 mb-4">
+        <div class="fw-bold d-block mb-1 fs-8 text-uppercase">Suspension Reason</div>
+        {{ store().suspension_reason }}
+      </div>
+    }
+
     <div class="d-flex flex-column gap-2">
       @if (store().status === 'active') {
         <button [disabled]="disabled()" (click)="changeStatus.emit('suspended')" class="btn btn-outline-danger d-flex align-items-center justify-content-center gap-2 py-2">

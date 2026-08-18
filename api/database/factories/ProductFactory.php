@@ -46,6 +46,9 @@ class ProductFactory extends Factory
 
     public function suspended(): static
     {
-        return $this->state(fn (array $attributes) => ['status' => ProductStatus::Suspended]);
+        return $this->state(fn (array $attributes) => [
+            'status' => ProductStatus::Suspended,
+            'suspension_reason' => 'Policy violation reported by customers.',
+        ]);
     }
 }

@@ -18,12 +18,14 @@ class StoreScheduleService
     {
         return DB::transaction(function () use ($store, $entries) {
             foreach ($entries as $entry) {
+                $isOff = filter_var($entry['is_off'], FILTER_VALIDATE_BOOLEAN);
+
                 StoreSchedule::query()->updateOrCreate(
                     ['store_id' => $store->id, 'day' => $entry['day']],
                     [
-                        'open_time' => $entry['is_off'] ? null : $entry['open_time'],
-                        'close_time' => $entry['is_off'] ? null : $entry['close_time'],
-                        'is_off' => $entry['is_off'],
+                        'open_time' => $isOff ? null : ($entry['open_time'] ?? null),
+                        'close_time' => $isOff ? null : ($entry['close_time'] ?? null),
+                        'is_off' => $isOff,
                     ],
                 );
             }

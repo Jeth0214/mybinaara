@@ -9,6 +9,7 @@ import { ToastService } from '../../../core/services/toast.service';
 import { Product, ProductStatus } from '../../../core/models/product.model';
 import { AdminAuthState } from '../../../core/state/auth.state';
 import { StoreConfirmModalComponent } from '../../stores/components/store-confirm-modal/store-confirm-modal.component';
+import { SuspendProductModalComponent } from '../components/suspend-product-modal/suspend-product-modal.component';
 
 @Component({
   selector: 'app-product-detail',
@@ -102,34 +103,51 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     const product = this.product();
     if (!product) return;
 
+    if (target === 'suspended') {
+      const modalRef = this.modalService.open(SuspendProductModalComponent, { centered: true });
+      modalRef.componentInstance.product = product;
+
+      modalRef.result.then(
+        (reason: string | false) => {
+          if (!reason) return;
+          this.applyStatusChange(product.id, target, reason);
+        },
+        () => {}
+      );
+      return;
+    }
+
     const modalRef = this.modalService.open(StoreConfirmModalComponent, { centered: true });
-    modalRef.componentInstance.title.set(`${target === 'suspended' ? 'Suspend' : target === 'active' ? 'Activate' : 'Deactivate'} Product`);
+    modalRef.componentInstance.title.set(`${target === 'active' ? 'Activate' : 'Deactivate'} Product`);
     modalRef.componentInstance.message.set(
       `Are you sure you want to set <strong>${product.name}</strong> to <strong>${target}</strong>?`
     );
     modalRef.componentInstance.confirmText.set('Confirm');
     modalRef.componentInstance.cancelText.set('Cancel');
-    modalRef.componentInstance.isDanger.set(target === 'suspended');
+    modalRef.componentInstance.isDanger.set(false);
 
     modalRef.result.then(
       (confirmed) => {
         if (!confirmed) return;
-
-        this.mutating.set(true);
-        this.productService.updateProductStatus(product.id, target).subscribe({
-          next: (updated) => {
-            this.mutating.set(false);
-            this.product.set(updated);
-            this.toast.success(`"${updated.name}" is now ${updated.status}.`);
-          },
-          error: (err) => {
-            this.mutating.set(false);
-            this.toast.error(err?.message ?? 'Failed to update status.');
-          },
-        });
+        this.applyStatusChange(product.id, target);
       },
       () => {}
     );
+  }
+
+  private applyStatusChange(productId: number, target: ProductStatus, reason?: string): void {
+    this.mutating.set(true);
+    this.productService.updateProductStatus(productId, target, reason).subscribe({
+      next: (updated) => {
+        this.mutating.set(false);
+        this.product.set(updated);
+        this.toast.success(`"${updated.name}" is now ${updated.status}.`);
+      },
+      error: (err) => {
+        this.mutating.set(false);
+        this.toast.error(err?.message ?? 'Failed to update status.');
+      },
+    });
   }
 
   deleteProduct(): void {

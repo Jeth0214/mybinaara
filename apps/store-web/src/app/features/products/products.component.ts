@@ -16,11 +16,12 @@ import { ProductDetailsModalComponent } from './components/product-details-modal
 import { QuickStockModalComponent } from './components/quick-stock-modal/quick-stock-modal.component';
 import { DeleteConfirmModalComponent } from './components/delete-confirm-modal/delete-confirm-modal.component';
 import { StatusConfirmModalComponent } from './components/status-confirm-modal/status-confirm-modal.component';
+import { ProductStatusBadgeComponent } from './components/product-status-badge/product-status-badge.component';
 
 @Component({
   selector: 'app-products',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, NgbModalModule, NgbDropdownModule, MatPaginatorModule],
+  imports: [CommonModule, FormsModule, RouterLink, NgbModalModule, NgbDropdownModule, MatPaginatorModule, ProductStatusBadgeComponent],
   templateUrl: './products.component.html',
   styleUrl: './products.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

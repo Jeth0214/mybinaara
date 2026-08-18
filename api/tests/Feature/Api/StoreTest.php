@@ -7,7 +7,9 @@ namespace Tests\Feature\Api;
 use App\Enums\StoreUserRole;
 use App\Enums\UserType;
 use App\Mail\StoreActivationMail;
+use App\Models\Category;
 use App\Models\Permission;
+use App\Models\Product;
 use App\Models\Store;
 use App\Models\StoreActivationToken;
 use App\Models\User;
@@ -137,6 +139,73 @@ class StoreTest extends TestCase
         $this->actingAs($customer, 'sanctum')->getJson('/api/stores/me')->assertStatus(404);
     }
 
+    public function test_guest_cannot_view_dashboard_stats(): void
+    {
+        $this->getJson('/api/stores/me/dashboard')->assertStatus(401);
+    }
+
+    public function test_store_owner_can_view_own_dashboard_stats(): void
+    {
+        $store = Store::factory()->active()->create();
+        $otherStore = Store::factory()->active()->create();
+        $owner = User::factory()->create(['user_type' => UserType::StoreOwner]);
+        $store->users()->attach($owner->id, ['role' => StoreUserRole::Owner->value]);
+
+        Product::factory()->for($store)->create(['stock_quantity' => 0]);
+        Product::factory()->for($store)->create(['stock_quantity' => 5]);
+        Product::factory()->for($store)->create(['stock_quantity' => 50]);
+        Product::factory()->for($store)->suspended()->create(['stock_quantity' => 20]);
+        // Belongs to a different store — must not be counted.
+        Product::factory()->for($otherStore)->create(['stock_quantity' => 20]);
+
+        $response = $this->actingAs($owner, 'sanctum')->getJson('/api/stores/me/dashboard');
+
+        $response->assertOk()
+            ->assertJsonPath('data.total', 4)
+            ->assertJsonPath('data.limit', 100)
+            ->assertJsonPath('data.remaining', 96)
+            ->assertJsonPath('data.out_of_stock', 1)
+            ->assertJsonPath('data.low_stock', 1)
+            ->assertJsonPath('data.in_stock', 2)
+            ->assertJsonPath('data.active', 3)
+            ->assertJsonPath('data.suspended', 1);
+    }
+
+    public function test_user_with_no_store_gets_404_on_dashboard_stats(): void
+    {
+        $customer = User::factory()->create(['user_type' => UserType::Customer]);
+
+        $this->actingAs($customer, 'sanctum')->getJson('/api/stores/me/dashboard')->assertStatus(404);
+    }
+
+    public function test_dashboard_stats_breaks_down_products_by_category_and_day(): void
+    {
+        $store = Store::factory()->active()->create();
+        $owner = $this->withOwner($store);
+
+        $tools = Category::factory()->create(['name' => 'Tools']);
+        $paint = Category::factory()->create(['name' => 'Paint']);
+
+        Product::factory()->for($store)->create(['category_id' => $tools->id, 'created_at' => now()]);
+        Product::factory()->for($store)->create(['category_id' => $tools->id, 'created_at' => now()]);
+        Product::factory()->for($store)->create(['category_id' => $paint->id, 'created_at' => now()->subDays(2)]);
+        // No category — must not appear in by_category, but still counts toward total/added_over_time.
+        Product::factory()->for($store)->create(['category_id' => null, 'created_at' => now()]);
+
+        $response = $this->actingAs($owner, 'sanctum')->getJson('/api/stores/me/dashboard');
+
+        $response->assertOk()
+            ->assertJsonPath('data.total', 4)
+            ->assertJsonPath('data.by_category', [
+                ['name' => 'Tools', 'count' => 2],
+                ['name' => 'Paint', 'count' => 1],
+            ]);
+
+        $addedOverTime = collect($response->json('data.added_over_time'))->keyBy('date');
+        $this->assertSame(3, $addedOverTime->get(now()->toDateString())['count'] ?? null);
+        $this->assertSame(1, $addedOverTime->get(now()->subDays(2)->toDateString())['count'] ?? null);
+    }
+
     public function test_guest_cannot_create_store(): void
     {
         $this->post('/api/stores', $this->validStorePayload())->assertStatus(401);
@@ -261,6 +330,45 @@ class StoreTest extends TestCase
         $response = $this->actingAs($admin, 'sanctum')->getJson('/api/stores?city=Riyadh');
 
         $response->assertOk()->assertJsonCount(2, 'data');
+    }
+
+    public function test_admin_can_search_stores_by_name(): void
+    {
+        $admin = User::factory()->admin()->create();
+        Store::factory()->create(['name' => 'Al-Amal Building Materials']);
+        Store::factory()->create(['name' => 'Riyadh Hardware Co']);
+
+        $response = $this->actingAs($admin, 'sanctum')->getJson('/api/stores?search=Amal');
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.name', 'Al-Amal Building Materials');
+    }
+
+    public function test_admin_can_search_stores_by_owner_name(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $matchingStore = Store::factory()->create(['name' => 'Riyadh Hardware Co']);
+        $owner = $this->withOwner($matchingStore);
+        $owner->update(['name' => 'Khalid Al-Otaibi']);
+        Store::factory()->create(['name' => 'Jeddah Tools Co']);
+
+        $response = $this->actingAs($admin, 'sanctum')->getJson('/api/stores?search=Otaibi');
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $matchingStore->id);
+    }
+
+    public function test_store_search_matches_neither_name_nor_owner_returns_empty(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $store = Store::factory()->create(['name' => 'Riyadh Hardware Co']);
+        $this->withOwner($store)->update(['name' => 'Khalid Al-Otaibi']);
+
+        $response = $this->actingAs($admin, 'sanctum')->getJson('/api/stores?search=NoSuchThing');
+
+        $response->assertOk()->assertJsonCount(0, 'data');
     }
 
     public function test_creating_store_requires_owner_whatsapp(): void
@@ -432,9 +540,14 @@ class StoreTest extends TestCase
         $store = Store::factory()->create();
 
         $response = $this->actingAs($admin, 'sanctum')
-            ->patchJson("/api/stores/{$store->id}/status", ['status' => 'suspended']);
+            ->patchJson("/api/stores/{$store->id}/status", [
+                'status' => 'suspended',
+                'suspension_reason' => 'Fraudulent activity reported.',
+            ]);
 
-        $response->assertOk()->assertJsonPath('data.status', 'suspended');
+        $response->assertOk()
+            ->assertJsonPath('data.status', 'suspended')
+            ->assertJsonPath('data.suspension_reason', 'Fraudulent activity reported.');
     }
 
     public function test_rejecting_a_store_requires_a_rejection_reason(): void
@@ -446,6 +559,19 @@ class StoreTest extends TestCase
             ->patchJson("/api/stores/{$store->id}/status", ['status' => 'rejected']);
 
         $response->assertStatus(422)->assertJsonValidationErrors(['rejection_reason']);
+    }
+
+    public function test_suspending_a_store_requires_a_suspension_reason(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $store = Store::factory()->active()->create();
+
+        $response = $this->actingAs($admin, 'sanctum')
+            ->patchJson("/api/stores/{$store->id}/status", ['status' => 'suspended']);
+
+        $response->assertStatus(422)->assertJsonValidationErrors(['suspension_reason']);
+
+        $this->assertDatabaseHas('stores', ['id' => $store->id, 'status' => 'active']);
     }
 
     /**
@@ -557,14 +683,19 @@ class StoreTest extends TestCase
         $activeStore = Store::factory()->active()->create();
 
         $this->actingAs($suspender, 'sanctum')
-            ->patchJson("/api/stores/{$activeStore->id}/status", ['status' => 'suspended'])
+            ->patchJson("/api/stores/{$activeStore->id}/status", [
+                'status' => 'suspended',
+                'suspension_reason' => 'Repeated customer complaints.',
+            ])
             ->assertOk()
-            ->assertJsonPath('data.status', 'suspended');
+            ->assertJsonPath('data.status', 'suspended')
+            ->assertJsonPath('data.suspension_reason', 'Repeated customer complaints.');
 
         $this->actingAs($suspender, 'sanctum')
             ->patchJson("/api/stores/{$activeStore->id}/status", ['status' => 'active'])
             ->assertOk()
-            ->assertJsonPath('data.status', 'active');
+            ->assertJsonPath('data.status', 'active')
+            ->assertJsonPath('data.suspension_reason', null);
     }
 
     /**
@@ -593,6 +724,168 @@ class StoreTest extends TestCase
             ->deleteJson("/api/stores/{$store->id}")
             ->assertStatus(204);
         $this->assertDatabaseMissing('stores', ['id' => $store->id]);
+    }
+
+    /**
+     * Proves a Vendor (StoreOwner) cannot reach the admin-only general update
+     * endpoint at all, even to change fields they don't own such as name.
+     */
+    public function test_vendor_cannot_update_store_via_general_endpoint(): void
+    {
+        $store = Store::factory()->active()->create();
+        $owner = $this->withOwner($store);
+
+        $this->actingAs($owner, 'sanctum')
+            ->patchJson("/api/stores/{$store->id}", ['name' => 'Hacked Name'])
+            ->assertStatus(403);
+
+        $this->assertDatabaseMissing('stores', ['id' => $store->id, 'name' => 'Hacked Name']);
+    }
+
+    public function test_vendor_cannot_update_store_status(): void
+    {
+        $store = Store::factory()->active()->create();
+        $owner = $this->withOwner($store);
+
+        $this->actingAs($owner, 'sanctum')
+            ->patchJson("/api/stores/{$store->id}/status", ['status' => 'suspended'])
+            ->assertStatus(403);
+
+        $this->assertDatabaseHas('stores', ['id' => $store->id, 'status' => 'active']);
+    }
+
+    public function test_vendor_cannot_update_store_owner_contact_info(): void
+    {
+        $store = Store::factory()->active()->create();
+        $owner = $this->withOwner($store);
+
+        $this->actingAs($owner, 'sanctum')
+            ->patchJson("/api/stores/{$store->id}/owner", ['name' => 'New Name'])
+            ->assertStatus(403);
+    }
+
+    public function test_vendor_can_update_own_store_location(): void
+    {
+        $store = Store::factory()->active()->create();
+        $owner = $this->withOwner($store);
+
+        $response = $this->actingAs($owner, 'sanctum')->patchJson("/api/stores/{$store->id}/location", [
+            'latitude' => 24.7136,
+            'longitude' => 46.6753,
+            'city' => 'Riyadh',
+            'formatted_address' => '123 King Fahd Road, Al Olaya, Riyadh 12214, Saudi Arabia',
+        ]);
+
+        $response->assertOk()->assertJsonPath('data.location.city', 'Riyadh');
+    }
+
+    public function test_vendor_can_update_own_store_schedule(): void
+    {
+        $store = Store::factory()->active()->create();
+        $owner = $this->withOwner($store);
+
+        $response = $this->actingAs($owner, 'sanctum')
+            ->putJson("/api/stores/{$store->id}/schedule", ['schedule' => $this->fullWeekSchedule()]);
+
+        $response->assertOk()->assertJsonCount(7, 'data.schedule');
+    }
+
+    public function test_vendor_can_update_own_store_logo(): void
+    {
+        $store = Store::factory()->active()->create();
+        $owner = $this->withOwner($store);
+
+        $response = $this->actingAs($owner, 'sanctum')
+            ->post("/api/stores/{$store->id}/logo", ['logo' => UploadedFile::fake()->image('logo.png')]);
+
+        $response->assertOk();
+        $this->assertNotNull($store->fresh()->logo_url);
+    }
+
+    public function test_guest_cannot_remove_store_logo(): void
+    {
+        $store = Store::factory()->active()->create(['logo_url' => Storage::disk('public')->url('stores/logos/existing.png')]);
+
+        $this->deleteJson("/api/stores/{$store->id}/logo")->assertStatus(401);
+    }
+
+    public function test_vendor_can_remove_own_store_logo(): void
+    {
+        $store = Store::factory()->active()->create();
+        $owner = $this->withOwner($store);
+
+        $this->actingAs($owner, 'sanctum')
+            ->post("/api/stores/{$store->id}/logo", ['logo' => UploadedFile::fake()->image('logo.png')])
+            ->assertOk();
+
+        $path = str_replace(Storage::disk('public')->url(''), '', $store->fresh()->logo_url);
+        Storage::disk('public')->assertExists($path);
+
+        $response = $this->actingAs($owner, 'sanctum')->deleteJson("/api/stores/{$store->id}/logo");
+
+        $response->assertOk()->assertJsonPath('data.logo_url', null);
+        $this->assertNull($store->fresh()->logo_url);
+        Storage::disk('public')->assertMissing($path);
+    }
+
+    public function test_vendor_cannot_remove_logo_of_another_stores(): void
+    {
+        $ownStore = Store::factory()->active()->create();
+        $otherStore = Store::factory()->active()->create(['logo_url' => Storage::disk('public')->url('stores/logos/existing.png')]);
+        $owner = $this->withOwner($ownStore);
+
+        $this->actingAs($owner, 'sanctum')
+            ->deleteJson("/api/stores/{$otherStore->id}/logo")
+            ->assertStatus(403);
+
+        $this->assertNotNull($otherStore->fresh()->logo_url);
+    }
+
+    public function test_admin_can_remove_any_store_logo(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $store = Store::factory()->create();
+
+        $this->actingAs($admin, 'sanctum')
+            ->post("/api/stores/{$store->id}/logo", ['logo' => UploadedFile::fake()->image('logo.png')])
+            ->assertOk();
+
+        $response = $this->actingAs($admin, 'sanctum')->deleteJson("/api/stores/{$store->id}/logo");
+
+        $response->assertOk()->assertJsonPath('data.logo_url', null);
+        $this->assertNull($store->fresh()->logo_url);
+    }
+
+    public function test_vendor_cannot_update_location_of_another_stores(): void
+    {
+        $ownStore = Store::factory()->active()->create();
+        $otherStore = Store::factory()->active()->create();
+        $owner = $this->withOwner($ownStore);
+
+        $this->actingAs($owner, 'sanctum')->patchJson("/api/stores/{$otherStore->id}/location", [
+            'latitude' => 24.7136,
+            'longitude' => 46.6753,
+            'city' => 'Riyadh',
+            'formatted_address' => '123 King Fahd Road, Al Olaya, Riyadh 12214, Saudi Arabia',
+        ])->assertStatus(403);
+    }
+
+    public function test_store_staff_can_update_own_store_location_but_not_the_store_itself(): void
+    {
+        $store = Store::factory()->active()->create();
+        $staff = User::factory()->create(['user_type' => UserType::VendorStaff]);
+        $store->users()->attach($staff->id, ['role' => StoreUserRole::Staff->value]);
+
+        $this->actingAs($staff, 'sanctum')->patchJson("/api/stores/{$store->id}/location", [
+            'latitude' => 24.7136,
+            'longitude' => 46.6753,
+            'city' => 'Riyadh',
+            'formatted_address' => '123 King Fahd Road, Al Olaya, Riyadh 12214, Saudi Arabia',
+        ])->assertOk();
+
+        $this->actingAs($staff, 'sanctum')
+            ->patchJson("/api/stores/{$store->id}", ['name' => 'Hacked Name'])
+            ->assertStatus(403);
     }
 
     /**

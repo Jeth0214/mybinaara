@@ -7,27 +7,52 @@
       <p class="section-subtitle text-muted mb-0">This information is shown to customers on the MyBinaara app</p>
     </div>
 
-    <!-- Store Logo Display -->
+    <!-- Store Logo -->
     <div class="mb-4">
-      <label class="form-label">Store logo</label>
-      <div class="d-flex flex-column flex-md-row align-items-center p-3 border rounded bg-light-subtle">
-        <div class="logo-display-box me-md-3 mb-3 mb-md-0 d-flex align-items-start align-items-md-center justify-content-center">
-          @if (logoPreview() && !logoPreview()?.includes('store-logo.png')) {
-            <img [src]="logoPreview()" alt="Store Logo" class="logo-display-img" />
-          } @else {
-            <i class="bi bi-shop logo-display-icon" aria-hidden="true"></i>
-          }
+      <label class="form-label mb-2">Store Logo <span class="text-muted fw-normal">(optional)</span></label>
+
+      <input
+        #logoFileInput
+        type="file"
+        class="d-none"
+        accept="image/png,image/jpeg,image/webp"
+        (change)="onLogoSelected($event)"
+      />
+
+      @if (currentLogoPreview(); as logoUrl) {
+        <div class="d-flex align-items-center gap-3 p-3 border rounded bg-light-subtle">
+          <div class="logo-display-box logo-display-box--ready d-flex align-items-center justify-content-center">
+            <img [src]="logoUrl" alt="Store Logo" class="logo-display-img" />
+          </div>
+          <div>
+            <span class="d-block text-success fw-bold fs-7 mb-1"><i class="bi bi-patch-check-fill me-1"></i>Logo Ready</span>
+            <button type="button" class="btn btn-sm btn-outline-success py-1 px-2 fs-8 d-inline-flex align-items-center gap-1" (click)="logoFileInput.click()">
+              <i class="bi bi-pencil-square"></i> Change Logo
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2 fs-8 d-inline-flex align-items-center gap-1 ms-2" (click)="removeLogo()">
+              <i class="bi bi-trash"></i> Remove
+            </button>
+          </div>
         </div>
-        <div class="logo-display-info">
-          <span class="logo-status-text d-block font-weight-bold">Store logo display</span>
-          <span class="logo-specs text-muted">To request updates to your logo, contact system administration.</span>
+      } @else {
+        <div class="logo-upload-zone text-center p-4" (click)="logoFileInput.click()">
+          <i class="bi bi-cloud-arrow-up text-success display-6 mb-2 d-block opacity-75"></i>
+          <span class="d-block fw-bold text-dark">Click to upload Store Logo</span>
+          <span class="text-muted fs-8 mt-1 d-block">Supported: PNG, JPG, WEBP. Max: 2MB.</span>
         </div>
-      </div>
+      }
+
+      @if (logoError(); as err) {
+        <div class="alert alert-danger d-flex align-items-center gap-2 py-2 px-3 mt-2 fs-8 border-0">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <span>{{ err }}</span>
+        </div>
+      }
     </div>
 
     <!-- Identity Fields Row -->
     <div class="row">
-      <div class="col-md-6 mb-3">
+      <div class="col-12 mb-3">
         <label for="storeName" class="form-label">Store name</label>
         <input
           type="text"
@@ -39,15 +64,6 @@
         @if (infoForm.get('storeName')?.invalid && infoForm.get('storeName')?.touched) {
           <div class="invalid-feedback">Store name is required.</div>
         }
-      </div>
-      
-      <div class="col-md-6 mb-3">
-        <label for="city" class="form-label">City</label>
-        <select id="city" formControlName="city" class="form-select">
-          @for (c of cities; track c) {
-            <option [value]="c">{{ c }}</option>
-          }
-        </select>
       </div>
     </div>
 
@@ -109,6 +125,30 @@
         @if (infoForm.get('phone')?.invalid && infoForm.get('phone')?.touched) {
           <div class="invalid-feedback">Phone number is required.</div>
         }
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label for="ownerEmail" class="form-label">Primary Contact Email</label>
+        <input
+          type="text"
+          id="ownerEmail"
+          class="form-control"
+          readonly
+          [value]="currentUser()?.ownerEmail || 'Not set'"
+        />
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <label for="ownerName" class="form-label">Authorized Owner/Manager Name</label>
+        <input
+          type="text"
+          id="ownerName"
+          class="form-control"
+          readonly
+          [value]="currentUser()?.ownerName || 'Not set'"
+        />
       </div>
     </div>
   </div>

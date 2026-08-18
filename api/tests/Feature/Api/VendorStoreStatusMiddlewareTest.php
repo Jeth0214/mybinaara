@@ -42,7 +42,10 @@ class VendorStoreStatusMiddlewareTest extends TestCase
         $response = $this->withHeader('Authorization', "Bearer {$token}")->getJson('/api/stores/me');
 
         $response->assertStatus(403)
-            ->assertJsonFragment(['message' => 'Your store account has been suspended. Please contact support for assistance.']);
+            ->assertJsonFragment([
+                'message' => 'Your store account has been suspended. Please contact support for assistance.',
+                'code' => 'store_inactive',
+            ]);
 
         $this->assertDatabaseCount('personal_access_tokens', 0);
     }
@@ -55,7 +58,26 @@ class VendorStoreStatusMiddlewareTest extends TestCase
         $response = $this->withHeader('Authorization', "Bearer {$token}")->getJson('/api/stores/me');
 
         $response->assertStatus(403)
-            ->assertJsonFragment(['message' => 'Your store account application was rejected. Please contact support for more information.']);
+            ->assertJsonFragment([
+                'message' => 'Your store account application was rejected. Please contact support for more information.',
+                'code' => 'store_inactive',
+            ]);
+
+        $this->assertDatabaseCount('personal_access_tokens', 0);
+    }
+
+    public function test_vendor_with_pending_store_is_blocked_and_logged_out(): void
+    {
+        $owner = $this->createVendorFor(StoreStatus::Pending);
+        $token = $owner->createToken('phpunit')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', "Bearer {$token}")->getJson('/api/stores/me');
+
+        $response->assertStatus(403)
+            ->assertJsonFragment([
+                'message' => 'Your store account is pending activation. Please check your email for the activation link we sent you.',
+                'code' => 'store_inactive',
+            ]);
 
         $this->assertDatabaseCount('personal_access_tokens', 0);
     }

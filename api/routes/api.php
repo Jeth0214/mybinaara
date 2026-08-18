@@ -65,6 +65,7 @@ Route::middleware(['auth:sanctum', EnsureAccountIsActive::class, EnsureVendorSto
     Route::delete('/product-units/{product_unit}', [ProductUnitController::class, 'destroy']);
 
     Route::get('/stores/me', [StoreController::class, 'me']);
+    Route::get('/stores/me/dashboard', [StoreController::class, 'dashboard']);
     Route::get('/stores', [StoreController::class, 'index']);
     Route::get('/stores/{store}', [StoreController::class, 'show']);
     Route::post('/stores', [StoreController::class, 'store']);
@@ -73,6 +74,7 @@ Route::middleware(['auth:sanctum', EnsureAccountIsActive::class, EnsureVendorSto
     Route::patch('/stores/{store}/status', [StoreController::class, 'updateStatus']);
     Route::patch('/stores/{store}/location', [StoreController::class, 'updateLocation']);
     Route::post('/stores/{store}/logo', [StoreController::class, 'updateLogo']);
+    Route::delete('/stores/{store}/logo', [StoreController::class, 'destroyLogo']);
     Route::put('/stores/{store}/schedule', [StoreController::class, 'updateSchedule']);
     Route::patch('/stores/{store}/owner', [StoreController::class, 'updateOwner']);
 

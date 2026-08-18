@@ -27,6 +27,7 @@ class StoreResource extends JsonResource
             'is_activated' => $this->is_activated,
             'logo_url' => $this->logo_url,
             'rejection_reason' => $this->rejection_reason,
+            'suspension_reason' => $this->suspension_reason,
             'products_count' => $this->products_count ?? $this->products()->count(),
             'location' => [
                 'latitude' => $this->latitude === null ? null : (float) $this->latitude,

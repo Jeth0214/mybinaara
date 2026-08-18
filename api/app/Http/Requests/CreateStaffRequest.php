@@ -37,7 +37,7 @@ class CreateStaffRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', Rule::unique('users', 'email')],
             'phone' => ['required', 'string', 'max:13', PhoneRules::SAUDI_MOBILE],
-            'whatsapp' => ['required', 'string', 'max:13', PhoneRules::SAUDI_MOBILE],
+            'whatsapp' => ['nullable', 'string', 'max:13', PhoneRules::SAUDI_MOBILE],
             'role' => ['sometimes', Rule::in(['administrator', 'staff'])],
             'permissions' => $role === 'administrator'
                 ? ['sometimes', 'array']

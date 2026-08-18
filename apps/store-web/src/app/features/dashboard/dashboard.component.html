@@ -10,17 +10,32 @@
       <!-- Section 1: Greeting & Operating Hours -->
       <app-dashboard-greeting [user]="user()"></app-dashboard-greeting>
 
-      <!-- Section 2: Products -->
+      <!-- Section 2: Products & Catalog Insights -->
       <div class="row g-4 mb-4">
-        <div class="col-12">
+        <div class="col-12 col-lg-6">
           <app-dashboard-products
             [productsCount]="productsCount()"
             [productsLimit]="productsLimit()"
+            [remainingCount]="remainingCount()"
             [progressPercent]="progressPercent()"
             [inStockCount]="inStockCount()"
             [lowStockCount]="lowStockCount()"
             [outOfStockCount]="outOfStockCount()"
           ></app-dashboard-products>
+        </div>
+        <div class="col-12 col-lg-6">
+          <app-dashboard-catalog-insights
+            [activeCount]="activeCount()"
+            [suspendedCount]="suspendedCount()"
+            [byCategory]="byCategory()"
+          ></app-dashboard-catalog-insights>
+        </div>
+      </div>
+
+      <!-- Section 2b: Catalog Growth Trend -->
+      <div class="row g-4 mb-4">
+        <div class="col-12">
+          <app-dashboard-trend-chart [addedOverTime]="addedOverTime()"></app-dashboard-trend-chart>
         </div>
       </div>
 

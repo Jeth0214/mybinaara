@@ -7,9 +7,10 @@ import { ProductService } from '../../../core/services/product.service';
 import { CategoryService } from '../../../core/services/category.service';
 import { ProductUnitService } from '../../../core/services/product-unit.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { MAX_PRODUCTS_PER_STORE } from '../../../core/models/product.model';
+import { MAX_PRODUCTS_PER_STORE, ProductStatus } from '../../../core/models/product.model';
 import { Category } from '../../../core/models/category.model';
 import { ProductUnit } from '../../../core/models/product-unit.model';
+import { ProductStatusBadgeComponent } from '../components/product-status-badge/product-status-badge.component';
 
 function slugify(value: string): string {
   return value
@@ -39,7 +40,7 @@ const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
 @Component({
   selector: 'app-add-product',
   standalone: true,
-  imports: [CommonModule, RouterLink, ReactiveFormsModule],
+  imports: [CommonModule, RouterLink, ReactiveFormsModule, ProductStatusBadgeComponent],
   templateUrl: './add-product.component.html',
   styleUrl: './add-product.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -64,6 +65,10 @@ export class AddProductComponent implements OnInit, OnDestroy {
   readonly loadError = signal<string | null>(null);
   readonly isEditMode = signal(false);
   readonly productId = signal<number | null>(null);
+
+  readonly productStatus = signal<ProductStatus | null>(null);
+  readonly suspensionReason = signal<string | null>(null);
+  readonly statusUpdating = signal(false);
 
   readonly selectedImageFile = signal<File | null>(null);
   readonly imagePreviewUrl = signal<string | null>(null);
@@ -145,11 +150,37 @@ export class AddProductComponent implements OnInit, OnDestroy {
           description: product.description ?? '',
         });
         this.imagePreviewUrl.set(product.image_url);
+        this.productStatus.set(product.status);
+        this.suspensionReason.set(product.suspension_reason);
       },
       error: (err) => {
         this.fetching.set(false);
         this.toastService.error(err?.message || 'Product not found.');
         this.router.navigate(['/products']);
+      },
+    });
+  }
+
+  /** Never reachable while suspended: the switch is hidden in that state,
+   *  and the service's active/inactive-only signature makes it impossible to
+   *  send anything else regardless. */
+  onStatusToggle(): void {
+    const current = this.productStatus();
+    const id = this.productId();
+    if (!id || !current || current === 'suspended' || this.statusUpdating()) return;
+
+    const target = current === 'active' ? 'inactive' : 'active';
+
+    this.statusUpdating.set(true);
+    this.productService.updateProductStatus(id, target).subscribe({
+      next: (updated) => {
+        this.statusUpdating.set(false);
+        this.productStatus.set(updated.status);
+        this.toastService.success(`Product is now ${updated.status}.`);
+      },
+      error: (err) => {
+        this.statusUpdating.set(false);
+        this.toastService.error(err?.message || 'Failed to update product status.');
       },
     });
   }

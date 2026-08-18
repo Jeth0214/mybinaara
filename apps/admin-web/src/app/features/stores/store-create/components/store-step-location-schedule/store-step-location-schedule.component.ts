@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { MatStepperModule } from '@angular/material/stepper';
@@ -16,6 +16,27 @@ import { StoreLocationPickerComponent } from './store-location-picker/store-loca
 export class StoreStepLocationScheduleComponent {
   readonly form = input.required<FormGroup>();
   readonly existingLocation = input<StoreLocation | null>(null);
+  readonly isEditMode = input<boolean>(false);
+
+  readonly showPicker = signal<boolean>(false);
+  readonly draftLocation = signal<StoreLocation | null>(null);
+  readonly lastCommitted = signal<StoreLocation | null>(null);
+  readonly committedLocation = computed(() => (this.form().get('location') as FormGroup).value as StoreLocation);
+
+  constructor() {
+    // In edit mode the store's location arrives asynchronously (parent fetches
+    // it over HTTP). Once it lands, auto-reveal the picker pre-filled with it.
+    // Only ever flips `showPicker` to true here so it never fights a user who
+    // already opened the picker manually, and it's safe whether this fires
+    // before or after first render.
+    effect(() => {
+      const existing = this.existingLocation();
+      if (existing && existing.latitude !== null && existing.longitude !== null) {
+        this.showPicker.set(true);
+        this.lastCommitted.set(existing);
+      }
+    });
+  }
 
   // Days list for working hours
   readonly days: Array<{ key: 'sat' | 'sun' | 'mon' | 'tue' | 'wed' | 'thu' | 'fri'; label: string }> = [
@@ -46,6 +67,17 @@ export class StoreStepLocationScheduleComponent {
   })();
 
   onLocationChange(value: StoreLocation): void {
+    this.draftLocation.set(value);
+  }
+
+  onSetLocation(): void {
+    this.showPicker.set(true);
+  }
+
+  onSaveLocation(): void {
+    const value = this.draftLocation();
+    if (!value) return;
     (this.form().get('location') as FormGroup).patchValue(value);
+    this.lastCommitted.set(value);
   }
 }

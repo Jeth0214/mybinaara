@@ -44,6 +44,7 @@ class UpdateStoreStatusRequest extends FormRequest
         return [
             'status' => ['required', new Enum(StoreStatus::class)],
             'rejection_reason' => ['required_if:status,rejected', 'nullable', 'string', 'max:500'],
+            'suspension_reason' => ['required_if:status,suspended', 'nullable', 'string', 'max:500'],
         ];
     }
 }

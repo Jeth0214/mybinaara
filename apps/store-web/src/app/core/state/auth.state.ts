@@ -3,6 +3,7 @@ import { State, Action, StateContext, Selector, NgxsOnInit } from '@ngxs/store';
 import { tap, catchError } from 'rxjs/operators';
 import { of, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { StoreService } from '../services/store.service';
 import { AuthStateModel, StoreUser } from '../models/auth.model';
 import * as AuthActions from './auth.actions';
 
@@ -18,7 +19,10 @@ const defaultState: AuthStateModel = {
 })
 @Injectable()
 export class AuthState implements NgxsOnInit {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private storeService: StoreService
+  ) {}
 
   ngxsOnInit(ctx: StateContext<AuthStateModel>) {
     const user = this.authService.getCurrentUser();
@@ -143,7 +147,7 @@ export class AuthState implements NgxsOnInit {
       return throwError(() => new Error('Not authenticated'));
     }
     ctx.patchState({ loading: true, error: null });
-    return this.authService.updateProfile(state.user.storeId, action.payload.workingHours).pipe(
+    return this.storeService.updateSchedule(state.user.storeId, action.payload.workingHours).pipe(
       tap((user) => {
         ctx.patchState({ user, loading: false });
       }),
@@ -161,7 +165,43 @@ export class AuthState implements NgxsOnInit {
       return throwError(() => new Error('Not authenticated'));
     }
     ctx.patchState({ loading: true, error: null });
-    return this.authService.updateStoreLocation(state.user.storeId, action.payload).pipe(
+    return this.storeService.updateLocation(state.user.storeId, action.payload).pipe(
+      tap((user) => {
+        ctx.patchState({ user, loading: false });
+      }),
+      catchError((err) => {
+        ctx.patchState({ error: err.message, loading: false });
+        return throwError(() => err);
+      })
+    );
+  }
+
+  @Action(AuthActions.UpdateLogo)
+  updateLogo(ctx: StateContext<AuthStateModel>, action: AuthActions.UpdateLogo) {
+    const state = ctx.getState();
+    if (!state.user) {
+      return throwError(() => new Error('Not authenticated'));
+    }
+    ctx.patchState({ loading: true, error: null });
+    return this.storeService.updateLogo(state.user.storeId, action.payload).pipe(
+      tap((user) => {
+        ctx.patchState({ user, loading: false });
+      }),
+      catchError((err) => {
+        ctx.patchState({ error: err.message, loading: false });
+        return throwError(() => err);
+      })
+    );
+  }
+
+  @Action(AuthActions.RemoveLogo)
+  removeLogo(ctx: StateContext<AuthStateModel>) {
+    const state = ctx.getState();
+    if (!state.user) {
+      return throwError(() => new Error('Not authenticated'));
+    }
+    ctx.patchState({ loading: true, error: null });
+    return this.storeService.removeLogo(state.user.storeId).pipe(
       tap((user) => {
         ctx.patchState({ user, loading: false });
       }),

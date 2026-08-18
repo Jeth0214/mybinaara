@@ -6,17 +6,16 @@ import { RouterLink } from '@angular/router';
 import { NgbDropdownModule, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { Store } from '@ngxs/store';
-import { EMPTY, Subject, forkJoin, merge } from 'rxjs';
+import { EMPTY, Subject, merge } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, skip, switchMap } from 'rxjs/operators';
 import { ProductService } from '../../../core/services/product.service';
-import { StoreService } from '../../../core/services/store.service';
 import { CategoryService } from '../../../core/services/category.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { Product, ProductStatus, PaginationMeta } from '../../../core/models/product.model';
-import { Store as StoreRecord } from '../../../core/models/store.model';
 import { Category } from '../../../core/models/category.model';
 import { AdminAuthState } from '../../../core/state/auth.state';
 import { StoreConfirmModalComponent } from '../../stores/components/store-confirm-modal/store-confirm-modal.component';
+import { SuspendProductModalComponent } from '../components/suspend-product-modal/suspend-product-modal.component';
 
 @Component({
   selector: 'app-product-list',
@@ -28,7 +27,6 @@ import { StoreConfirmModalComponent } from '../../stores/components/store-confir
 })
 export class ProductListComponent {
   private readonly productService = inject(ProductService);
-  private readonly storeService = inject(StoreService);
   private readonly categoryService = inject(CategoryService);
   private readonly toast = inject(ToastService);
   private readonly modalService = inject(NgbModal);
@@ -45,10 +43,9 @@ export class ProductListComponent {
   readonly searchQuery = signal('');
   readonly statusFilter = signal<'all' | ProductStatus>('all');
   readonly categoryFilter = signal<'all' | number>('all');
-  readonly storeFilter = signal<'all' | number>('all');
+  readonly storeNameFilter = signal('');
 
   readonly categories = signal<Category[]>([]);
-  readonly stores = signal<StoreRecord[]>([]);
 
   readonly products = signal<Product[]>([]);
   readonly meta = signal<PaginationMeta | null>(null);
@@ -63,7 +60,7 @@ export class ProductListComponent {
       this.searchQuery().trim() !== '' ||
       this.statusFilter() !== 'all' ||
       this.categoryFilter() !== 'all' ||
-      this.storeFilter() !== 'all'
+      this.storeNameFilter().trim() !== ''
   );
 
   /** True once we know the catalog has no products at all (not just no matches for the current filters). */
@@ -86,7 +83,7 @@ export class ProductListComponent {
           this.loadError.set(null);
 
           const categoryFilter = this.categoryFilter();
-          const storeFilter = this.storeFilter();
+          const storeName = this.storeNameFilter().trim();
 
           return this.productService
             .listProducts({
@@ -94,7 +91,7 @@ export class ProductListComponent {
               page,
               status: this.statusFilter(),
               category_id: categoryFilter === 'all' ? undefined : categoryFilter,
-              store_id: storeFilter === 'all' ? undefined : storeFilter,
+              store_name: storeName === '' ? undefined : storeName,
             })
             .pipe(
               catchError((err) => {
@@ -116,7 +113,7 @@ export class ProductListComponent {
       toObservable(this.searchQuery).pipe(skip(1), debounceTime(300), distinctUntilChanged()),
       toObservable(this.statusFilter).pipe(skip(1), distinctUntilChanged()),
       toObservable(this.categoryFilter).pipe(skip(1), distinctUntilChanged()),
-      toObservable(this.storeFilter).pipe(skip(1), distinctUntilChanged())
+      toObservable(this.storeNameFilter).pipe(skip(1), debounceTime(300), distinctUntilChanged())
     )
       .pipe(takeUntilDestroyed())
       .subscribe(() => this.loadProducts(1));
@@ -126,13 +123,9 @@ export class ProductListComponent {
   }
 
   private loadFilterOptions(): void {
-    forkJoin({
-      categories: this.categoryService.listCategories({ is_active: true }),
-      stores: this.storeService.listStores({}),
-    }).subscribe({
-      next: ({ categories, stores }) => {
+    this.categoryService.listCategories({ is_active: true }).subscribe({
+      next: (categories) => {
         this.categories.set(categories.data);
-        this.stores.set(stores.data);
       },
       error: () => {
         // Filter dropdown options are non-critical; leave them empty on failure.
@@ -167,34 +160,51 @@ export class ProductListComponent {
   }
 
   changeStatus(product: Product, target: ProductStatus): void {
+    if (target === 'suspended') {
+      const modalRef = this.modalService.open(SuspendProductModalComponent, { centered: true });
+      modalRef.componentInstance.product = product;
+
+      modalRef.result.then(
+        (reason: string | false) => {
+          if (!reason) return;
+          this.applyStatusChange(product, target, reason);
+        },
+        () => {}
+      );
+      return;
+    }
+
     const modalRef = this.modalService.open(StoreConfirmModalComponent, { centered: true });
-    modalRef.componentInstance.title.set(`${target === 'suspended' ? 'Suspend' : target === 'active' ? 'Activate' : 'Deactivate'} Product`);
+    modalRef.componentInstance.title.set(`${target === 'active' ? 'Activate' : 'Deactivate'} Product`);
     modalRef.componentInstance.message.set(
       `Are you sure you want to set <strong>${product.name}</strong> to <strong>${target}</strong>?`
     );
     modalRef.componentInstance.confirmText.set('Confirm');
     modalRef.componentInstance.cancelText.set('Cancel');
-    modalRef.componentInstance.isDanger.set(target === 'suspended');
+    modalRef.componentInstance.isDanger.set(false);
 
     modalRef.result.then(
       (confirmed) => {
         if (!confirmed) return;
-
-        this.mutating.set(true);
-        this.productService.updateProductStatus(product.id, target).subscribe({
-          next: (updated) => {
-            this.mutating.set(false);
-            this.products.update((list) => list.map((p) => (p.id === updated.id ? updated : p)));
-            this.toast.success(`"${product.name}" is now ${updated.status}.`);
-          },
-          error: (err) => {
-            this.mutating.set(false);
-            this.toast.error(err?.message ?? 'Failed to update status.');
-          },
-        });
+        this.applyStatusChange(product, target);
       },
       () => {}
     );
+  }
+
+  private applyStatusChange(product: Product, target: ProductStatus, reason?: string): void {
+    this.mutating.set(true);
+    this.productService.updateProductStatus(product.id, target, reason).subscribe({
+      next: (updated) => {
+        this.mutating.set(false);
+        this.products.update((list) => list.map((p) => (p.id === updated.id ? updated : p)));
+        this.toast.success(`"${product.name}" is now ${updated.status}.`);
+      },
+      error: (err) => {
+        this.mutating.set(false);
+        this.toast.error(err?.message ?? 'Failed to update status.');
+      },
+    });
   }
 
   deleteProduct(product: Product): void {

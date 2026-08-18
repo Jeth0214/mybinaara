@@ -43,6 +43,7 @@ export interface Store {
   is_activated: boolean;
   logo_url: string | null;
   rejection_reason: string | null;
+  suspension_reason: string | null;
   products_count: number;
   location: StoreLocation | null;
   schedule: StoreScheduleDay[];

@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 #[Fillable([
-    'name', 'cr_number', 'vat_number', 'status', 'is_activated', 'activated_at', 'logo_url', 'rejection_reason', 'created_by',
+    'name', 'cr_number', 'vat_number', 'status', 'is_activated', 'activated_at', 'logo_url', 'rejection_reason', 'suspension_reason', 'created_by',
     'latitude', 'longitude', 'city', 'formatted_address',
 ])]
 class Store extends Model

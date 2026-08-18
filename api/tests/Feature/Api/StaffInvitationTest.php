@@ -63,6 +63,7 @@ class StaffInvitationTest extends TestCase
             'name' => 'Jane Doe',
             'email' => 'jane@mybinaara.com',
             'phone' => '0530000002',
+            'permissions' => ['catalog.view'],
         ])->assertStatus(201);
 
         $rawToken = null;

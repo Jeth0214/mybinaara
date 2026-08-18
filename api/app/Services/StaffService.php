@@ -78,13 +78,19 @@ class StaffService
             $staff->forceFill([
                 'role_id' => Role::query()->where('name', $data['role'])->value('id'),
             ])->save();
+            $staff->unsetRelation('role');
 
             if ($data['role'] === 'administrator') {
                 $staff->permissions()->sync([]);
             }
         }
 
-        if (array_key_exists('permissions', $data) && $staff->role?->name !== 'administrator') {
+        // Use the just-applied role from $data when present rather than
+        // $staff->role, which may have been lazily loaded (and cached stale)
+        // by UpdateStaffRequest::rules() before role_id was updated above.
+        $currentRoleName = $data['role'] ?? $staff->role?->name;
+
+        if (array_key_exists('permissions', $data) && $currentRoleName !== 'administrator') {
             $this->syncPermissions($staff, $data['permissions']);
         }
 

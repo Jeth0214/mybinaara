@@ -30,10 +30,34 @@
 }
 
 <div class="location-map-container mb-3">
+  <div
+    class="location-map-style-toggle btn-group btn-group-sm"
+    role="group"
+    aria-label="Map view"
+  >
+    <button
+      type="button"
+      class="btn"
+      [class.btn-primary]="mapViewMode() === 'street'"
+      [class.btn-light]="mapViewMode() !== 'street'"
+      (click)="setMapViewMode('street')"
+    >
+      Street
+    </button>
+    <button
+      type="button"
+      class="btn"
+      [class.btn-primary]="mapViewMode() === 'satellite'"
+      [class.btn-light]="mapViewMode() !== 'satellite'"
+      (click)="setMapViewMode('satellite')"
+    >
+      Satellite
+    </button>
+  </div>
   <mgl-map
     [accessToken]="mapboxToken"
-    [style]="mapStyle"
-    [zoom]="[mapZoom]"
+    [style]="mapStyle()"
+    [zoom]="mapZoom"
     [center]="mapCenter()"
     movingMethod="flyTo"
     (mapClick)="onMapClick($event)"

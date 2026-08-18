@@ -30,7 +30,9 @@ trait ValidatesStoreSchedule
         $entries = $this->input('schedule', []);
 
         foreach ($entries as $i => $entry) {
-            if (($entry['is_off'] ?? false) === false) {
+            $isOff = filter_var($entry['is_off'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+            if (! $isOff) {
                 if (empty($entry['open_time'])) {
                     $validator->errors()->add("schedule.$i.open_time", 'Open time is required when the store is not off.');
                 }

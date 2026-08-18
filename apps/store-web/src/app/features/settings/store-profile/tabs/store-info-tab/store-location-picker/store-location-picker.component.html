@@ -61,7 +61,7 @@
     <mgl-map
       [accessToken]="mapboxToken"
       [style]="mapStyle()"
-      [zoom]="[mapZoom]"
+      [zoom]="mapZoom"
       [center]="mapCenter()"
       movingMethod="flyTo"
       (mapClick)="onMapClick($event)"
@@ -78,6 +78,31 @@
         ></i>
       </mgl-marker>
     </mgl-map>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 mb-2">
+      <label class="form-label font-weight-bold location-field-label"
+        >LATITUDE</label
+      >
+      <input
+        type="text"
+        class="form-control"
+        [value]="markerPosition().lat"
+        readonly
+      />
+    </div>
+    <div class="col-md-6 mb-2">
+      <label class="form-label font-weight-bold location-field-label"
+        >LONGITUDE</label
+      >
+      <input
+        type="text"
+        class="form-control"
+        [value]="markerPosition().lng"
+        readonly
+      />
+    </div>
   </div>
 
   @if (hasAddress()) {

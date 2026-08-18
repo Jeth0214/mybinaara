@@ -37,7 +37,11 @@ class StoreService
             ->with(['owners', 'creator'])
             ->withCount('products')
             ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
-            ->when($filters['search'] ?? null, fn ($query, $search) => $query->where('name', 'like', "%{$search}%"))
+            ->when($filters['search'] ?? null, fn ($query, $search) => $query->where(
+                fn ($query) => $query
+                    ->where('name', 'like', "%{$search}%")
+                    ->orWhereHas('owners', fn ($query) => $query->where('name', 'like', "%{$search}%"))
+            ))
             ->when($filters['city'] ?? null, fn ($query, $city) => $query->where('city', $city))
             ->latest()
             ->paginate($perPage);
@@ -167,11 +171,27 @@ class StoreService
         return $store;
     }
 
-    public function updateStatus(Store $store, StoreStatus $status, ?string $rejectionReason = null): Store
+    public function removeLogo(Store $store): Store
+    {
+        $oldPath = $store->logo_url ? Str::after($store->logo_url, Storage::disk('public')->url('')) : null;
+
+        $store->update(['logo_url' => null]);
+
+        if ($oldPath && Str::startsWith($oldPath, 'stores/logos/')) {
+            Storage::disk('public')->delete($oldPath);
+        }
+
+        return $store;
+    }
+
+    public function updateStatus(Store $store, StoreStatus $status, ?string $rejectionReason = null, ?string $suspensionReason = null): Store
     {
         $store->update([
             'status' => $status,
             'rejection_reason' => $status === StoreStatus::Rejected ? $rejectionReason : null,
+            // Cleared whenever the store isn't Suspended, so an unsuspended
+            // store doesn't keep showing a stale suspension reason.
+            'suspension_reason' => $status === StoreStatus::Suspended ? $suspensionReason : null,
         ]);
 
         $this->activityLogs->record($store, ...match ($status) {

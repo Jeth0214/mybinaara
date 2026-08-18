@@ -33,6 +33,11 @@ export interface StoreUser {
   role?: string | null;
   userType?: string;
   location?: StoreLocation;
+  /** The store owner's contact details — distinct from `email`/`phone` above,
+   *  which belong to the logged-in user and may be a staff member rather
+   *  than the owner. Always admin-controlled, never editable here. */
+  ownerName?: string;
+  ownerEmail?: string;
 }
 
 export interface AuthStateModel {
@@ -72,6 +77,7 @@ export interface StoreMeResponse {
     cr_number?: string | null;
     vat_number?: string | null;
     is_activated: boolean;
+    owner?: { id: number; name: string; email: string; phone: string | null; whatsapp: string | null } | null;
     location?: {
       latitude: number | null;
       longitude: number | null;

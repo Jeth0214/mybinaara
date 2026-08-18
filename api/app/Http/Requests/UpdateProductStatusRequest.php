@@ -47,6 +47,7 @@ class UpdateProductStatusRequest extends FormRequest
     {
         return [
             'status' => ['required', new Enum(ProductStatus::class)],
+            'suspension_reason' => ['required_if:status,suspended', 'nullable', 'string', 'max:500'],
         ];
     }
 }

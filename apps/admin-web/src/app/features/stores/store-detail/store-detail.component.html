@@ -29,9 +29,9 @@
           <i class="bi bi-arrow-left"></i> Back to Store Directory
         </a>
         <div class="d-flex align-items-center gap-3">
-          <div class="avatar avatar--circle avatar--success overflow-hidden d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; flex-shrink: 0; background: var(--brand-bg); border: 1px solid var(--brand-border);">
+          <div class="avatar avatar--circle avatar--success overflow-hidden d-flex align-items-center justify-content-center" style="width: 100px; height: 100px; flex-shrink: 0; background: var(--brand-bg); border: 1px solid var(--brand-border);">
             @if (s.logo_url) {
-              <img [src]="s.logo_url" alt="{{ s.name }} Logo" style="width: 100%; height: 100%; object-fit: cover;" />
+              <img [src]="s.logo_url" alt="{{ s.name }} Logo" style="width: 100%; height: 100%; object-fit: contain;" />
             } @else {
               <i class="bi bi-shop fs-4"></i>
             }
@@ -102,6 +102,8 @@
           <p class="text-muted fs-7 mb-3">
             @if (targetStatus() === 'rejected') {
               Please provide a reason for rejecting this store. This will be visible to the merchant.
+            } @else if (targetStatus() === 'suspended') {
+              Please provide a reason for suspending this store. This will be visible to the merchant.
             } @else {
               Are you sure you want to change this store's status to <strong>{{ targetStatus() }}</strong>?
             }
@@ -110,6 +112,11 @@
           @if (targetStatus() === 'rejected') {
             <div class="mb-3">
               <label class="form-label fw-semibold fs-8 text-uppercase text-muted">Rejection Reason <span class="text-danger">*</span></label>
+              <textarea class="form-control fs-7" rows="3" [(ngModel)]="statusReason"></textarea>
+            </div>
+          } @else if (targetStatus() === 'suspended') {
+            <div class="mb-3">
+              <label class="form-label fw-semibold fs-8 text-uppercase text-muted">Suspension Reason <span class="text-danger">*</span></label>
               <textarea class="form-control fs-7" rows="3" [(ngModel)]="statusReason"></textarea>
             </div>
           }
@@ -121,7 +128,7 @@
               [class.btn-danger]="targetStatus() === 'suspended' || targetStatus() === 'rejected'"
               [class.btn-success]="targetStatus() === 'active'"
               (click)="submitStatusChange()"
-              [disabled]="targetStatus() === 'rejected' && !statusReason().trim()"
+              [disabled]="(targetStatus() === 'rejected' || targetStatus() === 'suspended') && !statusReason().trim()"
             >
               Confirm
             </button>

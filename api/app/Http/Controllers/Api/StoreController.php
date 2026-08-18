@@ -15,6 +15,7 @@ use App\Http\Requests\UpdateStoreScheduleRequest;
 use App\Http\Requests\UpdateStoreStatusRequest;
 use App\Http\Resources\StoreResource;
 use App\Models\Store;
+use App\Services\ProductService;
 use App\Services\StoreScheduleService;
 use App\Services\StoreService;
 use Illuminate\Http\JsonResponse;
@@ -22,7 +23,10 @@ use Illuminate\Http\Request;
 
 class StoreController extends Controller
 {
-    public function __construct(private readonly StoreService $stores) {}
+    public function __construct(
+        private readonly StoreService $stores,
+        private readonly ProductService $products,
+    ) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -57,6 +61,15 @@ class StoreController extends Controller
         return (new StoreResource($store))->response();
     }
 
+    public function dashboard(Request $request): JsonResponse
+    {
+        $store = $this->stores->findForUser($request->user());
+
+        abort_if($store === null, 404);
+
+        return response()->json(['data' => $this->products->getStoreStats($store->id)]);
+    }
+
     public function store(StoreStoreRequest $request): JsonResponse
     {
         $store = $this->stores->create($request->validated(), $request->user());
@@ -86,6 +99,7 @@ class StoreController extends Controller
             $store,
             $request->enum('status', StoreStatus::class),
             $request->input('rejection_reason'),
+            $request->input('suspension_reason'),
         );
 
         return (new StoreResource($store->load(['owners', 'creator'])))->response();
@@ -101,6 +115,15 @@ class StoreController extends Controller
     public function updateLogo(UpdateStoreLogoRequest $request, Store $store): JsonResponse
     {
         $store = $this->stores->updateLogo($store, $request->file('logo'));
+
+        return (new StoreResource($store->load(['owners', 'creator'])))->response();
+    }
+
+    public function destroyLogo(Store $store): JsonResponse
+    {
+        $this->authorize('updateLogo', $store);
+
+        $store = $this->stores->removeLogo($store);
 
         return (new StoreResource($store->load(['owners', 'creator'])))->response();
     }

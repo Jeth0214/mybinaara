@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'store_id', 'category_id', 'unit_id', 'name', 'slug', 'description', 'sku',
-    'price', 'compare_at_price', 'stock_quantity', 'image_url', 'status',
+    'price', 'compare_at_price', 'stock_quantity', 'image_url', 'status', 'suspension_reason',
     'created_by', 'updated_by',
 ])]
 class Product extends Model

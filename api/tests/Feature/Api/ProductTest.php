@@ -335,14 +335,63 @@ class ProductTest extends TestCase
         $admin = $this->adminWithPermissions(['products.suspend']);
 
         $this->actingAs($admin, 'sanctum')
-            ->patchJson("/api/products/{$product->id}/status", ['status' => 'suspended'])
+            ->patchJson("/api/products/{$product->id}/status", [
+                'status' => 'suspended',
+                'suspension_reason' => 'Counterfeit item reported.',
+            ])
             ->assertOk()
-            ->assertJsonPath('data.status', 'suspended');
+            ->assertJsonPath('data.status', 'suspended')
+            ->assertJsonPath('data.suspension_reason', 'Counterfeit item reported.');
+
+        $this->assertDatabaseHas('products', [
+            'id' => $product->id,
+            'status' => ProductStatus::Suspended->value,
+            'suspension_reason' => 'Counterfeit item reported.',
+        ]);
 
         $this->actingAs($admin, 'sanctum')
             ->patchJson("/api/products/{$product->id}/status", ['status' => 'active'])
             ->assertOk()
-            ->assertJsonPath('data.status', 'active');
+            ->assertJsonPath('data.status', 'active')
+            ->assertJsonPath('data.suspension_reason', null);
+
+        $this->assertDatabaseHas('products', [
+            'id' => $product->id,
+            'status' => ProductStatus::Active->value,
+            'suspension_reason' => null,
+        ]);
+    }
+
+    public function test_suspending_a_product_without_a_reason_is_rejected(): void
+    {
+        $product = Product::factory()->create(['status' => ProductStatus::Active]);
+        $admin = $this->adminWithPermissions(['products.suspend']);
+
+        $this->actingAs($admin, 'sanctum')
+            ->patchJson("/api/products/{$product->id}/status", ['status' => 'suspended'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['suspension_reason']);
+
+        $this->assertDatabaseHas('products', ['id' => $product->id, 'status' => ProductStatus::Active->value]);
+    }
+
+    public function test_vendor_active_inactive_toggle_never_sets_a_suspension_reason(): void
+    {
+        $store = Store::factory()->active()->create();
+        $product = Product::factory()->create(['store_id' => $store->id, 'status' => ProductStatus::Active]);
+        $owner = $this->ownerFor($store);
+
+        $this->actingAs($owner, 'sanctum')
+            ->patchJson("/api/products/{$product->id}/status", ['status' => 'inactive'])
+            ->assertOk()
+            ->assertJsonPath('data.suspension_reason', null);
+
+        $this->actingAs($owner, 'sanctum')
+            ->patchJson("/api/products/{$product->id}/status", ['status' => 'active'])
+            ->assertOk()
+            ->assertJsonPath('data.suspension_reason', null);
+
+        $this->assertDatabaseHas('products', ['id' => $product->id, 'suspension_reason' => null]);
     }
 
     public function test_invalid_status_value_returns_422(): void
@@ -411,6 +460,71 @@ class ProductTest extends TestCase
             ->getJson("/api/products?unit_id={$unit->id}")
             ->assertOk()
             ->assertJsonCount(1, 'data');
+    }
+
+    public function test_products_can_be_filtered_by_partial_store_name(): void
+    {
+        $storeA = Store::factory()->create(['name' => 'Green Valley Grocers']);
+        $storeB = Store::factory()->create(['name' => 'Blue Ocean Mart']);
+        Product::factory()->create(['store_id' => $storeA->id]);
+        Product::factory()->create(['store_id' => $storeB->id]);
+        $admin = $this->adminWithPermissions(['products.view']);
+
+        $this->actingAs($admin, 'sanctum')
+            ->getJson('/api/products?store_name=green')
+            ->assertOk()
+            ->assertJsonCount(1, 'data');
+    }
+
+    public function test_store_name_filter_combines_with_other_filters_and_pagination(): void
+    {
+        $store = Store::factory()->create(['name' => 'Sunrise Bakery']);
+        $otherStore = Store::factory()->create(['name' => 'Sunrise Diner']);
+        $category = Category::factory()->create();
+
+        Product::factory()->count(25)->create([
+            'store_id' => $store->id,
+            'category_id' => $category->id,
+            'status' => ProductStatus::Active,
+        ]);
+        Product::factory()->create([
+            'store_id' => $otherStore->id,
+            'category_id' => $category->id,
+            'status' => ProductStatus::Active,
+        ]);
+        Product::factory()->create([
+            'store_id' => $store->id,
+            'category_id' => $category->id,
+            'status' => ProductStatus::Inactive,
+        ]);
+
+        $admin = $this->adminWithPermissions(['products.view']);
+
+        $page1 = $this->actingAs($admin, 'sanctum')
+            ->getJson("/api/products?store_name=Sunrise Bakery&category_id={$category->id}&status=active&page=1");
+
+        $page1->assertOk()
+            ->assertJsonCount(20, 'data')
+            ->assertJsonPath('meta.total', 25);
+
+        $page2 = $this->actingAs($admin, 'sanctum')
+            ->getJson("/api/products?store_name=Sunrise Bakery&category_id={$category->id}&status=active&page=2");
+
+        $page2->assertOk()->assertJsonCount(5, 'data');
+    }
+
+    public function test_omitting_store_name_returns_products_from_all_stores(): void
+    {
+        $storeA = Store::factory()->create();
+        $storeB = Store::factory()->create();
+        Product::factory()->create(['store_id' => $storeA->id]);
+        Product::factory()->create(['store_id' => $storeB->id]);
+        $admin = $this->adminWithPermissions(['products.view']);
+
+        $this->actingAs($admin, 'sanctum')
+            ->getJson('/api/products')
+            ->assertOk()
+            ->assertJsonCount(2, 'data');
     }
 
     public function test_products_can_be_sorted_by_price(): void

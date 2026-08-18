@@ -53,6 +53,15 @@ export class UpdateStoreLocation {
   constructor(public payload: StoreLocation) {}
 }
 
+export class UpdateLogo {
+  static readonly type = '[Auth] Update Logo';
+  constructor(public payload: File) {}
+}
+
+export class RemoveLogo {
+  static readonly type = '[Auth] Remove Logo';
+}
+
 export class ChangePassword {
   static readonly type = '[Auth] Change Password';
   constructor(
