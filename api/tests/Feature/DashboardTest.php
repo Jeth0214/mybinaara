@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Models\CatalogProduct;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Store;
@@ -46,8 +47,8 @@ class DashboardTest extends TestCase
         Store::factory()->create(['status' => 'pending', 'city' => 'Jeddah']);
 
         $category = Category::factory()->create();
-        Product::factory()->for($category)->create();
-        Product::factory()->for($category)->create();
+        Product::factory()->create(['catalog_product_id' => CatalogProduct::factory()->create(['category_id' => $category->id])]);
+        Product::factory()->create(['catalog_product_id' => CatalogProduct::factory()->create(['category_id' => $category->id])]);
 
         $response = $this->actingAs($administrator)->getJson('/api/dashboard');
 

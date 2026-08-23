@@ -6,6 +6,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class StoreProductSeeder extends Seeder
@@ -15,7 +16,9 @@ class StoreProductSeeder extends Seeder
     private const CHUNK_SIZE = 500;
 
     /**
-     * category slug => list of [name, minPrice, maxPrice].
+     * category slug => list of [name, minPrice, maxPrice]. This is the seed
+     * source for catalog_products — every store draws its listings from this
+     * same shared pool, which is exactly what a real shared catalog models.
      *
      * @var array<string, array<int, array{0: string, 1: float, 2: float}>>
      */
@@ -167,6 +170,44 @@ class StoreProductSeeder extends Seeder
 
     public function run(): void
     {
+        // products (truncated by StoreSeeder, which runs before this seeder)
+        // must already be empty before we can safely reset catalog_products.
+        Schema::disableForeignKeyConstraints();
+        DB::table('catalog_products')->truncate();
+        Schema::enableForeignKeyConstraints();
+
+        $now = now();
+        $categoryIdBySlug = DB::table('categories')->pluck('id', 'slug')->all();
+        $unitIds = DB::table('product_units')->pluck('id')->all();
+
+        $catalogRows = [];
+        foreach (self::PRODUCT_POOLS as $categorySlug => $pool) {
+            foreach ($pool as [$name, , ]) {
+                $catalogRows[] = [
+                    'category_id' => $categoryIdBySlug[$categorySlug] ?? null,
+                    'unit_id' => $unitIds ? $unitIds[array_rand($unitIds)] : null,
+                    'name' => $name,
+                    'slug' => Str::slug($name),
+                    'description' => "Quality {$name} suitable for construction and hardware projects.",
+                    'image_url' => null,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
+        }
+        DB::table('catalog_products')->insert($catalogRows);
+
+        $catalogIdBySlug = DB::table('catalog_products')->pluck('id', 'slug')->all();
+
+        // [id, minPrice, maxPrice] for every seeded catalog product, keyed by
+        // nothing in particular — sampled without replacement per store below.
+        $catalogPool = [];
+        foreach (self::PRODUCT_POOLS as $pool) {
+            foreach ($pool as [$name, $min, $max]) {
+                $catalogPool[] = ['id' => $catalogIdBySlug[Str::slug($name)], 'min' => $min, 'max' => $max];
+            }
+        }
+
         $storeIds = DB::table('stores')->pluck('id')->all();
         shuffle($storeIds);
 
@@ -175,34 +216,30 @@ class StoreProductSeeder extends Seeder
 
         $countsByStore = [];
         foreach ($hundredProductStoreIds as $id) {
-            $countsByStore[$id] = 100;
+            $countsByStore[$id] = min(100, count($catalogPool));
         }
         foreach ($restStoreIds as $id) {
-            $countsByStore[$id] = mt_rand(20, 99);
+            $countsByStore[$id] = min(mt_rand(20, 99), count($catalogPool));
         }
 
-        $categoryIdBySlug = DB::table('categories')->pluck('id', 'slug')->all();
-        $unitIds = DB::table('product_units')->pluck('id')->all();
-        $categorySlugs = array_keys(self::PRODUCT_POOLS);
-
-        $now = now();
         $productRows = [];
+        $skuIndex = 0;
 
         foreach ($countsByStore as $storeId => $count) {
-            for ($i = 1; $i <= $count; $i++) {
-                $categorySlug = $categorySlugs[array_rand($categorySlugs)];
-                $pool = self::PRODUCT_POOLS[$categorySlug];
-                [$name, $min, $max] = $pool[array_rand($pool)];
+            // Sample without replacement — a store can't list the same
+            // catalog product twice (unique(store_id, catalog_product_id)).
+            $picked = $catalogPool;
+            shuffle($picked);
+            $picked = array_slice($picked, 0, $count);
+
+            foreach ($picked as $entry) {
+                $skuIndex++;
 
                 $productRows[] = [
                     'store_id' => $storeId,
-                    'category_id' => $categoryIdBySlug[$categorySlug] ?? null,
-                    'unit_id' => $unitIds[array_rand($unitIds)],
-                    'name' => $name,
-                    'slug' => Str::slug($name).'-'.$i,
-                    'description' => "Quality {$name} suitable for construction and hardware projects.",
-                    'sku' => "SKU-{$storeId}-{$i}",
-                    'price' => round(mt_rand((int) ($min * 100), (int) ($max * 100)) / 100, 2),
+                    'catalog_product_id' => $entry['id'],
+                    'sku' => "SKU-{$storeId}-{$skuIndex}",
+                    'price' => round(mt_rand((int) ($entry['min'] * 100), (int) ($entry['max'] * 100)) / 100, 2),
                     'compare_at_price' => null,
                     'stock_quantity' => mt_rand(0, 200),
                     'status' => 'active',

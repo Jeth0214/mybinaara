@@ -7,6 +7,7 @@ namespace Tests\Feature\Api;
 use App\Enums\StoreUserRole;
 use App\Enums\UserType;
 use App\Mail\StoreActivationMail;
+use App\Models\CatalogProduct;
 use App\Models\Category;
 use App\Models\Permission;
 use App\Models\Product;
@@ -186,11 +187,11 @@ class StoreTest extends TestCase
         $tools = Category::factory()->create(['name' => 'Tools']);
         $paint = Category::factory()->create(['name' => 'Paint']);
 
-        Product::factory()->for($store)->create(['category_id' => $tools->id, 'created_at' => now()]);
-        Product::factory()->for($store)->create(['category_id' => $tools->id, 'created_at' => now()]);
-        Product::factory()->for($store)->create(['category_id' => $paint->id, 'created_at' => now()->subDays(2)]);
+        Product::factory()->for($store)->create(['catalog_product_id' => CatalogProduct::factory()->create(['category_id' => $tools->id]), 'created_at' => now()]);
+        Product::factory()->for($store)->create(['catalog_product_id' => CatalogProduct::factory()->create(['category_id' => $tools->id]), 'created_at' => now()]);
+        Product::factory()->for($store)->create(['catalog_product_id' => CatalogProduct::factory()->create(['category_id' => $paint->id]), 'created_at' => now()->subDays(2)]);
         // No category — must not appear in by_category, but still counts toward total/added_over_time.
-        Product::factory()->for($store)->create(['category_id' => null, 'created_at' => now()]);
+        Product::factory()->for($store)->create(['catalog_product_id' => CatalogProduct::factory()->create(['category_id' => null]), 'created_at' => now()]);
 
         $response = $this->actingAs($owner, 'sanctum')->getJson('/api/stores/me/dashboard');
 

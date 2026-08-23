@@ -13,6 +13,7 @@ use App\Http\Requests\UpdateStoreOwnerRequest;
 use App\Http\Requests\UpdateStoreRequest;
 use App\Http\Requests\UpdateStoreScheduleRequest;
 use App\Http\Requests\UpdateStoreStatusRequest;
+use App\Http\Resources\PublicStoreResource;
 use App\Http\Resources\StoreResource;
 use App\Models\Store;
 use App\Services\ProductService;
@@ -50,6 +51,28 @@ class StoreController extends Controller
         $store->load(['owners', 'creator', 'schedules']);
 
         return (new StoreResource($store))->response();
+    }
+
+    public function nearby(Request $request): JsonResponse
+    {
+        $filters = $request->validate([
+            'lat' => ['required', 'numeric', 'between:-90,90'],
+            'lng' => ['required', 'numeric', 'between:-180,180'],
+            'limit' => ['sometimes', 'integer', 'min:1', 'max:20'],
+        ]);
+
+        $stores = $this->stores->nearby((float) $filters['lat'], (float) $filters['lng'], (int) ($filters['limit'] ?? 5));
+
+        return PublicStoreResource::collection($stores)->response();
+    }
+
+    public function details(Store $store): JsonResponse
+    {
+        abort_unless($store->status === StoreStatus::Active, 404);
+
+        $store->load(['owners', 'schedules']);
+
+        return (new PublicStoreResource($store))->response();
     }
 
     public function me(Request $request): JsonResponse

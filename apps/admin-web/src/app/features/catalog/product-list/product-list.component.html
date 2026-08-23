@@ -142,10 +142,10 @@
               <tr>
                 <td class="ps-4 py-3">
                   <div class="d-flex align-items-center gap-3">
-                    @if (prod.image_url) {
+                    @if (prod.catalog_product.image_url) {
                       <img
-                        [src]="prod.image_url"
-                        [alt]="prod.name"
+                        [src]="prod.catalog_product.image_url"
+                        [alt]="prod.catalog_product.name"
                         class="product-thumb rounded"
                         style="object-fit: contain"
                       />
@@ -162,7 +162,7 @@
                           [routerLink]="['/catalog/products', prod.id]"
                           class="text-decoration-none text-dark hover-success"
                         >
-                          {{ prod.name }}
+                          {{ prod.catalog_product.name }}
                         </a>
                       </h6>
                     </div>
@@ -170,12 +170,12 @@
                 </td>
                 <td>
                   <span class="badge bg-light text-dark fw-medium">{{
-                    prod.category?.name || "Uncategorized"
+                    prod.catalog_product.category?.name || "Uncategorized"
                   }}</span>
                 </td>
                 <td>
                   <span class="text-muted fs-7-5">{{
-                    prod.unit ? prod.unit.name : "—"
+                    prod.catalog_product.unit ? prod.catalog_product.unit.name : "—"
                   }}</span>
                 </td>
                 <td>

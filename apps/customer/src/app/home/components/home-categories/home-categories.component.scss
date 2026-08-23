@@ -40,7 +40,7 @@
 }
 
 .category-card {
-  flex: 0 0 72px;
+  flex: 0 0 100px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -60,7 +60,7 @@
     background: var(--ion-color-primary);
     border-color: var(--ion-color-primary);
 
-    .category-icon {
+    .category-icon--fallback {
       color: #d99201;
     }
 
@@ -78,7 +78,13 @@
   justify-content: center;
 }
 
-.category-icon {
+// .category-icon {
+//   width: 26px;
+//   height: 26px;
+//   object-fit: contain;
+// }
+
+.category-icon--fallback {
   font-size: 26px;
   color: var(--ion-color-secondary);
 }

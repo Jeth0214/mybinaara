@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Enums\ProductStatus;
+use App\Models\CatalogProduct;
 use App\Models\Product;
 use App\Models\Store;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Str;
 
 /**
  * @extends Factory<Product>
@@ -22,19 +22,13 @@ class ProductFactory extends Factory
      */
     public function definition(): array
     {
-        $name = fake()->unique()->words(3, true);
-
         return [
             'store_id' => Store::factory(),
-            'category_id' => null,
-            'name' => ucfirst($name),
-            'slug' => Str::slug($name),
-            'description' => fake()->sentence(),
+            'catalog_product_id' => CatalogProduct::factory(),
             'sku' => fake()->unique()->bothify('SKU-#####'),
             'price' => fake()->randomFloat(2, 5, 500),
             'compare_at_price' => null,
             'stock_quantity' => fake()->numberBetween(0, 100),
-            'image_url' => null,
             'status' => ProductStatus::Active,
         ];
     }

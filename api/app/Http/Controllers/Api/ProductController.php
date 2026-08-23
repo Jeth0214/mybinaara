@@ -53,7 +53,7 @@ class ProductController extends Controller
     {
         $this->authorize('view', $product);
 
-        $product->load(['store', 'category', 'unit', 'creator', 'editor']);
+        $product->load(['store', 'catalogProduct.category', 'catalogProduct.unit', 'creator', 'editor']);
 
         return (new ProductResource($product))->response();
     }
@@ -66,16 +66,16 @@ class ProductController extends Controller
             ? $this->stores->findForUser($user)?->id
             : null;
 
-        $product = $this->products->create($request->validated(), $request->file('image'), $user, $forcedStoreId);
+        $product = $this->products->create($request->validated(), $user, $forcedStoreId);
 
-        return (new ProductResource($product->load(['store', 'category', 'unit', 'creator', 'editor'])))->response()->setStatusCode(201);
+        return (new ProductResource($product->load(['store', 'catalogProduct.category', 'catalogProduct.unit', 'creator', 'editor'])))->response()->setStatusCode(201);
     }
 
     public function update(UpdateProductRequest $request, Product $product): JsonResponse
     {
-        $product = $this->products->update($product, $request->validated(), $request->user(), $request->file('image'));
+        $product = $this->products->update($product, $request->validated(), $request->user());
 
-        return (new ProductResource($product->load(['store', 'category', 'unit', 'creator', 'editor'])))->response();
+        return (new ProductResource($product->load(['store', 'catalogProduct.category', 'catalogProduct.unit', 'creator', 'editor'])))->response();
     }
 
     public function destroy(Product $product): JsonResponse
@@ -96,6 +96,6 @@ class ProductController extends Controller
             $request->input('suspension_reason')
         );
 
-        return (new ProductResource($product->load(['store', 'category', 'unit', 'creator', 'editor'])))->response();
+        return (new ProductResource($product->load(['store', 'catalogProduct.category', 'catalogProduct.unit', 'creator', 'editor'])))->response();
     }
 }

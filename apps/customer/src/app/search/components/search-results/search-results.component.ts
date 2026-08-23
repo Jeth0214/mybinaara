@@ -1,7 +1,7 @@
 import { Component, input, inject } from '@angular/core';
 import { IonIcon } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
-import { SearchProduct } from '../../../core/models/search-product.model';
+import { CatalogProduct } from '../../../core/models/catalog-product.model';
 
 @Component({
   selector: 'app-search-results',
@@ -13,25 +13,12 @@ import { SearchProduct } from '../../../core/models/search-product.model';
 export class SearchResultsComponent {
   private router = inject(Router);
 
-  products = input<SearchProduct[]>([]);
+  products = input<CatalogProduct[]>([]);
   query = input<string>('');
   selectedCategory = input<string | null>(null);
 
-  navigateToProduct(product: SearchProduct) {
+  navigateToProduct(product: CatalogProduct) {
     this.router.navigate(['/product', product.id]);
-  }
-
-  private readonly CATEGORY_ICONS: Record<string, string> = {
-    'Cement': 'cube-outline',
-    'Glass':  'apps-outline',
-    'Steel':  'cut-outline',
-    'Wood':   'leaf-outline',
-    'Paint':  'color-palette-outline',
-    'Tiles':  'grid-outline',
-  };
-
-  getCategoryIcon(category: string): string {
-    return this.CATEGORY_ICONS[category] ?? 'cube-outline';
   }
 
   formatPrice(price: number): string {

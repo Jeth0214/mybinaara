@@ -23,8 +23,10 @@ return [
     'allowed_origins' => array_values(array_filter([
         env('ADMIN_WEB_URL', 'http://localhost:4200'),
         env('STORE_WEB_URL', 'http://localhost:4201'),
+        env('CUSTOMER_WEB_URL', 'http://localhost:8100'),
         'http://localhost:4200',
         'http://localhost:4201',
+        'http://localhost:8100',
     ])),
 
     'allowed_origins_patterns' => [],

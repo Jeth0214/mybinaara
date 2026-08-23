@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Enums\ProductStatus;
+use App\Exceptions\DuplicateCatalogListingException;
 use App\Exceptions\ProductLimitExceededException;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class ProductService
 {
@@ -27,27 +25,29 @@ class ProductService
         $sort = $filters['sort'] ?? 'latest';
 
         return Product::query()
-            ->with(['store', 'category', 'unit', 'creator', 'editor'])
-            ->when($filters['store_id'] ?? null, fn ($query, $storeId) => $query->where('store_id', $storeId))
+            ->select('products.*')
+            ->join('catalog_products', 'catalog_products.id', '=', 'products.catalog_product_id')
+            ->with(['store', 'catalogProduct.category', 'catalogProduct.unit', 'creator', 'editor'])
+            ->when($filters['store_id'] ?? null, fn ($query, $storeId) => $query->where('products.store_id', $storeId))
             ->when(
                 $filters['store_name'] ?? null,
                 fn ($query, $storeName) => $query->whereHas('store', fn ($q) => $q->where('name', 'like', "%{$storeName}%"))
             )
-            ->when($filters['category_id'] ?? null, fn ($query, $categoryId) => $query->where('category_id', $categoryId))
-            ->when($filters['unit_id'] ?? null, fn ($query, $unitId) => $query->where('unit_id', $unitId))
-            ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
-            ->when($filters['search'] ?? null, fn ($query, $search) => $query->where('name', 'like', "%{$search}%"))
-            ->when($sort === 'name', fn ($query) => $query->orderBy('name'))
-            ->when($sort === 'price_asc', fn ($query) => $query->orderBy('price'))
-            ->when($sort === 'price_desc', fn ($query) => $query->orderByDesc('price'))
-            ->when($sort === 'latest', fn ($query) => $query->latest())
+            ->when($filters['category_id'] ?? null, fn ($query, $categoryId) => $query->where('catalog_products.category_id', $categoryId))
+            ->when($filters['unit_id'] ?? null, fn ($query, $unitId) => $query->where('catalog_products.unit_id', $unitId))
+            ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('products.status', $status))
+            ->when($filters['search'] ?? null, fn ($query, $search) => $query->where('catalog_products.name', 'like', "%{$search}%"))
+            ->when($sort === 'name', fn ($query) => $query->orderBy('catalog_products.name'))
+            ->when($sort === 'price_asc', fn ($query) => $query->orderBy('products.price'))
+            ->when($sort === 'price_desc', fn ($query) => $query->orderByDesc('products.price'))
+            ->when($sort === 'latest', fn ($query) => $query->latest('products.created_at'))
             ->paginate($perPage);
     }
 
     /**
      * @param  array<string, mixed>  $data
      */
-    public function create(array $data, UploadedFile $image, User $actor, ?int $forcedStoreId = null): Product
+    public function create(array $data, User $actor, ?int $forcedStoreId = null): Product
     {
         if ($forcedStoreId !== null) {
             $data['store_id'] = $forcedStoreId;
@@ -57,8 +57,10 @@ class ProductService
             throw new ProductLimitExceededException();
         }
 
-        unset($data['image']);
-        $data['image_url'] = $this->storeImage($image);
+        if (Product::query()->where('store_id', $data['store_id'])->where('catalog_product_id', $data['catalog_product_id'])->exists()) {
+            throw new DuplicateCatalogListingException();
+        }
+
         $data['created_by'] = $actor->id;
         $data['updated_by'] = $actor->id;
 
@@ -68,15 +70,8 @@ class ProductService
     /**
      * @param  array<string, mixed>  $data
      */
-    public function update(Product $product, array $data, User $actor, ?UploadedFile $image = null): Product
+    public function update(Product $product, array $data, User $actor): Product
     {
-        unset($data['image']);
-
-        if ($image) {
-            $this->deleteImage($product->image_url);
-            $data['image_url'] = $this->storeImage($image);
-        }
-
         $data['updated_by'] = $actor->id;
 
         $product->update($data);
@@ -138,8 +133,9 @@ class ProductService
         $total = (int) $counts->total;
 
         $byCategory = Product::query()
-            ->where('store_id', $storeId)
-            ->join('categories', 'categories.id', '=', 'products.category_id')
+            ->where('products.store_id', $storeId)
+            ->join('catalog_products', 'catalog_products.id', '=', 'products.catalog_product_id')
+            ->join('categories', 'categories.id', '=', 'catalog_products.category_id')
             ->select('categories.name')
             ->selectRaw('count(*) as count')
             ->groupBy('categories.name')
@@ -171,23 +167,5 @@ class ProductService
             'by_category' => $byCategory,
             'added_over_time' => $addedOverTime,
         ];
-    }
-
-    private function storeImage(UploadedFile $image): string
-    {
-        return Storage::disk('public')->url($image->store('products', 'public'));
-    }
-
-    private function deleteImage(?string $url): void
-    {
-        if (! $url) {
-            return;
-        }
-
-        $path = Str::after($url, Storage::disk('public')->url(''));
-
-        if (Str::startsWith($path, 'products/')) {
-            Storage::disk('public')->delete($path);
-        }
     }
 }

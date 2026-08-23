@@ -26,6 +26,31 @@
       <button type="button" class="btn btn-light align-self-start" (click)="fetchProduct(+productId()!)">Retry</button>
     </div>
   } @else {
+    <div class="card border-0 shadow-sm p-4 mb-3" style="max-width: 700px;">
+      <label class="form-label fw-semibold fs-8 text-uppercase text-muted">Catalog product</label>
+      <app-catalog-product-picker
+        [categories]="categories()"
+        [units]="units()"
+        [initialCatalogProduct]="selectedCatalogProduct()"
+        [locked]="isEditMode()"
+        (catalogProductSelected)="onCatalogProductSelected($event)"
+        (catalogProductCleared)="onCatalogProductCleared()"
+        (creatingNewChange)="catalogPickerBusy.set($event)"
+      ></app-catalog-product-picker>
+      @if (catalogProductTouched() && !selectedCatalogProduct()) {
+        <div class="text-danger fs-8-5 mt-2">Search for an existing catalog product or create a new one.</div>
+      }
+      @if (selectedCatalogProduct() && !isEditMode()) {
+        <div class="alert alert-success d-flex align-items-start gap-2 mt-3 mb-0" role="alert">
+          <i class="bi bi-arrow-down-circle-fill mt-1"></i>
+          <div>
+            <strong class="d-block">"{{ selectedCatalogProduct()!.name }}" is ready to list.</strong>
+            Set the price &amp; stock below, then click <strong>Create Product</strong> — the catalog entry alone doesn't create a listing yet.
+          </div>
+        </div>
+      }
+    </div>
+
     <form [formGroup]="form" (ngSubmit)="submit()" class="card border-0 shadow-sm p-4" style="max-width: 700px;">
       <div class="row g-3">
         <div class="col-md-6">
@@ -43,44 +68,6 @@
           }
         </div>
 
-        <div class="col-md-6">
-          <label class="form-label fw-semibold fs-8 text-uppercase text-muted">Category</label>
-          <select class="form-select" formControlName="category_id">
-            <option [ngValue]="null">No category</option>
-            @for (cat of categories(); track cat.id) {
-              <option [ngValue]="cat.id">{{ cat.name }}</option>
-            }
-          </select>
-        </div>
-
-        <div class="col-md-6">
-          <label class="form-label fw-semibold fs-8 text-uppercase text-muted">Unit</label>
-          <select class="form-select" formControlName="unit_id">
-            <option [ngValue]="null">No unit</option>
-            @for (unit of units(); track unit.id) {
-              <option [ngValue]="unit.id">{{ unit.name }}{{ unit.abbreviation ? ' (' + unit.abbreviation + ')' : '' }}</option>
-            }
-          </select>
-        </div>
-
-        <div class="col-md-6">
-          <label class="form-label fw-semibold fs-8 text-uppercase text-muted">Product Name</label>
-          <input type="text" class="form-control" formControlName="name" />
-          @if (form.get('name')?.touched && form.get('name')?.invalid) {
-            <div class="text-danger fs-8-5 mt-1">Name is required (max 150 characters).</div>
-          }
-        </div>
-
-        <div class="col-md-6">
-          <label class="form-label fw-semibold fs-8 text-uppercase text-muted">Slug</label>
-          <input type="text" class="form-control" formControlName="slug" placeholder="e.g. cordless-drill" />
-          @if (form.get('slug')?.touched && form.get('slug')?.hasError('required')) {
-            <div class="text-danger fs-8-5 mt-1">Slug is required.</div>
-          } @else if (form.get('slug')?.touched && form.get('slug')?.hasError('pattern')) {
-            <div class="text-danger fs-8-5 mt-1">Use lowercase letters, numbers and hyphens only.</div>
-          }
-        </div>
-
         <div class="col-md-4">
           <label class="form-label fw-semibold fs-8 text-uppercase text-muted">SKU</label>
           <input type="text" class="form-control" formControlName="sku" />
@@ -91,6 +78,8 @@
           <input type="number" step="0.01" min="0" class="form-control" formControlName="price" />
           @if (form.get('price')?.touched && form.get('price')?.invalid) {
             <div class="text-danger fs-8-5 mt-1">A valid price is required.</div>
+          } @else if (!selectedCatalogProduct()) {
+            <div class="text-muted fs-8-5 mt-1">Pick a catalog product first.</div>
           }
         </div>
 
@@ -110,52 +99,10 @@
           }
         </div>
 
-        <div class="col-12">
-          <label class="form-label fw-semibold fs-8 text-uppercase text-muted">Product Image</label>
-
-          @if (imagePreviewUrl(); as preview) {
-            <div class="d-flex align-items-center gap-3 p-3 bg-white border rounded-3">
-              <div class="avatar avatar--circle overflow-hidden border bg-white d-flex align-items-center justify-content-center" style="width: 100px; height: 100px; flex-shrink: 0;">
-                <img [src]="preview" alt="Product preview" style="width: 100%; height: 100%; object-fit: contain;" />
-              </div>
-              <div>
-                <input #prodImageFileInput type="file" class="d-none" accept="image/*" (change)="onImageSelect($event)" />
-                <button type="button" class="btn btn-xs btn-outline-success py-1 px-2 fs-8 d-flex align-items-center gap-1.5" (click)="prodImageFileInput.click()">
-                  <i class="bi bi-pencil-square"></i> Change Image
-                </button>
-              </div>
-            </div>
-          } @else {
-            <div
-              class="border border-dashed rounded-3 p-4 text-center cursor-pointer bg-white hover-bg-light"
-              (click)="prodImageFileInput.click()"
-            >
-              <input #prodImageFileInput type="file" class="d-none" accept="image/*" (change)="onImageSelect($event)" />
-              <i class="bi bi-cloud-arrow-up text-success display-6 mb-2 d-block opacity-75"></i>
-              <span class="d-block fw-semibold text-dark fs-8">Click to upload Product Image</span>
-              <span class="text-muted fs-8-5 mt-1 d-block">Supported: PNG, JPG, WEBP. Min: 300x300px. Max: 2MB.</span>
-            </div>
-          }
-
-          @if (imageError(); as err) {
-            <div class="alert alert-danger d-flex align-items-center gap-2 py-2 px-3 mt-2 fs-8 border-0">
-              <i class="bi bi-exclamation-triangle-fill"></i>
-              <span>{{ err }}</span>
-            </div>
-          }
-        </div>
-
-        <div class="col-12">
-          <label class="form-label fw-semibold fs-8 text-uppercase text-muted">Description</label>
-          <textarea class="form-control" rows="4" formControlName="description"></textarea>
-          @if (form.get('description')?.touched && form.get('description')?.invalid) {
-            <div class="text-danger fs-8-5 mt-1">Description must be under 2000 characters.</div>
-          }
-        </div>
       </div>
 
       <div class="d-flex gap-2 mt-4">
-        <button type="submit" class="btn btn-success px-4 fw-semibold d-inline-flex align-items-center gap-2" [disabled]="busy()">
+        <button type="submit" class="btn btn-success px-4 fw-semibold d-inline-flex align-items-center gap-2" [disabled]="!canSubmit()">
           @if (submitting()) {
             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
             Saving...
@@ -173,6 +120,9 @@
           Cancel
         </a>
       </div>
+      @if (catalogPickerBusy()) {
+        <div class="text-muted fs-8-5 mt-2">Finish or cancel adding the new catalog product above before saving.</div>
+      }
     </form>
   }
 </div>

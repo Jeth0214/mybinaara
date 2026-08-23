@@ -35,6 +35,7 @@ class StoreResource extends JsonResource
                 'city' => $this->city,
                 'formatted_address' => $this->formatted_address,
             ],
+            'distance_km' => $this->when(array_key_exists('distance_km', $this->getAttributes()), fn () => round((float) $this->getAttributes()['distance_km'], 1)),
             'schedule' => StoreScheduleResource::collection($this->whenLoaded('schedules')),
             'owner' => $this->whenLoaded('owners', function () {
                 $owner = $this->owners->first();

@@ -28,19 +28,14 @@ class StoreProductRequest extends FormRequest
 
         return [
             'store_id' => [$isStoreUser ? 'sometimes' : 'required', 'integer', Rule::exists('stores', 'id')],
-            'category_id' => ['nullable', 'integer', Rule::exists('categories', 'id')],
-            'unit_id' => ['nullable', 'integer', Rule::exists('product_units', 'id')],
-            'name' => ['required', 'string', 'max:150'],
-            'slug' => [
-                'required', 'string', 'max:180',
-                Rule::unique('products', 'slug')->where(fn ($query) => $query->where('store_id', $this->input('store_id'))),
+            'catalog_product_id' => [
+                'required', 'integer', Rule::exists('catalog_products', 'id'),
+                Rule::unique('products', 'catalog_product_id')->where(fn ($query) => $query->where('store_id', $this->input('store_id'))),
             ],
-            'description' => ['nullable', 'string', 'max:2000'],
             'sku' => ['nullable', 'string', 'max:50'],
             'price' => ['required', 'numeric', 'min:0', 'max:99999999.99'],
             'compare_at_price' => ['nullable', 'numeric', 'gt:price'],
             'stock_quantity' => ['sometimes', 'integer', 'min:0'],
-            'image' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048', 'dimensions:min_width=300,min_height=300'],
         ];
     }
 }

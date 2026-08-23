@@ -1,4 +1,7 @@
 import { Component, signal, computed, inject, OnInit } from '@angular/core';
+import { toObservable, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { merge } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { IonContent } from '@ionic/angular/standalone';
 import { ActivatedRoute } from '@angular/router';
 import { SearchBarComponent } from './components/search-bar/search-bar.component';
@@ -6,8 +9,8 @@ import { SearchFiltersComponent, SearchFilter } from './components/search-filter
 import { SearchResultsComponent } from './components/search-results/search-results.component';
 import { SearchEmptyStateComponent } from './components/search-empty-state/search-empty-state.component';
 import { HomeCategoriesComponent } from '../home/components/home-categories/home-categories.component';
-import { MOCK_SEARCH_PRODUCTS } from '../core/data/mock-search-products.data';
-import { MOCK_CATEGORIES } from '../core/data/mock-categories.data';
+import { CategoryService } from '../shared/services/category.service';
+import { ProductService } from '../shared/services/product.service';
 import { Category } from '../core/models/category.model';
 
 @Component({
@@ -26,52 +29,66 @@ import { Category } from '../core/models/category.model';
 })
 export class SearchPage implements OnInit {
   private route = inject(ActivatedRoute);
+  private categoryService = inject(CategoryService);
+  private productService = inject(ProductService);
 
   query = signal<string>('');
   activeFilter = signal<SearchFilter>('all');
   priceAsc = signal<boolean>(true);
   selectedCategory = signal<string | null>(null);
 
-  readonly categories = MOCK_CATEGORIES;
+  categories = this.categoryService.categories;
+  results = this.productService.products;
+  resultsLoading = this.productService.loading;
+  resultsError = this.productService.error;
 
   hasQuery = computed(
     () => this.query().trim().length > 0 || this.selectedCategory() !== null
   );
 
+  private selectedCategoryId = computed<number | undefined>(() => {
+    const name = this.selectedCategory();
+    if (!name) return undefined;
+    return this.categories().find((c) => c.name === name)?.id;
+  });
+
   filteredResults = computed(() => {
-    const q = this.query().toLowerCase().trim();
-    const cat = this.selectedCategory();
-
-    if (!q && !cat) return [];
-
-    let results = MOCK_SEARCH_PRODUCTS.filter((p) => {
-      const matchesQuery =
-        !q ||
-        p.name.toLowerCase().includes(q) ||
-        p.brand.toLowerCase().includes(q);
-      const matchesCategory = !cat || p.category === cat;
-      return matchesQuery && matchesCategory;
-    });
+    const results = this.results();
 
     switch (this.activeFilter()) {
-      case 'nearby':
-        return [...results].sort((a, b) => a.distanceKm - b.distanceKm);
       case 'price':
-        return this.priceAsc()
-          ? [...results].sort((a, b) => a.price - b.price)
-          : [...results].sort((a, b) => b.price - a.price);
+        return [...results].sort((a, b) => {
+          const diff = (a.min_price ?? 0) - (b.min_price ?? 0);
+          return this.priceAsc() ? diff : -diff;
+        });
       case 'instock':
-        return results.filter((p) => p.storeCount > 0);
+        return results.filter((p) => p.listings_count > 0);
+      case 'nearby':
+        // A catalog product spans multiple stores, so there's no single
+        // per-product distance to sort by yet — falls back to default order
+        // until the search endpoint can annotate results with nearest-listing distance.
+        return results;
       default:
         return results;
     }
   });
+
+  constructor() {
+    merge(
+      toObservable(this.query).pipe(debounceTime(350), distinctUntilChanged()),
+      toObservable(this.selectedCategoryId).pipe(distinctUntilChanged())
+    )
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => this.runSearch());
+  }
 
   ngOnInit() {
     const q = this.route.snapshot.queryParamMap.get('q') ?? '';
     this.query.set(q);
     const cat = this.route.snapshot.queryParamMap.get('cat') ?? '';
     if (cat) this.selectedCategory.set(cat);
+
+    this.categoryService.ensureLoaded();
   }
 
   onFilterChange(filter: SearchFilter) {
@@ -83,9 +100,22 @@ export class SearchPage implements OnInit {
     }
   }
 
+  onSearchReset() {
+    this.query.set('');
+    this.selectedCategory.set(null);
+  }
+
   onCategorySelected(category: Category) {
     this.selectedCategory.update((current) =>
       current === category.name ? null : category.name
     );
+  }
+
+  private runSearch(): void {
+    if (!this.hasQuery()) return;
+    this.productService.search({
+      search: this.query().trim() || undefined,
+      category_id: this.selectedCategoryId(),
+    });
   }
 }

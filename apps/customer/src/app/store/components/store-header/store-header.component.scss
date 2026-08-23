@@ -23,6 +23,13 @@
   color: var(--ion-color-primary);
 }
 
+.logo-image {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  object-fit: cover;
+}
+
 .store-meta {
   flex: 1;
   min-width: 0;

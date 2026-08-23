@@ -20,29 +20,32 @@ class ProductResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'name' => $this->name,
-            'slug' => $this->slug,
-            'description' => $this->description,
             'sku' => $this->sku,
             'price' => (float) $this->price,
             'compare_at_price' => $this->compare_at_price === null ? null : (float) $this->compare_at_price,
             'stock_quantity' => $this->stock_quantity,
-            'image_url' => $this->image_url,
             'status' => $this->status,
             'suspension_reason' => $this->suspension_reason,
+            'catalog_product' => $this->whenLoaded('catalogProduct', fn () => [
+                'id' => $this->catalogProduct->id,
+                'name' => $this->catalogProduct->name,
+                'slug' => $this->catalogProduct->slug,
+                'description' => $this->catalogProduct->description,
+                'image_url' => $this->catalogProduct->image_url,
+                'category' => $this->catalogProduct->relationLoaded('category') && $this->catalogProduct->category !== null ? [
+                    'id' => $this->catalogProduct->category->id,
+                    'name' => $this->catalogProduct->category->name,
+                    'slug' => $this->catalogProduct->category->slug,
+                ] : null,
+                'unit' => $this->catalogProduct->relationLoaded('unit') && $this->catalogProduct->unit !== null ? [
+                    'id' => $this->catalogProduct->unit->id,
+                    'name' => $this->catalogProduct->unit->name,
+                    'abbreviation' => $this->catalogProduct->unit->abbreviation,
+                ] : null,
+            ]),
             'store' => $this->whenLoaded('store', fn () => [
                 'id' => $this->store->id,
                 'name' => $this->store->name,
-            ]),
-            'category' => $this->whenLoaded('category', fn () => $this->category === null ? null : [
-                'id' => $this->category->id,
-                'name' => $this->category->name,
-                'slug' => $this->category->slug,
-            ]),
-            'unit' => $this->whenLoaded('unit', fn () => $this->unit === null ? null : [
-                'id' => $this->unit->id,
-                'name' => $this->unit->name,
-                'abbreviation' => $this->unit->abbreviation,
             ]),
             'created_by' => $this->whenLoaded('creator', fn () => $this->creator === null ? null : [
                 'id' => $this->creator->id,

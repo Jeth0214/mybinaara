@@ -120,7 +120,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     const modalRef = this.modalService.open(StoreConfirmModalComponent, { centered: true });
     modalRef.componentInstance.title.set(`${target === 'active' ? 'Activate' : 'Deactivate'} Product`);
     modalRef.componentInstance.message.set(
-      `Are you sure you want to set <strong>${product.name}</strong> to <strong>${target}</strong>?`
+      `Are you sure you want to set <strong>${product.catalog_product.name}</strong> to <strong>${target}</strong>?`
     );
     modalRef.componentInstance.confirmText.set('Confirm');
     modalRef.componentInstance.cancelText.set('Cancel');
@@ -141,7 +141,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
       next: (updated) => {
         this.mutating.set(false);
         this.product.set(updated);
-        this.toast.success(`"${updated.name}" is now ${updated.status}.`);
+        this.toast.success(`"${updated.catalog_product.name}" is now ${updated.status}.`);
       },
       error: (err) => {
         this.mutating.set(false);
@@ -157,7 +157,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     const modalRef = this.modalService.open(StoreConfirmModalComponent, { centered: true });
     modalRef.componentInstance.title.set('Delete Product');
     modalRef.componentInstance.message.set(
-      `Are you sure you want to delete <strong>${product.name}</strong>?<br>This action cannot be undone.`
+      `Are you sure you want to delete <strong>${product.catalog_product.name}</strong>?<br>This action cannot be undone.`
     );
     modalRef.componentInstance.confirmText.set('Delete Product');
     modalRef.componentInstance.cancelText.set('Cancel');
@@ -171,7 +171,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
         this.productService.deleteProduct(product.id).subscribe({
           next: () => {
             this.mutating.set(false);
-            this.toast.success(`"${product.name}" has been deleted successfully.`);
+            this.toast.success(`"${product.catalog_product.name}" has been deleted successfully.`);
             this.router.navigate(['/catalog/products']);
           },
           error: (err) => {

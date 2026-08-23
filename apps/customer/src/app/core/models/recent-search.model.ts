@@ -1,9 +1,8 @@
 export interface RecentSearchProduct {
-  id: string;
+  id: number;
   name: string;
   category: string;
-  brand: string;
-  iconBg: string;
+  image_url: string | null;
   storeCount: number;
   viewedAt: Date;
 }

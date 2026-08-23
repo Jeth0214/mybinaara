@@ -56,17 +56,17 @@ export class ProductService {
     );
   }
 
-  createProduct(formData: FormData): Observable<Product> {
-    return this.http.post<{ data: Product }>(`${environment.apiUrl}/products`, formData).pipe(
+  createProduct(payload: Record<string, unknown>): Observable<Product> {
+    return this.http.post<{ data: Product }>(`${environment.apiUrl}/products`, payload).pipe(
       map((response) => response.data),
       catchError((err) => throwError(() => mapHttpError(err)))
     );
   }
 
-  updateProduct(id: number, formData: FormData): Observable<Product> {
-    formData.append('_method', 'PATCH');
-
-    return this.http.post<{ data: Product }>(`${environment.apiUrl}/products/${id}`, formData).pipe(
+  /** No image involved here anymore — catalog_product_id is immutable once
+   *  set, so only price/stock/sku/compare_at_price are ever updated. */
+  updateProduct(id: number, payload: Record<string, unknown>): Observable<Product> {
+    return this.http.patch<{ data: Product }>(`${environment.apiUrl}/products/${id}`, payload).pipe(
       map((response) => response.data),
       catchError((err) => throwError(() => mapHttpError(err)))
     );

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use App\Enums\UserType;
+use App\Models\CatalogProduct;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Store;
@@ -26,7 +27,7 @@ class DashboardServiceTest extends TestCase
         User::factory()->create(['user_type' => UserType::Admin]);
 
         $category = Category::factory()->create();
-        Product::factory()->for($category)->create();
+        Product::factory()->create(['catalog_product_id' => CatalogProduct::factory()->create(['category_id' => $category->id])]);
 
         $stats = app(DashboardService::class)->getStats();
 
@@ -53,7 +54,7 @@ class DashboardServiceTest extends TestCase
         $withProducts = Category::factory()->create(['name' => 'Tools']);
         $withoutProducts = Category::factory()->create(['name' => 'Empty']);
 
-        Product::factory()->for($withProducts)->count(3)->create();
+        CatalogProduct::factory()->count(3)->create(['category_id' => $withProducts->id]);
 
         $result = app(DashboardService::class)->getCategoryShare();
 

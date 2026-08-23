@@ -28,8 +28,8 @@ class Category extends Model
         ];
     }
 
-    public function products(): HasMany
+    public function catalogProducts(): HasMany
     {
-        return $this->hasMany(Product::class);
+        return $this->hasMany(CatalogProduct::class);
     }
 }

@@ -71,10 +71,10 @@ class DashboardService
     public function getCategoryShare(): array
     {
         return Cache::remember('dashboard:category-share', now()->addMinutes(self::STATS_CACHE_TTL_MINUTES), fn () => Category::query()
-            ->withCount('products')
-            ->orderByDesc('products_count')
+            ->withCount('catalogProducts')
+            ->orderByDesc('catalog_products_count')
             ->get(['id', 'name'])
-            ->map(fn ($category) => ['name' => $category->name, 'productCount' => (int) $category->products_count])
+            ->map(fn ($category) => ['name' => $category->name, 'productCount' => (int) $category->catalog_products_count])
             ->all());
     }
 

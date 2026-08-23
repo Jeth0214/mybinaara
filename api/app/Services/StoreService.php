@@ -15,6 +15,7 @@ use App\Models\StoreActivationToken;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
@@ -45,6 +46,23 @@ class StoreService
             ->when($filters['city'] ?? null, fn ($query, $city) => $query->where('city', $city))
             ->latest()
             ->paginate($perPage);
+    }
+
+    /**
+     * @return Collection<int, Store>
+     */
+    public function nearby(float $lat, float $lng, int $limit = 5): Collection
+    {
+        $haversine = '(6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude))))';
+
+        return Store::query()
+            ->where('status', StoreStatus::Active)
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->selectRaw("stores.*, {$haversine} AS distance_km", [$lat, $lng, $lat])
+            ->orderBy('distance_km')
+            ->limit($limit)
+            ->get();
     }
 
     /**

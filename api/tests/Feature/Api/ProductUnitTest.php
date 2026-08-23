@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Api;
 
+use App\Models\CatalogProduct;
 use App\Models\Permission;
-use App\Models\Product;
 use App\Models\ProductUnit;
 use App\Models\User;
 use Database\Seeders\PermissionSeeder;
@@ -76,7 +76,7 @@ class ProductUnitTest extends TestCase
     public function test_listing_product_units_includes_products_count(): void
     {
         $unit = ProductUnit::factory()->create();
-        Product::factory()->count(2)->create(['unit_id' => $unit->id]);
+        CatalogProduct::factory()->count(2)->create(['unit_id' => $unit->id]);
         $unused = ProductUnit::factory()->create();
 
         $response = $this->getJson('/api/product-units');
@@ -183,7 +183,7 @@ class ProductUnitTest extends TestCase
     {
         $admin = User::factory()->admin()->create();
         $unit = ProductUnit::factory()->create();
-        Product::factory()->create(['unit_id' => $unit->id]);
+        CatalogProduct::factory()->create(['unit_id' => $unit->id]);
 
         $response = $this->actingAs($admin, 'sanctum')->deleteJson("/api/product-units/{$unit->id}");
 

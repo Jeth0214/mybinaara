@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, computed } from '@angular/core';
 import { IonIcon } from '@ionic/angular/standalone';
 import { Store } from '../../../core/models/store.model';
 
@@ -12,17 +12,29 @@ import { Store } from '../../../core/models/store.model';
 export class StoreActionsComponent {
   store = input.required<Store>();
 
+  hasWhatsApp = computed(() => !!this.store().contact?.whatsapp);
+  hasPhone = computed(() => !!this.store().contact?.phone);
+  hasLocation = computed(() => {
+    const loc = this.store().location;
+    return loc.latitude !== null && loc.longitude !== null;
+  });
+
   openWhatsApp(): void {
-    const num = this.store().whatsapp.replace(/\D/g, '');
+    const whatsapp = this.store().contact?.whatsapp;
+    if (!whatsapp) return;
+    const num = whatsapp.replace(/\D/g, '');
     window.open(`https://wa.me/${num}`, '_system');
   }
 
   callStore(): void {
-    window.open(`tel:${this.store().phone}`, '_system');
+    const phone = this.store().contact?.phone;
+    if (!phone) return;
+    window.open(`tel:${phone}`, '_system');
   }
 
   getDirections(): void {
-    const s = this.store();
-    window.open(`https://maps.google.com/?q=${s.lat},${s.lng}`, '_system');
+    const { latitude, longitude } = this.store().location;
+    if (latitude === null || longitude === null) return;
+    window.open(`https://maps.google.com/?q=${latitude},${longitude}`, '_system');
   }
 }

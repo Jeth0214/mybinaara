@@ -62,8 +62,8 @@
                 <!-- Image -->
                 <td>
                   <div class="product-img-wrapper">
-                    @if (p.image_url) {
-                      <img [src]="p.image_url" [alt]="p.name" />
+                    @if (p.catalog_product.image_url) {
+                      <img [src]="p.catalog_product.image_url" [alt]="p.catalog_product.name" />
                     } @else {
                       <i class="bi bi-box-seam text-muted"></i>
                     }
@@ -73,7 +73,7 @@
                 <!-- Info -->
                 <td>
                   <div class="product-info">
-                    <div class="font-weight-bold text-dark mb-0" style="font-size: 0.95rem;">{{ p.name }}</div>
+                    <div class="font-weight-bold text-dark mb-0" style="font-size: 0.95rem;">{{ p.catalog_product.name }}</div>
                     <div class="small text-muted" style="font-family: monospace;">SKU: {{ p.sku || '—' }}</div>
                     @if (isModified(p.id)) {
                       <span class="status-modified-tag">Modified</span>

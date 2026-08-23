@@ -177,7 +177,7 @@ export class ProductListComponent {
     const modalRef = this.modalService.open(StoreConfirmModalComponent, { centered: true });
     modalRef.componentInstance.title.set(`${target === 'active' ? 'Activate' : 'Deactivate'} Product`);
     modalRef.componentInstance.message.set(
-      `Are you sure you want to set <strong>${product.name}</strong> to <strong>${target}</strong>?`
+      `Are you sure you want to set <strong>${product.catalog_product.name}</strong> to <strong>${target}</strong>?`
     );
     modalRef.componentInstance.confirmText.set('Confirm');
     modalRef.componentInstance.cancelText.set('Cancel');
@@ -198,7 +198,7 @@ export class ProductListComponent {
       next: (updated) => {
         this.mutating.set(false);
         this.products.update((list) => list.map((p) => (p.id === updated.id ? updated : p)));
-        this.toast.success(`"${product.name}" is now ${updated.status}.`);
+        this.toast.success(`"${product.catalog_product.name}" is now ${updated.status}.`);
       },
       error: (err) => {
         this.mutating.set(false);
@@ -211,7 +211,7 @@ export class ProductListComponent {
     const modalRef = this.modalService.open(StoreConfirmModalComponent, { centered: true });
     modalRef.componentInstance.title.set('Delete Product');
     modalRef.componentInstance.message.set(
-      `Are you sure you want to delete <strong>${product.name}</strong>?<br>This action cannot be undone.`
+      `Are you sure you want to delete <strong>${product.catalog_product.name}</strong>?<br>This action cannot be undone.`
     );
     modalRef.componentInstance.confirmText.set('Delete Product');
     modalRef.componentInstance.cancelText.set('Cancel');
@@ -225,7 +225,7 @@ export class ProductListComponent {
         this.productService.deleteProduct(product.id).subscribe({
           next: () => {
             this.mutating.set(false);
-            this.toast.success(`"${product.name}" has been deleted successfully.`);
+            this.toast.success(`"${product.catalog_product.name}" has been deleted successfully.`);
             this.loadProducts(this.meta()?.current_page ?? 1);
           },
           error: (err) => {

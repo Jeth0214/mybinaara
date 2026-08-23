@@ -22,20 +22,7 @@ export class HomeRecentSearchComponent implements AfterViewInit, OnDestroy {
   private startX = 0;
   private scrollLeft = 0;
 
-  private readonly CATEGORY_ICONS: Record<string, string> = {
-    Cement: 'cube-outline',
-    Glass: 'apps-outline',
-    Steel: 'cut-outline',
-    Wood: 'leaf-outline',
-    Paint: 'color-palette-outline',
-    Tiles: 'grid-outline',
-  };
-
-  getCategoryIcon(category: string): string {
-    return this.CATEGORY_ICONS[category] ?? 'hammer-outline';
-  }
-
-  navigateToProduct(id: string): void {
+  navigateToProduct(id: number): void {
     if (this.hasDragged) return;
     this.router.navigate(['/product', id]);
   }

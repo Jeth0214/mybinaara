@@ -81,69 +81,41 @@
       </div>
     }
 
-    <!-- Form & Media Container -->
-    <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="row g-4">
-      <!-- Left: Details Form -->
-      <div class="col-lg-7 d-flex flex-column gap-4">
-        <!-- Card 1: Product info -->
-        <div class="card p-4 border shadow-sm">
-          <!-- Product Name -->
-          <div class="mb-3">
-            <label class="form-label font-weight-bold">Product name *</label>
-            <input
-              type="text"
-              class="form-control"
-              formControlName="name"
-              [class.is-invalid]="
-                productForm.get('name')?.touched &&
-                productForm.get('name')?.invalid
-              "
-            />
-            @if (
-              productForm.get("name")?.touched &&
-              productForm.get("name")?.invalid
-            ) {
-              <div class="text-danger small mt-1">
-                Product name is required (max 150 characters).
-              </div>
-            }
-          </div>
-
-          <!-- Category & Unit -->
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label class="form-label font-weight-bold">Category</label>
-              <select class="form-select" formControlName="category_id">
-                <option [ngValue]="null">No category</option>
-                @for (cat of categories(); track cat.id) {
-                  <option [ngValue]="cat.id">{{ cat.name }}</option>
-                }
-              </select>
-            </div>
-            <div class="col-md-6 mb-3">
-              <label class="form-label font-weight-bold">Unit</label>
-              <select class="form-select" formControlName="unit_id">
-                <option [ngValue]="null">No unit</option>
-                @for (unit of units(); track unit.id) {
-                  <option [ngValue]="unit.id">
-                    {{ unit.name
-                    }}{{
-                      unit.abbreviation ? " (" + unit.abbreviation + ")" : ""
-                    }}
-                  </option>
-                }
-              </select>
-            </div>
-          </div>
-
-          <!-- SKU -->
-          <div class="mb-3">
-            <label class="form-label font-weight-bold">SKU</label>
-            <input type="text" class="form-control" formControlName="sku" />
+    <!-- Catalog product picker -->
+    <div class="card p-4 border shadow-sm mb-4">
+      <h3 class="h6 font-weight-bold text-dark border-bottom pb-2 mb-3">
+        Catalog product
+      </h3>
+      <app-catalog-product-picker
+        [categories]="categories()"
+        [units]="units()"
+        [initialCatalogProduct]="selectedCatalogProduct()"
+        [locked]="isEditMode()"
+        (catalogProductSelected)="onCatalogProductSelected($event)"
+        (catalogProductCleared)="onCatalogProductCleared()"
+        (creatingNewChange)="catalogPickerBusy.set($event)"
+      ></app-catalog-product-picker>
+      @if (catalogProductTouched() && !selectedCatalogProduct()) {
+        <div class="text-danger small mt-2">
+          Search for an existing catalog product or create a new one.
+        </div>
+      }
+      @if (selectedCatalogProduct() && !isEditMode()) {
+        <div class="alert alert-success d-flex align-items-start gap-2 mt-3 mb-0" role="alert">
+          <i class="bi bi-arrow-down-circle-fill mt-1"></i>
+          <div>
+            <strong class="d-block">"{{ selectedCatalogProduct()!.name }}" is ready to list.</strong>
+            Set your price &amp; stock below, then click <strong>Save product</strong> — the catalog entry alone doesn't list it in your store yet.
           </div>
         </div>
+      }
+    </div>
 
-        <!-- Card 2: Pricing & Stock -->
+    <!-- Form Container -->
+    <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="row g-4">
+      <!-- Pricing & Stock -->
+      <div class="col-12 d-flex flex-column gap-4">
+        <!-- Card: Pricing & Stock -->
         <div class="card p-4 border shadow-sm">
           <h3 class="h6 font-weight-bold text-dark border-bottom pb-2 mb-3">
             Pricing & stock
@@ -173,6 +145,8 @@
                 <div class="text-danger small mt-1">
                   Price must be a positive number.
                 </div>
+              } @else if (!selectedCatalogProduct()) {
+                <div class="text-muted small mt-1">Pick a catalog product first.</div>
               }
             </div>
             <div class="col-md-6 mb-3">
@@ -225,120 +199,38 @@
               </div>
             }
           </div>
-        </div>
-      </div>
 
-      <!-- Right: Media & Description Section -->
-      <div class="col-lg-5 d-flex flex-column gap-4">
-        <!-- Product Image Card -->
-        <div class="card p-4 border shadow-sm text-center">
-          <h3 class="h6 font-weight-bold text-dark text-start mb-3">
-            Product image {{ isEditMode() ? "" : "*" }}
-          </h3>
-
-          @if (imagePreviewUrl(); as preview) {
-            <div class="preview-container">
-              <div class="preview-img-box">
-                <img [src]="preview" alt="Product image preview" />
-              </div>
-              <div class="d-flex justify-content-center gap-2 mt-2">
-                <input
-                  #prodImageFileInput
-                  type="file"
-                  class="d-none"
-                  accept="image/*"
-                  (change)="onImageSelect($event)"
-                />
-                <button
-                  type="button"
-                  class="btn btn-sm btn-outline-success"
-                  (click)="prodImageFileInput.click()"
-                >
-                  <i class="bi bi-pencil-square"></i> Change Image
-                </button>
-              </div>
-            </div>
-          } @else {
-            <div
-              class="image-upload-box py-4"
-              (click)="prodImageFileInput.click()"
+          <!-- Action Buttons Row -->
+          <div class="d-flex justify-content-end gap-3 mt-2">
+            <a
+              class="btn btn-light px-4 py-2 font-weight-bold border"
+              [routerLink]="['/products']"
+              [class.disabled]="loading()"
             >
-              <input
-                #prodImageFileInput
-                type="file"
-                class="d-none"
-                accept="image/*"
-                (change)="onImageSelect($event)"
-              />
-              <i
-                class="bi bi-cloud-arrow-up upload-icon fs-2 text-success mb-2"
-              ></i>
-              <div class="upload-title font-weight-bold">Upload image</div>
-              <p class="upload-desc text-muted small mb-0">
-                PNG, JPG, WEBP. Min: 300x300px. Max: 2MB.
-              </p>
-            </div>
-          }
-
-          @if (imageError(); as err) {
-            <div
-              class="alert alert-danger d-flex align-items-center gap-2 py-2 px-3 mt-2 small border-0"
+              Cancel
+            </a>
+            <button
+              type="submit"
+              class="btn btn-success px-4 py-2 text-white font-weight-bold d-flex align-items-center gap-2"
+              [disabled]="!canSubmit()"
             >
-              <i class="bi bi-exclamation-triangle-fill"></i>
-              <span>{{ err }}</span>
-            </div>
-          }
-        </div>
-
-        <!-- Description Card -->
-        <div class="card p-4 border shadow-sm">
-          <h3 class="h6 font-weight-bold text-dark mb-3">Description</h3>
-          <div class="mb-3">
-            <textarea
-              class="form-control"
-              rows="5"
-              formControlName="description"
-              [class.is-invalid]="
-                productForm.get('description')?.touched &&
-                productForm.get('description')?.invalid
-              "
-            ></textarea>
-            @if (
-              productForm.get("description")?.touched &&
-              productForm.get("description")?.invalid
-            ) {
-              <div class="text-danger small mt-1">
-                Description must be under 2000 characters.
-              </div>
-            }
+              @if (loading()) {
+                <span
+                  class="spinner-border spinner-border-sm"
+                  role="status"
+                  aria-hidden="true"
+                ></span>
+                Saving...
+              } @else {
+                Save product <i class="bi bi-arrow-right"></i>
+              }
+            </button>
           </div>
-        </div>
-
-        <!-- Action Buttons Row -->
-        <div class="d-flex justify-content-end gap-3 mt-2">
-          <a
-            class="btn btn-light px-4 py-2 font-weight-bold border"
-            [routerLink]="['/products']"
-            [class.disabled]="loading()"
-          >
-            Cancel
-          </a>
-          <button
-            type="submit"
-            class="btn btn-success px-4 py-2 text-white font-weight-bold d-flex align-items-center gap-2"
-            [disabled]="productForm.invalid || loading()"
-          >
-            @if (loading()) {
-              <span
-                class="spinner-border spinner-border-sm"
-                role="status"
-                aria-hidden="true"
-              ></span>
-              Saving...
-            } @else {
-              Save product <i class="bi bi-arrow-right"></i>
-            }
-          </button>
+          @if (catalogPickerBusy()) {
+            <div class="text-muted small mt-2 text-end">
+              Finish or cancel adding the new catalog product above before saving.
+            </div>
+          }
         </div>
       </div>
     </form>

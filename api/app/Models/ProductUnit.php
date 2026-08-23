@@ -28,8 +28,8 @@ class ProductUnit extends Model
         ];
     }
 
-    public function products(): HasMany
+    public function catalogProducts(): HasMany
     {
-        return $this->hasMany(Product::class, 'unit_id');
+        return $this->hasMany(CatalogProduct::class, 'unit_id');
     }
 }

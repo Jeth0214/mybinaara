@@ -146,8 +146,8 @@
                       style="cursor: pointer"
                       (click)="openViewDetailsModal(p)"
                     >
-                      @if (p.image_url) {
-                        <img [src]="p.image_url" [alt]="p.name" class="w-100" />
+                      @if (p.catalog_product.image_url) {
+                        <img [src]="p.catalog_product.image_url" [alt]="p.catalog_product.name" class="w-100" />
                       } @else {
                         <i class="bi bi-box-seam text-muted"></i>
                       }
@@ -159,7 +159,7 @@
                         (click)="openViewDetailsModal(p)"
                         title="View specifications"
                       >
-                        {{ p.name }}
+                        {{ p.catalog_product.name }}
                       </div>
                     </div>
                   </div>
@@ -167,12 +167,12 @@
 
                 <!-- Category -->
                 <td>
-                  {{ p.category?.name || "Uncategorized" }}
+                  {{ p.catalog_product.category?.name || "Uncategorized" }}
                 </td>
 
                 <!-- Unit Column -->
                 <td>
-                  {{ p.unit?.name || "—" }}
+                  {{ p.catalog_product.unit?.name || "—" }}
                 </td>
 
                 <!-- Price Column -->

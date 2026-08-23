@@ -72,6 +72,23 @@ class StoreSeeder extends Seeder
         'Tahlia Street', 'Al Rawdah Street', 'Al Andalus Street', 'Corniche Road',
     ];
 
+    /**
+     * Sat–Thu 8:00 AM–9:00 PM, Friday closed (Saudi Arabia's weekend day).
+     * Format matches ValidatesStoreSchedule's `date_format:h:i A` rule
+     * (the same format the vendor/admin schedule editor writes).
+     *
+     * @var array<string, array{0: ?string, 1: ?string}>
+     */
+    private const WEEKLY_SCHEDULE = [
+        'sat' => ['08:00 AM', '09:00 PM'],
+        'sun' => ['08:00 AM', '09:00 PM'],
+        'mon' => ['08:00 AM', '09:00 PM'],
+        'tue' => ['08:00 AM', '09:00 PM'],
+        'wed' => ['08:00 AM', '09:00 PM'],
+        'thu' => ['08:00 AM', '09:00 PM'],
+        'fri' => [null, null],
+    ];
+
     private const SUSPENDED_STORE_COUNT = 5;
 
     /** @var string[] */
@@ -178,6 +195,26 @@ class StoreSeeder extends Seeder
         }
 
         DB::table('store_user')->insert($pivotRows);
+
+        $scheduleRows = [];
+        foreach ($storeIds as $storeId) {
+            foreach (self::WEEKLY_SCHEDULE as $day => [$openTime, $closeTime]) {
+                $isOff = $openTime === null;
+                $scheduleRows[] = [
+                    'store_id' => $storeId,
+                    'day' => $day,
+                    'open_time' => $isOff ? null : $openTime,
+                    'close_time' => $isOff ? null : $closeTime,
+                    'is_off' => $isOff,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
+        }
+
+        foreach (array_chunk($scheduleRows, 200) as $chunk) {
+            DB::table('store_schedules')->insert($chunk);
+        }
     }
 
     private function resetTestData(): void

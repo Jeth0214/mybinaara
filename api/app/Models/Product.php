@@ -11,8 +11,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
-    'store_id', 'category_id', 'unit_id', 'name', 'slug', 'description', 'sku',
-    'price', 'compare_at_price', 'stock_quantity', 'image_url', 'status', 'suspension_reason',
+    'store_id', 'catalog_product_id', 'sku',
+    'price', 'compare_at_price', 'stock_quantity', 'status', 'suspension_reason',
     'created_by', 'updated_by',
 ])]
 class Product extends Model
@@ -39,14 +39,9 @@ class Product extends Model
         return $this->belongsTo(Store::class);
     }
 
-    public function category(): BelongsTo
+    public function catalogProduct(): BelongsTo
     {
-        return $this->belongsTo(Category::class);
-    }
-
-    public function unit(): BelongsTo
-    {
-        return $this->belongsTo(ProductUnit::class, 'unit_id');
+        return $this->belongsTo(CatalogProduct::class);
     }
 
     public function creator(): BelongsTo

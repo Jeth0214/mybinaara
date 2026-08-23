@@ -8,7 +8,7 @@
   </div>
   <h5 class="font-weight-bold text-dark mb-2">Confirm Status Change</h5>
   <p class="text-muted mb-4">
-    Are you sure you want to change the status of <strong>{{ product.name }}</strong> to
+    Are you sure you want to change the status of <strong>{{ product.catalog_product.name }}</strong> to
     <strong [class.text-success]="product.status !== 'active'" [class.text-danger]="product.status === 'active'">
       {{ product.status === 'active' ? 'Inactive' : 'Active' }}
     </strong>?

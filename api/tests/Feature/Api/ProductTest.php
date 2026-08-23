@@ -7,6 +7,7 @@ namespace Tests\Feature\Api;
 use App\Enums\ProductStatus;
 use App\Enums\StoreUserRole;
 use App\Enums\UserType;
+use App\Models\CatalogProduct;
 use App\Models\Category;
 use App\Models\Permission;
 use App\Models\Product;
@@ -16,9 +17,7 @@ use App\Models\User;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RolePermissionSeeder;
 use Database\Seeders\RoleSeeder;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class ProductTest extends TestCase
@@ -30,7 +29,6 @@ class ProductTest extends TestCase
         parent::setUp();
 
         $this->seed([RoleSeeder::class, PermissionSeeder::class, RolePermissionSeeder::class]);
-        Storage::fake('public');
     }
 
     private function ownerFor(Store $store): User
@@ -52,10 +50,8 @@ class ProductTest extends TestCase
     private function validPayload(array $overrides = []): array
     {
         return array_merge([
-            'name' => 'Cordless Drill',
-            'slug' => 'cordless-drill',
+            'catalog_product_id' => CatalogProduct::factory()->create()->id,
             'price' => 199.99,
-            'image' => UploadedFile::fake()->image('product.jpg', 400, 400),
         ], $overrides);
     }
 
@@ -123,64 +119,76 @@ class ProductTest extends TestCase
         $store = Store::factory()->active()->create();
         $otherStore = Store::factory()->active()->create();
         $owner = $this->ownerFor($store);
+        $catalogProduct = CatalogProduct::factory()->create();
 
         $response = $this->actingAs($owner, 'sanctum')
-            ->post('/api/products', $this->validPayload(['store_id' => $otherStore->id]));
+            ->postJson('/api/products', $this->validPayload([
+                'catalog_product_id' => $catalogProduct->id,
+                'store_id' => $otherStore->id,
+            ]));
 
         $response->assertStatus(201);
-        $this->assertDatabaseHas('products', ['slug' => 'cordless-drill', 'store_id' => $store->id]);
+        // store_id is forced server-side to the owner's own store, ignoring the submitted store_id.
+        $this->assertDatabaseHas('products', ['catalog_product_id' => $catalogProduct->id, 'store_id' => $store->id]);
     }
 
-    public function test_creating_product_requires_image(): void
+    public function test_creating_product_requires_catalog_product_id(): void
     {
         $store = Store::factory()->active()->create();
         $owner = $this->ownerFor($store);
 
         $payload = $this->validPayload();
-        unset($payload['image']);
+        unset($payload['catalog_product_id']);
 
         $this->actingAs($owner, 'sanctum')
-            ->post('/api/products', $payload)
+            ->postJson('/api/products', $payload)
             ->assertStatus(422)
-            ->assertJsonValidationErrors(['image']);
+            ->assertJsonValidationErrors(['catalog_product_id']);
     }
 
-    public function test_creating_product_validates_category_existence(): void
+    public function test_creating_product_validates_catalog_product_existence(): void
     {
         $store = Store::factory()->active()->create();
         $owner = $this->ownerFor($store);
 
         $this->actingAs($owner, 'sanctum')
-            ->post('/api/products', $this->validPayload(['category_id' => 999999]))
+            ->postJson('/api/products', $this->validPayload(['catalog_product_id' => 999999]))
             ->assertStatus(422)
-            ->assertJsonValidationErrors(['category_id']);
+            ->assertJsonValidationErrors(['catalog_product_id']);
     }
 
-    public function test_creating_product_with_unit_persists_and_returns_nested_unit(): void
+    public function test_creating_product_returns_nested_catalog_product_with_category_and_unit(): void
     {
         $store = Store::factory()->active()->create();
         $owner = $this->ownerFor($store);
+        $category = Category::factory()->create(['name' => 'Tools']);
         $unit = ProductUnit::factory()->create(['name' => 'Bag', 'abbreviation' => 'bag']);
+        $catalogProduct = CatalogProduct::factory()->create([
+            'name' => 'Cordless Drill',
+            'category_id' => $category->id,
+            'unit_id' => $unit->id,
+        ]);
 
         $response = $this->actingAs($owner, 'sanctum')
-            ->post('/api/products', $this->validPayload(['unit_id' => $unit->id]));
+            ->postJson('/api/products', $this->validPayload(['catalog_product_id' => $catalogProduct->id]));
 
         $response->assertStatus(201)
-            ->assertJsonPath('data.unit.id', $unit->id)
-            ->assertJsonPath('data.unit.name', 'Bag')
-            ->assertJsonPath('data.unit.abbreviation', 'bag');
-        $this->assertDatabaseHas('products', ['unit_id' => $unit->id]);
+            ->assertJsonPath('data.catalog_product.name', 'Cordless Drill')
+            ->assertJsonPath('data.catalog_product.category.name', 'Tools')
+            ->assertJsonPath('data.catalog_product.unit.name', 'Bag')
+            ->assertJsonPath('data.catalog_product.unit.abbreviation', 'bag');
     }
 
-    public function test_creating_product_validates_unit_existence(): void
+    public function test_a_store_cannot_list_the_same_catalog_product_twice(): void
     {
         $store = Store::factory()->active()->create();
         $owner = $this->ownerFor($store);
+        $catalogProduct = CatalogProduct::factory()->create();
+        Product::factory()->create(['store_id' => $store->id, 'catalog_product_id' => $catalogProduct->id]);
 
         $this->actingAs($owner, 'sanctum')
-            ->post('/api/products', $this->validPayload(['unit_id' => 999999]))
-            ->assertStatus(422)
-            ->assertJsonValidationErrors(['unit_id']);
+            ->postJson('/api/products', $this->validPayload(['catalog_product_id' => $catalogProduct->id]))
+            ->assertStatus(422);
     }
 
     public function test_admin_with_products_create_can_create_product_for_any_store(): void
@@ -189,7 +197,7 @@ class ProductTest extends TestCase
         $admin = $this->adminWithPermissions(['products.create']);
 
         $this->actingAs($admin, 'sanctum')
-            ->post('/api/products', $this->validPayload(['store_id' => $store->id]))
+            ->postJson('/api/products', $this->validPayload(['store_id' => $store->id]))
             ->assertStatus(201);
     }
 
@@ -199,7 +207,7 @@ class ProductTest extends TestCase
         $admin = $this->adminWithPermissions([]);
 
         $this->actingAs($admin, 'sanctum')
-            ->post('/api/products', $this->validPayload(['store_id' => $store->id]))
+            ->postJson('/api/products', $this->validPayload(['store_id' => $store->id]))
             ->assertStatus(403);
     }
 
@@ -211,9 +219,9 @@ class ProductTest extends TestCase
         $store->users()->attach($staff->id, ['role' => StoreUserRole::Staff->value]);
 
         $this->actingAs($staff, 'sanctum')
-            ->patchJson("/api/products/{$product->id}", ['name' => 'Updated Drill'])
+            ->patchJson("/api/products/{$product->id}", ['price' => 249.99])
             ->assertOk()
-            ->assertJsonPath('data.name', 'Updated Drill');
+            ->assertJsonPath('data.price', 249.99);
     }
 
     public function test_store_owner_cannot_update_another_stores_product(): void
@@ -224,7 +232,7 @@ class ProductTest extends TestCase
         $owner = $this->ownerFor($storeA);
 
         $this->actingAs($owner, 'sanctum')
-            ->patchJson("/api/products/{$product->id}", ['name' => 'Hijacked'])
+            ->patchJson("/api/products/{$product->id}", ['price' => 1.00])
             ->assertStatus(403);
     }
 
@@ -405,41 +413,11 @@ class ProductTest extends TestCase
             ->assertJsonValidationErrors(['status']);
     }
 
-    public function test_admin_can_replace_product_image_on_update(): void
-    {
-        $product = Product::factory()->create(['image_url' => Storage::disk('public')->url('products/old.jpg')]);
-        Storage::disk('public')->put('products/old.jpg', 'fake-old-content');
-        $admin = $this->adminWithPermissions(['products.edit']);
-
-        $response = $this->actingAs($admin, 'sanctum')->patch("/api/products/{$product->id}", [
-            'image' => UploadedFile::fake()->image('new.jpg', 400, 400),
-        ]);
-
-        $response->assertOk();
-        Storage::disk('public')->assertMissing('products/old.jpg');
-        $this->assertNotNull($response->json('data.image_url'));
-    }
-
-    public function test_updating_product_without_image_leaves_existing_image_untouched(): void
-    {
-        $existingUrl = Storage::disk('public')->url('products/keep.jpg');
-        Storage::disk('public')->put('products/keep.jpg', 'fake-content');
-        $product = Product::factory()->create(['image_url' => $existingUrl]);
-        $admin = $this->adminWithPermissions(['products.edit']);
-
-        $this->actingAs($admin, 'sanctum')
-            ->patchJson("/api/products/{$product->id}", ['name' => 'Renamed'])
-            ->assertOk()
-            ->assertJsonPath('data.image_url', $existingUrl);
-
-        Storage::disk('public')->assertExists('products/keep.jpg');
-    }
-
     public function test_products_can_be_filtered_by_category_and_status(): void
     {
         $category = Category::factory()->create();
-        Product::factory()->create(['category_id' => $category->id, 'status' => ProductStatus::Active]);
-        Product::factory()->create(['category_id' => $category->id, 'status' => ProductStatus::Inactive]);
+        Product::factory()->create(['catalog_product_id' => CatalogProduct::factory()->create(['category_id' => $category->id]), 'status' => ProductStatus::Active]);
+        Product::factory()->create(['catalog_product_id' => CatalogProduct::factory()->create(['category_id' => $category->id]), 'status' => ProductStatus::Inactive]);
         Product::factory()->create(['status' => ProductStatus::Active]);
         $admin = $this->adminWithPermissions(['products.view']);
 
@@ -452,7 +430,7 @@ class ProductTest extends TestCase
     public function test_products_can_be_filtered_by_unit(): void
     {
         $unit = ProductUnit::factory()->create();
-        Product::factory()->create(['unit_id' => $unit->id]);
+        Product::factory()->create(['catalog_product_id' => CatalogProduct::factory()->create(['unit_id' => $unit->id])]);
         Product::factory()->create();
         $admin = $this->adminWithPermissions(['products.view']);
 
@@ -482,19 +460,20 @@ class ProductTest extends TestCase
         $otherStore = Store::factory()->create(['name' => 'Sunrise Diner']);
         $category = Category::factory()->create();
 
-        Product::factory()->count(25)->create([
+        Product::factory()->count(25)->state(fn () => [
+            'catalog_product_id' => CatalogProduct::factory()->create(['category_id' => $category->id]),
+        ])->create([
             'store_id' => $store->id,
-            'category_id' => $category->id,
             'status' => ProductStatus::Active,
         ]);
         Product::factory()->create([
             'store_id' => $otherStore->id,
-            'category_id' => $category->id,
+            'catalog_product_id' => CatalogProduct::factory()->create(['category_id' => $category->id]),
             'status' => ProductStatus::Active,
         ]);
         Product::factory()->create([
             'store_id' => $store->id,
-            'category_id' => $category->id,
+            'catalog_product_id' => CatalogProduct::factory()->create(['category_id' => $category->id]),
             'status' => ProductStatus::Inactive,
         ]);
 
@@ -546,7 +525,7 @@ class ProductTest extends TestCase
         $store = Store::factory()->active()->create();
         $owner = $this->ownerFor($store);
 
-        $createResponse = $this->actingAs($owner, 'sanctum')->post('/api/products', $this->validPayload());
+        $createResponse = $this->actingAs($owner, 'sanctum')->postJson('/api/products', $this->validPayload());
         $createResponse->assertStatus(201);
         $productId = $createResponse->json('data.id');
 
@@ -556,7 +535,7 @@ class ProductTest extends TestCase
         $admin = $this->adminWithPermissions(['products.edit']);
 
         $updateResponse = $this->actingAs($admin, 'sanctum')
-            ->patchJson("/api/products/{$productId}", ['name' => 'Edited by admin']);
+            ->patchJson("/api/products/{$productId}", ['price' => 149.50]);
 
         $updateResponse->assertOk()
             ->assertJsonPath('data.created_by.id', $owner->id)
@@ -570,7 +549,7 @@ class ProductTest extends TestCase
         $owner = $this->ownerFor($store);
 
         $this->actingAs($owner, 'sanctum')
-            ->post('/api/products', $this->validPayload(['slug' => 'one-more-product']))
+            ->postJson('/api/products', $this->validPayload())
             ->assertStatus(422);
 
         $this->assertSame(100, Product::query()->where('store_id', $store->id)->count());

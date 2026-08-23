@@ -10,78 +10,104 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  @if (productView(); as p) {
+  @if (loading()) {
+    <div class="not-found">
+      <p>Loading product...</p>
+    </div>
+  } @else if (error()) {
+    <div class="not-found">
+      <p>Couldn't load this product. Please try again.</p>
+    </div>
+  } @else if (product(); as p) {
 
-  <div class="hero" [style.background]="p.iconBg">
-    <ion-icon [name]="getCategoryIcon(p.category)" class="hero-icon"></ion-icon>
+  <div class="hero">
+    @if (p.image_url) {
+      <img [src]="p.image_url" [alt]="p.name" class="hero-image" />
+    } @else {
+      <ion-icon name="cube-outline" class="hero-icon"></ion-icon>
+    }
   </div>
 
   <div class="content-sheet">
     <div class="tags-row">
-      <span class="tag tag--category">{{ p.category }}</span>
-      <span class="tag tag--brand">{{ p.brand }}</span>
+      @if (p.category) {
+        <span class="tag tag--category">{{ p.category.name }}</span>
+      }
     </div>
 
     <h1 class="product-name">{{ p.name }}</h1>
 
-    <div class="price-row">
-      <span class="price">SAR {{ formatPrice(p.price) }}</span>
-      <span class="per-unit">per {{ p.unit }}</span>
-    </div>
-
-    <p class="description">{{ p.description }}</p>
-
-    <div class="specs-row">
-      @for (spec of p.specs; track spec) {
-      <span class="spec-chip">{{ spec }}</span>
-      }
-    </div>
+    @if (p.description) {
+      <p class="description">{{ p.description }}</p>
+    }
 
     <div class="stores-divider"></div>
 
     <div class="stores-header-row">
       <span class="stores-label">Available at</span>
       <span class="stores-count"
-        >{{ storesWithAvailability().length }} stores nearby</span
+        >{{ listings().length }} stores nearby</span
       >
     </div>
 
-    <div class="stores-list">
-      @for (item of storesWithAvailability(); track item.store.id) {
-      <div class="store-card">
-        <div class="store-icon-wrapper">
-          <ion-icon name="storefront-outline" class="store-icon"></ion-icon>
-        </div>
+    @if (!listingsLoading() && listings().length > 0) {
+      <button class="sort-toggle-btn" (click)="cycleSortMode()">
+        <ion-icon name="swap-vertical-outline"></ion-icon>
+        @switch (sortMode()) {
+          @case ('price_asc') { Price: Low to High }
+          @case ('price_desc') { Price: High to Low }
+          @default { Sort by: Nearest }
+        }
+      </button>
+    }
 
-        <div class="store-info">
-          <p class="store-name ion-no-margin">{{ item.store.name }}</p>
-          <span class="store-location"
-            >{{ item.store.district }}, {{ item.store.city }}</span
-          >
-          <div class="store-meta">
-            <div class="meta-chip">
-              <ion-icon
-                name="location-outline"
-                class="meta-icon meta-icon--loc"
-              ></ion-icon>
-              <span>{{ formatDistance(item.distanceKm) }}</span>
-            </div>
-            <div class="meta-chip">
-              <ion-icon
-                name="cube-outline"
-                class="meta-icon meta-icon--stock"
-              ></ion-icon>
-              <span>{{ item.stock }} {{ p.unit }}s</span>
+    @if (listingsLoading()) {
+      <p class="stores-loading">Finding stores...</p>
+    } @else {
+      <div class="stores-list">
+        @for (item of sortedListings(); track item.id) {
+        <div class="store-card">
+          <div class="store-icon-wrapper">
+            @if (item.store.logo_url) {
+              <img [src]="item.store.logo_url" [alt]="item.store.name" class="store-logo" />
+            } @else {
+              <ion-icon name="storefront-outline" class="store-icon"></ion-icon>
+            }
+          </div>
+
+          <div class="store-info">
+            <p class="store-name ion-no-margin">{{ item.store.name }}</p>
+            <span class="store-location"
+              >{{ item.store.location.formatted_address ?? item.store.location.city }}</span
+            >
+            <div class="store-meta">
+              <div class="meta-chip">
+                <ion-icon
+                  name="location-outline"
+                  class="meta-icon meta-icon--loc"
+                ></ion-icon>
+                <span>{{ formatDistance(item.distance_km) }}</span>
+              </div>
+              <div class="meta-chip">
+                <ion-icon
+                  name="cube-outline"
+                  class="meta-icon meta-icon--stock"
+                ></ion-icon>
+                <span>{{ item.stock_quantity }} {{ p.unit?.abbreviation ?? p.unit?.name }}</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <button class="view-store-btn" (click)="navigateToStore(item.store.id)">
-          View Store →
-        </button>
+          <div class="store-action">
+            <span class="store-price">SAR {{ formatPrice(item.price) }}</span>
+            <button class="view-store-btn" (click)="navigateToStore(item.store.id)">
+              View Store →
+            </button>
+          </div>
+        </div>
+        }
       </div>
-      }
-    </div>
+    }
   </div>
 
   } @else {

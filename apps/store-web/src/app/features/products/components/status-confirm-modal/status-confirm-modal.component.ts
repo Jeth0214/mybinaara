@@ -29,7 +29,7 @@ export class StatusConfirmModalComponent {
     this.updating.set(true);
     this.productService.updateProductStatus(this.product.id, targetStatus).subscribe({
       next: (updated) => {
-        this.toastService.success(`"${updated.name}" is now ${updated.status}.`);
+        this.toastService.success(`"${updated.catalog_product.name}" is now ${updated.status}.`);
         this.updating.set(false);
         this.activeModal.close(true);
       },

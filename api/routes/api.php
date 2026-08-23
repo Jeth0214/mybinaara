@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CatalogProductController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CityController;
 use App\Http\Controllers\Api\DashboardController;
@@ -34,21 +35,30 @@ Route::middleware(['auth:sanctum', EnsureAccountIsActive::class, EnsureVendorSto
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 
-Route::get('/categories', [CategoryController::class, 'index']);
-Route::get('/categories/{category}', [CategoryController::class, 'show']);
+Route::middleware('throttle:60,1')->group(function () {
+    Route::get('/categories', [CategoryController::class, 'index']);
+    Route::get('/categories/{category}', [CategoryController::class, 'show']);
 
-Route::get('/regions', [RegionController::class, 'index']);
-Route::get('/regions/{region}', [RegionController::class, 'show']);
+    Route::get('/stores/nearby', [StoreController::class, 'nearby']);
+    Route::get('/stores/{store}/details', [StoreController::class, 'details']);
 
-Route::get('/cities', [CityController::class, 'index']);
-Route::get('/cities/{city}', [CityController::class, 'show']);
+    Route::get('/catalog-products', [CatalogProductController::class, 'index']);
+    Route::get('/catalog-products/{catalogProduct}', [CatalogProductController::class, 'show']);
+    Route::get('/catalog-products/{catalogProduct}/listings', [CatalogProductController::class, 'listings']);
 
-Route::get('/districts', [DistrictController::class, 'index']);
-Route::get('/districts/{district}', [DistrictController::class, 'show']);
+    Route::get('/regions', [RegionController::class, 'index']);
+    Route::get('/regions/{region}', [RegionController::class, 'show']);
 
-Route::get('/product-units', [ProductUnitController::class, 'index']);
-Route::get('/product-units/active', [ProductUnitController::class, 'active']);
-Route::get('/product-units/{product_unit}', [ProductUnitController::class, 'show']);
+    Route::get('/cities', [CityController::class, 'index']);
+    Route::get('/cities/{city}', [CityController::class, 'show']);
+
+    Route::get('/districts', [DistrictController::class, 'index']);
+    Route::get('/districts/{district}', [DistrictController::class, 'show']);
+
+    Route::get('/product-units', [ProductUnitController::class, 'index']);
+    Route::get('/product-units/active', [ProductUnitController::class, 'active']);
+    Route::get('/product-units/{product_unit}', [ProductUnitController::class, 'show']);
+});
 
 Route::post('/stores/activate/verify', [StoreActivationController::class, 'verify']);
 Route::post('/stores/activate', [StoreActivationController::class, 'activate']);
@@ -91,6 +101,8 @@ Route::middleware(['auth:sanctum', EnsureAccountIsActive::class, EnsureVendorSto
     Route::patch('/products/{product}', [ProductController::class, 'update']);
     Route::delete('/products/{product}', [ProductController::class, 'destroy']);
     Route::patch('/products/{product}/status', [ProductController::class, 'updateStatus']);
+
+    Route::post('/catalog-products', [CatalogProductController::class, 'store']);
 
     Route::get('/dashboard', [DashboardController::class, 'index']);
 

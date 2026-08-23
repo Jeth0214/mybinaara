@@ -1,6 +1,5 @@
 import { Injectable, signal } from '@angular/core';
 import { RecentSearchProduct } from '../../core/models/recent-search.model';
-import { SearchProduct } from '../../core/models/search-product.model';
 
 @Injectable({ providedIn: 'root' })
 export class RecentViewsService {
@@ -9,19 +8,11 @@ export class RecentViewsService {
 
   readonly recentViews = signal<RecentSearchProduct[]>(this.load());
 
-  add(product: SearchProduct): void {
+  add(product: Omit<RecentSearchProduct, 'viewedAt'>): void {
     const current = this.recentViews();
     if (current.some((p) => p.id === product.id)) return;
     const updated = [
-      {
-        id: product.id,
-        name: product.name,
-        category: product.category,
-        brand: product.brand,
-        iconBg: product.iconBg,
-        storeCount: product.storeCount,
-        viewedAt: new Date(),
-      },
+      { ...product, viewedAt: new Date() },
       ...current,
     ].slice(0, this.MAX_ITEMS);
     this.recentViews.set(updated);

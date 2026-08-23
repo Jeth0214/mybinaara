@@ -17,7 +17,7 @@ class ProductUnitService
     public function list(array $filters = [], int $perPage = 20): LengthAwarePaginator
     {
         return ProductUnit::query()
-            ->withCount('products')
+            ->withCount(['catalogProducts as products_count'])
             ->when(array_key_exists('is_active', $filters), fn ($query) => $query->where('is_active', $filters['is_active']))
             ->when($filters['search'] ?? null, fn ($query, $search) => $query->where('name', 'like', "%{$search}%"))
             ->orderBy('name')
@@ -55,7 +55,7 @@ class ProductUnitService
 
     public function delete(ProductUnit $unit): void
     {
-        if ($unit->products()->exists()) {
+        if ($unit->catalogProducts()->exists()) {
             throw new UnitInUseException();
         }
 
