@@ -13,6 +13,7 @@ import { RouterModule } from '@angular/router';
 export class DashboardProductsComponent {
   productsCount = input<number>(0);
   productsLimit = input<number>(0);
+  remainingCount = input<number>(0);
   progressPercent = input<number>(0);
   inStockCount = input<number>(0);
   lowStockCount = input<number>(0);

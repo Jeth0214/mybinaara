@@ -12,24 +12,37 @@
   <div class="results-list">
     @for (product of products(); track product.id) {
       <div class="product-card" (click)="navigateToProduct(product)" role="button">
-        <div class="product-icon-wrapper" [style.background]="product.iconBg">
-          <ion-icon [name]="getCategoryIcon(product.category)" class="product-icon"></ion-icon>
+        <div class="product-icon-wrapper">
+          @if (product.image_url) {
+            <img [src]="product.image_url" [alt]="product.name" class="product-image" />
+          } @else {
+            <ion-icon name="cube-outline" class="product-icon"></ion-icon>
+          }
         </div>
 
         <div class="product-info">
           <p class="product-name ion-no-margin">{{ product.name }}</p>
-          <span class="product-meta">{{ product.category }} · {{ product.brand }}</span>
           <p class="product-price ion-no-margin">
-            SAR {{ formatPrice(product.price) }}
-            <span class="product-unit">/ {{ product.unit }}</span>
+            @if (product.min_price !== null) {
+              @if (product.min_price === product.max_price) {
+                <span class="price-value">SAR {{ formatPrice(product.min_price) }}</span>
+              } @else {
+                <span class="price-value">From SAR {{ formatPrice(product.min_price) }}</span>
+              }
+            }
+            @if (product.unit) {
+              <span class="product-unit">/ {{ product.unit.abbreviation ?? product.unit.name }}</span>
+            }
           </p>
-          <div class="store-badge">
-            <ion-icon name="storefront-outline" class="badge-icon"></ion-icon>
-            <span>{{ product.storeCount }} stores</span>
-          </div>
         </div>
 
-        <ion-icon name="chevron-forward-outline" class="card-chevron"></ion-icon>
+        <div class="product-side">
+          <span class="product-meta">{{ product.category?.name }}</span>
+          <div class="store-badge">
+            <ion-icon name="storefront-outline" class="badge-icon"></ion-icon>
+            <span>{{ product.listings_count }} stores</span>
+          </div>
+        </div>
       </div>
     }
   </div>

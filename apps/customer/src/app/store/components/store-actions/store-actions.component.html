@@ -1,19 +1,25 @@
 <div class="actions-wrapper">
 
   <div class="primary-row">
-    <button class="action-btn action-btn--whatsapp" (click)="openWhatsApp()">
-      <ion-icon name="logo-whatsapp"></ion-icon>
-      <span>WhatsApp</span>
-    </button>
-    <button class="action-btn action-btn--call" (click)="callStore()">
-      <ion-icon name="call-outline"></ion-icon>
-      <span>Call Store</span>
-    </button>
+    @if (hasWhatsApp()) {
+      <button class="action-btn action-btn--whatsapp" (click)="openWhatsApp()">
+        <ion-icon name="logo-whatsapp"></ion-icon>
+        <span>WhatsApp</span>
+      </button>
+    }
+    @if (hasPhone()) {
+      <button class="action-btn action-btn--call" (click)="callStore()">
+        <ion-icon name="call-outline"></ion-icon>
+        <span>Call Store</span>
+      </button>
+    }
   </div>
 
-  <button class="action-btn action-btn--directions" (click)="getDirections()">
-    <ion-icon name="navigate-outline"></ion-icon>
-    <span>Get Directions on Google Maps</span>
-  </button>
+  @if (hasLocation()) {
+    <button class="action-btn action-btn--directions" (click)="getDirections()">
+      <ion-icon name="navigate-outline"></ion-icon>
+      <span>Get Directions on Google Maps</span>
+    </button>
+  }
 
 </div>

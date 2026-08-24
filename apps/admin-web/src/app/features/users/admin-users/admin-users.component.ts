@@ -1,13 +1,16 @@
-import { ChangeDetectionStrategy, Component, inject, signal, computed, effect, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, computed } from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { NgbDropdownModule, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { Store } from '@ngxs/store';
-import { UserCatalogService } from '../../../core/services/user-catalog.service';
+import { EMPTY, Subject, merge } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, skip, switchMap } from 'rxjs/operators';
+import { StaffService } from '../../../core/services/staff.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { AdminUser } from '../../../core/models/user.model';
+import { StaffMember, PaginationMeta, StaffRole } from '../../../core/models/staff.model';
 import { AdminAuthState } from '../../../core/state/auth.state';
 import { StoreConfirmModalComponent } from '../../stores/components/store-confirm-modal/store-confirm-modal.component';
 
@@ -20,64 +23,89 @@ import { StoreConfirmModalComponent } from '../../stores/components/store-confir
   styleUrl: './admin-users.component.scss'
 })
 export class AdminUsersComponent {
-  private readonly userCatalogService = inject(UserCatalogService);
+  private readonly staffService = inject(StaffService);
   private readonly toast = inject(ToastService);
   private readonly modalService = inject(NgbModal);
   private readonly store = inject(Store);
 
   readonly currentUser = this.store.selectSignal(AdminAuthState.user);
-  readonly canManage = computed(() => this.currentUser()?.role === 'admin');
+  readonly canManage = computed(() => !!this.currentUser()?.permissions.includes('staff.edit'));
 
   readonly searchQuery = signal('');
-  readonly roleFilter = signal('all');
-  readonly statusFilter = signal('all');
+  readonly roleFilter = signal<'all' | StaffRole>('all');
+  readonly statusFilter = signal<'all' | 'active' | 'inactive'>('all');
 
-  // Pagination Signals
-  readonly pageSize = signal(10);
-  readonly pageIndex = signal(0);
+  readonly staffList = signal<StaffMember[]>([]);
+  readonly meta = signal<PaginationMeta | null>(null);
+  readonly loading = signal(false);
+  readonly loadError = signal<string | null>(null);
 
-  readonly allAdmins = this.userCatalogService.admins;
+  readonly mutating = signal(false);
+  readonly busy = computed(() => this.loading() || this.mutating());
+
+  readonly hasActiveFilters = computed(
+    () => this.searchQuery().trim() !== '' || this.roleFilter() !== 'all' || this.statusFilter() !== 'all'
+  );
+
+  /** Every fetch (search, pagination, retry, post-mutation refresh) goes through
+   *  this single switchMap pipeline, so a newer request always cancels an
+   *  older one still in flight — not just for search. */
+  private readonly reload$ = new Subject<number>();
 
   constructor() {
-    // Reset page index on filter change
-    effect(() => {
-      this.searchQuery();
-      this.roleFilter();
-      this.statusFilter();
+    this.reload$
+      .pipe(
+        switchMap((page) => {
+          this.loading.set(true);
+          this.loadError.set(null);
 
-      untracked(() => {
-        this.pageIndex.set(0);
+          return this.staffService
+            .listStaff({
+              search: this.searchQuery().trim(),
+              role: this.roleFilter(),
+              status: this.statusFilter(),
+              page,
+            })
+            .pipe(
+              catchError((err) => {
+                this.loading.set(false);
+                this.loadError.set(err?.message ?? 'Failed to load users.');
+                return EMPTY;
+              })
+            );
+        }),
+        takeUntilDestroyed()
+      )
+      .subscribe((response) => {
+        this.loading.set(false);
+        this.staffList.set(response.data);
+        this.meta.set(response.meta);
       });
-    });
+
+    merge(
+      toObservable(this.searchQuery).pipe(skip(1), debounceTime(300), distinctUntilChanged()),
+      toObservable(this.roleFilter).pipe(skip(1), distinctUntilChanged()),
+      toObservable(this.statusFilter).pipe(skip(1), distinctUntilChanged())
+    )
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => this.loadStaff(1));
+
+    this.loadStaff(1);
   }
 
-  readonly filteredAdmins = computed(() => {
-    const query = this.searchQuery().toLowerCase().trim();
-    const role = this.roleFilter();
-    const status = this.statusFilter();
+  loadStaff(page: number): void {
+    this.reload$.next(page);
+  }
 
-    return this.allAdmins().filter(admin => {
-      const matchesSearch = !query ||
-        admin.name.toLowerCase().includes(query) ||
-        admin.email.toLowerCase().includes(query);
-
-      const matchesRole = role === 'all' || admin.role === role;
-      const matchesStatus = status === 'all' || admin.status === status;
-
-      return matchesSearch && matchesRole && matchesStatus;
-    });
-  });
-
-  readonly paginatedAdmins = computed(() => {
-    const list = this.filteredAdmins();
-    const start = this.pageIndex() * this.pageSize();
-    const end = start + this.pageSize();
-    return list.slice(start, end);
-  });
+  resetFilters(): void {
+    this.searchQuery.set('');
+    this.roleFilter.set('all');
+    this.statusFilter.set('all');
+    this.loadStaff(1);
+  }
 
   handlePageEvent(event: PageEvent): void {
-    this.pageSize.set(event.pageSize);
-    this.pageIndex.set(event.pageIndex);
+    this.loadStaff(event.pageIndex + 1);
   }
 
   getInitials(name: string): string {
@@ -88,34 +116,40 @@ export class AdminUsersComponent {
     return name.slice(0, 2).toUpperCase();
   }
 
-  toggleStatus(admin: AdminUser): void {
-    const activating = admin.status === 'suspended';
+  onToggleStatus(admin: StaffMember): void {
+    const activating = admin.status === 'inactive';
 
     const modalRef = this.modalService.open(StoreConfirmModalComponent, { centered: true });
-    modalRef.componentInstance.title.set(activating ? 'Reactivate User' : 'Suspend User');
+    modalRef.componentInstance.title.set(activating ? 'Activate User' : 'Deactivate User');
     modalRef.componentInstance.message.set(
-      `Are you sure you want to ${activating ? 'reactivate' : 'suspend'} <strong>${admin.name}</strong>?`
+      `Are you sure you want to mark <strong>${admin.name}</strong> as ${activating ? 'active' : 'inactive'}?`
     );
-    modalRef.componentInstance.confirmText.set(activating ? 'Reactivate' : 'Suspend');
+    modalRef.componentInstance.confirmText.set(activating ? 'Activate' : 'Deactivate');
     modalRef.componentInstance.cancelText.set('Cancel');
     modalRef.componentInstance.isDanger.set(!activating);
 
     modalRef.result.then(
       (confirmed) => {
-        if (confirmed) {
-          this.userCatalogService.toggleAdminStatus(admin.id);
-          if (activating) {
-            this.toast.success(`"${admin.name}" has been reactivated.`);
-          } else {
-            this.toast.warning(`"${admin.name}" has been suspended.`);
-          }
-        }
+        if (!confirmed) return;
+
+        this.mutating.set(true);
+        this.staffService.updateStaffStatus(admin.id, activating ? 'active' : 'inactive').subscribe({
+          next: (updated) => {
+            this.mutating.set(false);
+            this.staffList.update((list) => list.map((a) => (a.id === updated.id ? updated : a)));
+            this.toast.success(`"${admin.name}" is now ${updated.status}.`);
+          },
+          error: (err) => {
+            this.mutating.set(false);
+            this.toast.error(err?.message ?? 'Failed to update status.');
+          },
+        });
       },
       () => {}
     );
   }
 
-  deleteAdmin(admin: AdminUser): void {
+  deleteAdmin(admin: StaffMember): void {
     const modalRef = this.modalService.open(StoreConfirmModalComponent, { centered: true });
     modalRef.componentInstance.title.set('Delete User');
     modalRef.componentInstance.message.set(
@@ -127,10 +161,20 @@ export class AdminUsersComponent {
 
     modalRef.result.then(
       (confirmed) => {
-        if (confirmed) {
-          this.userCatalogService.deleteAdminUser(admin.id);
-          this.toast.success(`"${admin.name}" has been deleted successfully.`);
-        }
+        if (!confirmed) return;
+
+        this.mutating.set(true);
+        this.staffService.deleteStaff(admin.id).subscribe({
+          next: () => {
+            this.mutating.set(false);
+            this.toast.success(`"${admin.name}" has been deleted successfully.`);
+            this.loadStaff(this.meta()?.current_page ?? 1);
+          },
+          error: (err) => {
+            this.mutating.set(false);
+            this.toast.error(err?.message ?? 'Failed to delete user.');
+          },
+        });
       },
       () => {}
     );

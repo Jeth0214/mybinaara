@@ -1,137 +1,140 @@
 <div class="row g-4 mt-2">
-  <div class="col-lg-8 border-end-lg">
+  <div class="col-lg-9 mx-auto">
     @if (!isCreated()) {
       <h5 class="fw-semibold mb-3">Step 4: Review Details & Finish</h5>
-      <p class="text-muted fs-7 mb-4">Please verify all store information. On submission, the store account will be generated, and credentials will be sent to the merchant.</p>
+      <p class="text-muted fs-7 mb-4">Please verify all store information. On submission, the store account will be created and an activation email will be sent to the owner.</p>
 
-      <!-- Profile Preview -->
+      <!-- Logo Preview -->
       <div class="bg-light p-3 rounded-3 mb-4">
-        <h6 class="fw-semibold fs-7 border-bottom pb-2 mb-3 text-secondary text-uppercase">Merchant Summary</h6>
+        <h6 class="fw-semibold fs-7 border-bottom pb-2 mb-3 text-secondary text-uppercase">Logo Preview</h6>
+        <div class="d-flex align-items-center gap-3">
+          @if (logoPreviewUrl(); as logoUrl) {
+            <img
+              [src]="logoUrl"
+              alt="Store logo preview"
+              class="rounded border"
+              style="width: 100px; height: 100px; object-fit: contain;"
+            />
+          } @else {
+            <div
+              class="rounded border d-flex align-items-center justify-content-center text-muted bg-white"
+              style="width: 100px; height: 100px;"
+            >
+              <i class="bi bi-image fs-3 opacity-50"></i>
+            </div>
+            <span class="text-muted fst-italic fs-7-5">Logo not set</span>
+          }
+        </div>
+      </div>
+
+      <!-- Store Information -->
+      <div class="bg-light p-3 rounded-3 mb-4">
+        <h6 class="fw-semibold fs-7 border-bottom pb-2 mb-3 text-secondary text-uppercase">Store Information</h6>
         <div class="row g-3">
-          <div class="col-md-6">
+          <div class="col-md-4">
             <span class="d-block text-muted fs-8 text-uppercase">Store Name</span>
             <strong class="text-dark">{{ step1().name }}</strong>
           </div>
-          <div class="col-md-6">
-            <span class="d-block text-muted fs-8 text-uppercase">HQ Location</span>
-            <strong class="text-dark">{{ step2().location?.city || 'N/A' }}@if (step2().location?.district) { ({{ step2().location?.district }}) }</strong>
-          </div>
-          <div class="col-md-6">
-            <span class="d-block text-muted fs-8 text-uppercase">Coordinates</span>
-            <strong class="text-dark font-monospace fs-7">{{ step2().location?.latitude || 0 }}, {{ step2().location?.longitude || 0 }}</strong>
-          </div>
-          
-          <div class="col-md-6">
+          <div class="col-md-4">
             <span class="d-block text-muted fs-8 text-uppercase">CR Number</span>
             <code class="text-secondary font-monospace">{{ step3().crNumber }}</code>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-4">
             <span class="d-block text-muted fs-8 text-uppercase">VAT Number</span>
             <code class="text-secondary font-monospace">{{ step3().vatNumber }}</code>
           </div>
+        </div>
+      </div>
 
+      <!-- Owner Information -->
+      <div class="bg-light p-3 rounded-3 mb-4">
+        <h6 class="fw-semibold fs-7 border-bottom pb-2 mb-3 text-secondary text-uppercase">Owner Information</h6>
+        <div class="row g-3">
           <div class="col-md-6">
-            <span class="d-block text-muted fs-8 text-uppercase">Authorized Contact</span>
-            <strong class="text-dark">{{ step1().ownerName }}</strong>
-          </div>
-          <div class="col-md-6">
-            <span class="d-block text-muted fs-8 text-uppercase">Email & Phone / WhatsApp</span>
-            <span class="text-dark font-monospace fs-7">{{ step1().ownerEmail }} / {{ step1().ownerPhone }} / {{ step1().ownerWhatsapp }}</span>
+            <span class="d-block text-muted fs-8 text-uppercase">Owner Name</span>
+            <strong class="text-dark">{{ step1().owner_name }}</strong>
           </div>
         </div>
       </div>
 
-      <!-- Generated Credentials Section -->
-      <div class="border border-success border-opacity-25 bg-success bg-opacity-5 p-3 rounded-3 mb-4">
-        <h6 class="fw-bold fs-7 text-success text-uppercase mb-3 d-flex align-items-center gap-2">
-          <i class="bi bi-shield-lock-fill"></i> Credentials to Be Dispatched
-        </h6>
-        
+      <!-- Contact Information -->
+      <div class="bg-light p-3 rounded-3 mb-4">
+        <h6 class="fw-semibold fs-7 border-bottom pb-2 mb-3 text-secondary text-uppercase">Contact Information</h6>
         <div class="row g-3">
-          <div class="col-md-12">
-            <label class="form-label fs-8 text-muted fw-semibold mb-1 text-uppercase">Generated Temporary Password</label>
-            <div class="input-group">
-              <input
-                type="text"
-                readonly
-                class="form-control font-monospace fs-7 text-success fw-bold bg-white"
-                [value]="tempPassword()"
-              />
-              <button class="btn btn-outline-success" (click)="copyToClipboard(tempPassword(), 'Password')">
-                <i class="bi bi-clipboard"></i>
-              </button>
-            </div>
+          <div class="col-md-4">
+            <span class="d-block text-muted fs-8 text-uppercase">Email</span>
+            <span class="text-dark font-monospace fs-7-5">{{ step1().owner_email }}</span>
+          </div>
+          <div class="col-md-4">
+            <span class="d-block text-muted fs-8 text-uppercase">Phone</span>
+            <span class="text-dark font-monospace fs-7-5">{{ step1().owner_phone }}</span>
+          </div>
+          <div class="col-md-4">
+            <span class="d-block text-muted fs-8 text-uppercase">WhatsApp</span>
+            <span class="text-dark font-monospace fs-7-5">{{ step1().owner_whatsapp }}</span>
           </div>
         </div>
-        <div class="mt-2.5 fs-8 text-muted">
-          <i class="bi bi-info-circle-fill text-success me-1"></i>
-          <span>Merchants will activate their accounts at <strong>https://mybinaara.com/activate</strong> using this temporary password.</span>
+      </div>
+
+      <!-- Location Information -->
+      <div class="bg-light p-3 rounded-3 mb-4">
+        <h6 class="fw-semibold fs-7 border-bottom pb-2 mb-3 text-secondary text-uppercase">Location Information</h6>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <span class="d-block text-muted fs-8 text-uppercase">City</span>
+            @if (city(); as cityValue) {
+              <strong class="text-dark">{{ cityValue }}</strong>
+            } @else {
+              <span class="text-muted fst-italic">Not set</span>
+            }
+          </div>
+          <div class="col-md-8">
+            <span class="d-block text-muted fs-8 text-uppercase">Address</span>
+            @if (formattedAddress(); as address) {
+              <strong class="text-dark">{{ address }}</strong>
+            } @else {
+              <span class="text-muted fst-italic">Address not provided</span>
+            }
+          </div>
         </div>
+      </div>
+
+      <div class="alert alert-light border fs-8 mb-4">
+        <i class="bi bi-envelope-check text-success me-1"></i>
+        The owner will receive an email with account activation instructions once the store is created.
       </div>
 
       <div class="d-flex justify-content-between mt-4 pt-3 border-top">
-        <button type="button" class="btn btn-outline-secondary" matStepperPrevious>
+        <button type="button" class="btn btn-outline-secondary" matStepperPrevious [disabled]="submitting()">
           Previous
         </button>
-        <button type="button" class="btn btn-success px-4" (click)="submitStore.emit()">
-          Create Store & Send Credentials
+        <button type="button" class="btn btn-success px-4" [disabled]="submitting()" (click)="submitStore.emit()">
+          @if (submitting()) {
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          }
+          Create Store
         </button>
       </div>
-    @} @else {
-      <!-- Store Created Details -->
+    } @else {
+      <!-- Store Created Confirmation -->
       <div class="text-center py-4">
         <div class="mb-3">
-          <div class="display-4 text-warning"><i class="bi bi-check2-circle"></i></div>
+          <div class="display-4 text-success"><i class="bi bi-check2-circle"></i></div>
         </div>
-        <h4 class="fw-bold text-success">Store Account Initialized!</h4>
-        <p class="text-muted mb-4">The account for <strong>{{ step1().name }}</strong> has been added to the database. You can notify the merchant with their credentials below.</p>
-
-        <div class="mx-auto bg-light p-4 rounded-3 text-start mb-4" style="max-width: 600px;">
-          <table class="table table-sm table-borderless align-middle mb-0 font-monospace fs-7">
-            <tbody>
-              <tr>
-                <td class="text-muted pe-3 py-2" style="width: 150px;">STORE ID:</td>
-                <td class="fw-semibold text-dark">store-pending-{{ step3().crNumber }}</td>
-              </tr>
-              <tr>
-                <td class="text-muted pe-3 py-2">TEMP PASSWORD:</td>
-                <td class="fw-bold text-success">{{ tempPassword() }}</td>
-              </tr>
-              <tr>
-                <td class="text-muted pe-3 py-2">ACTIVATION URL:</td>
-                <td><a href="https://mybinaara.com/activate" target="_blank" class="text-success text-decoration-none">https://mybinaara.com/activate</a></td>
-              </tr>
-              <tr>
-                <td class="text-muted pe-3 py-2">QUEUE STATUS:</td>
-                <td><span class="badge bg-success text-white fw-bold">ACTIVE & READY</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <h4 class="fw-bold text-success">Store Account Created!</h4>
+        <p class="text-muted mb-4">
+          <strong>{{ step1().name }}</strong> has been added to the directory.
+          @if (createdOwnerEmail(); as email) {
+            An activation email has been sent to <strong>{{ email }}</strong>.
+          }
+        </p>
 
         <div class="d-flex justify-content-center gap-2">
-          <button class="btn btn-outline-success px-4 py-2 d-flex align-items-center gap-2" [disabled]="isNotified()" (click)="notifyMerchant.emit()">
-            <i class="bi" [class]="isNotified() ? 'bi-envelope-check' : 'bi-send'"></i>
-            <span>{{ isNotified() ? 'Merchant Notified' : 'Notify Merchant' }}</span>
-          </button>
-          <button class="btn btn-success px-4 py-2 d-flex align-items-center gap-2" (click)="resetAndExit.emit()">
+          <button class="btn btn-success px-4 py-2 d-flex align-items-center gap-2" (click)="goToStoreList.emit()">
             <span>Back to Merchant Directory</span>
           </button>
         </div>
       </div>
     }
-  </div>
-
-  <!-- Side Helper Panel (Step 5) -->
-  <div class="col-lg-4">
-    <div class="card bg-light border-0 p-3 h-100">
-      <h6 class="fw-bold text-dark mb-3"><i class="bi bi-info-circle text-success me-2"></i>Finalizing Onboarding</h6>
-      <p class="fs-8 text-muted">Upon submission:</p>
-      <ul class="fs-8 text-muted ps-3">
-        <li>Store status will be set to <strong>pending</strong></li>
-        <li>Merchant receives registration emails</li>
-        <li>Legal documents are marked as <strong>approved</strong></li>
-      </ul>
-    </div>
   </div>
 </div>

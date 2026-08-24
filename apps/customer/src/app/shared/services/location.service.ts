@@ -1,5 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { Geolocation } from '@capacitor/geolocation';
+import { PermissionState } from '@capacitor/core';
 
 export interface Coords {
   lat: number;
@@ -12,6 +13,10 @@ export class LocationService {
   readonly locationLabel = signal<string>('Locating...');
   readonly loading = signal<boolean>(true);
   readonly permissionDenied = signal<boolean>(false);
+  /** Precise OS permission state — lets the UI tell "ask again" apart from
+   *  "user must enable this in Settings" (checkPermissions() still reports
+   *  'denied' once the OS stops showing the native prompt). */
+  readonly permissionState = signal<PermissionState | null>(null);
 
   private initializing = false;
 
@@ -37,6 +42,7 @@ export class LocationService {
       const lng = pos.coords.longitude;
       console.log('Got location:', lat, lng);
       this.coords.set({ lat, lng });
+      this.permissionState.set('granted');
       await this.reverseGeocode(lat, lng);
       this.loading.set(false);
       this.initializing = false;
@@ -50,6 +56,16 @@ export class LocationService {
       } else {
         this.locationLabel.set('Location unavailable');
       }
+      await this.refreshPermissionState();
+    }
+  }
+
+  private async refreshPermissionState(): Promise<void> {
+    try {
+      const status = await Geolocation.checkPermissions();
+      this.permissionState.set(status.location);
+    } catch {
+      // Web platform may not support this — leave permissionState as-is
     }
   }
 
@@ -79,7 +95,7 @@ export class LocationService {
       );
     } catch {
       clearTimeout(timeoutId);
-      this.locationLabel.set('Nearest location'); 
+      this.locationLabel.set('Nearest location');
     }
   }
 

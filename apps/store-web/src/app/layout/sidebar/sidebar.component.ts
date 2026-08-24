@@ -68,13 +68,4 @@ export class SidebarComponent {
     this.store.dispatch(new Logout());
     this.router.navigate(['/login']);
   }
-
-  getInitials(name?: string): string {
-    if (!name) return 'ST';
-    const parts = name.split(' ');
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
-    }
-    return name.slice(0, 2).toUpperCase();
-  }
 }

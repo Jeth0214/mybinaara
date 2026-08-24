@@ -1,73 +1,68 @@
-export type StoreStatus = 'active' | 'suspended' | 'pending';
+export type StoreStatus = 'pending' | 'active' | 'suspended' | 'rejected';
 
-export type DocumentType = 'cr' | 'vat';
-export type DocumentStatus = 'pending' | 'approved' | 'rejected';
+export type ScheduleDay = 'sat' | 'sun' | 'mon' | 'tue' | 'wed' | 'thu' | 'fri';
 
-export interface StoreDocument {
-  type: DocumentType;
-  status: DocumentStatus;
-  uploadedAt: string;
-  rejectionReason?: string;
+export const SCHEDULE_DAYS: ScheduleDay[] = ['sat', 'sun', 'mon', 'tue', 'wed', 'thu', 'fri'];
+
+export interface StoreScheduleDay {
+  day: ScheduleDay;
+  is_off: boolean;
+  open_time: string | null;
+  close_time: string | null;
 }
 
+/** Mirrors StoreResource's `location` object exactly. */
 export interface StoreLocation {
-  fullAddress: string;
-  buildingNumber?: string;
-  streetName?: string;
-  district?: string;
-  city?: string;
-  postalCode?: string;
-  additionalNumber?: string;
-  country?: string;
-  latitude?: number;
-  longitude?: number;
-  plusCode?: string;
+  latitude: number | null;
+  longitude: number | null;
+  city: string | null;
+  formatted_address: string | null;
 }
 
-export interface Store {
-  id: string;
+export interface StoreOwner {
+  id: number;
   name: string;
-  crNumber: string; // 10 digits
-  vatNumber: string; // 15 digits
-  ownerName: string;
-  ownerEmail: string;
-  ownerPhone: string; // Starts with +966 or 05
-  ownerWhatsapp: string; // Starts with +966 or 05
-  location: StoreLocation;
+  email: string;
+  phone: string;
+  whatsapp: string | null;
+}
+
+export interface StoreCreator {
+  id: number;
+  name: string;
+  email: string;
+}
+
+/** Mirrors StoreResource exactly — no client-side field mapping. */
+export interface Store {
+  id: number;
+  name: string;
+  cr_number: string;
+  vat_number: string;
   status: StoreStatus;
-  isActivated: boolean;
-  activationLink?: string;
-  tempPassword?: string;
-  storeLogo?: string; // URL or Base64 of store image logo
-  createdAt: string;
-  documents: StoreDocument[];
-  rejectionReason?: string;
-  totalProducts: number;
-  schedule?: StoreDaySchedule[];
+  is_activated: boolean;
+  logo_url: string | null;
+  rejection_reason: string | null;
+  suspension_reason: string | null;
+  products_count: number;
+  location: StoreLocation | null;
+  schedule: StoreScheduleDay[];
+  owner: StoreOwner | null;
+  creator: StoreCreator | null;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
-export interface StoreDaySchedule {
-  day: 'sat' | 'sun' | 'mon' | 'tue' | 'wed' | 'thu' | 'fri';
-  openTime: string;
-  closeTime: string;
-  isOff: boolean;
+export interface PaginationMeta {
+  current_page: number;
+  from: number | null;
+  last_page: number;
+  per_page: number;
+  to: number | null;
+  total: number;
 }
 
-
-export interface CityOption {
-  value: string;
-  label: string;
+export interface PaginatedStores {
+  data: Store[];
+  meta: PaginationMeta;
 }
-
-export const SAUDI_CITIES: CityOption[] = [
-  { value: 'Riyadh', label: 'Riyadh (الرياض)' },
-  { value: 'Jeddah', label: 'Jeddah (جدة)' },
-  { value: 'Dammam', label: 'Dammam (الدمام)' },
-  { value: 'Mecca', label: 'Mecca (مكة المكرمة)' },
-  { value: 'Medina', label: 'Medina (المدينة المنورة)' },
-  { value: 'Khobar', label: 'Khobar (الخبر)' },
-  { value: 'Jubail', label: 'Jubail (الجبيل)' },
-  { value: 'Tabuk', label: 'Tabuk (تبوك)' },
-  { value: 'Abha', label: 'Abha (أبها)' },
-  { value: 'Buraidah', label: 'Buraidah (بريدة)' }
-];

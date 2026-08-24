@@ -10,21 +10,25 @@
     @for (store of displayStores(); track store.id) {
       <div class="store-card">
         <div class="store-icon-wrapper">
-          <ion-icon name="storefront-outline" class="store-icon"></ion-icon>
+          @if (store.logo_url) {
+            <img [src]="store.logo_url" [alt]="store.name" class="store-logo" />
+          } @else {
+            <ion-icon name="storefront-outline" class="store-icon"></ion-icon>
+          }
         </div>
 
         <div class="store-info">
           <p class="store-name ion-no-margin">{{ store.name }}</p>
-          <span class="store-location"
-            >{{ store.district }}, {{ store.city }}</span
-          >
-          <div class="store-distance">
-            <ion-icon
-              name="location-outline"
-              class="distance-icon"
-            ></ion-icon>
-            <span>{{ store.distanceKm }} km</span>
-          </div>
+          <span class="store-location">{{ store.displayAddress }}</span>
+          @if (store.distanceKm !== null) {
+            <div class="store-distance">
+              <ion-icon
+                name="location-outline"
+                class="distance-icon"
+              ></ion-icon>
+              <span>{{ store.distanceKm }} km</span>
+            </div>
+          }
         </div>
 
         <button class="view-store-btn" (click)="navigateToStore(store.id)">

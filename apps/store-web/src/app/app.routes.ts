@@ -17,6 +17,20 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'forgot-password',
+    loadComponent: () =>
+      import('./features/auth/forgot-password/forgot-password.component').then(
+        (m) => m.ForgotPasswordComponent
+      ),
+  },
+  {
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./features/auth/reset-password/reset-password.component').then(
+        (m) => m.ResetPasswordComponent
+      ),
+  },
+  {
     path: '',
     canActivate: [authGuard],
     loadComponent: () =>
@@ -57,14 +71,6 @@ export const routes: Routes = [
                 './features/products/add-product/add-product.component'
               ).then((m) => m.AddProductComponent),
             data: { title: 'Edit Product', icon: 'bi-pencil' },
-          },
-          {
-            path: 'bulk-import',
-            loadComponent: () =>
-              import(
-                './features/products/bulk-import/bulk-import.component'
-              ).then((m) => m.BulkImportComponent),
-            data: { title: 'Bulk Import', icon: 'bi-upload' },
           },
         ],
       },

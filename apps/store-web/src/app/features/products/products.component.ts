@@ -1,173 +1,181 @@
 import { ChangeDetectionStrategy, Component, inject, signal, computed } from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgbModal, NgbModalModule, NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { EMPTY, Subject, merge } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, skip, switchMap } from 'rxjs/operators';
 import { ProductService } from '../../core/services/product.service';
+import { CategoryService } from '../../core/services/category.service';
 import { ToastService } from '../../core/services/toast.service';
-import { Product, PRODUCT_CATEGORIES } from '../../core/models/product.model';
+import { Product, ProductStatus, PaginationMeta, MAX_PRODUCTS_PER_STORE } from '../../core/models/product.model';
+import { Category } from '../../core/models/category.model';
 import { ProductDetailsModalComponent } from './components/product-details-modal/product-details-modal.component';
 import { QuickStockModalComponent } from './components/quick-stock-modal/quick-stock-modal.component';
 import { DeleteConfirmModalComponent } from './components/delete-confirm-modal/delete-confirm-modal.component';
 import { StatusConfirmModalComponent } from './components/status-confirm-modal/status-confirm-modal.component';
+import { ProductStatusBadgeComponent } from './components/product-status-badge/product-status-badge.component';
 
 @Component({
   selector: 'app-products',
   standalone: true,
-  imports: [CommonModule, RouterLink, ReactiveFormsModule, NgbModalModule, NgbDropdownModule],
+  imports: [CommonModule, FormsModule, RouterLink, NgbModalModule, NgbDropdownModule, MatPaginatorModule, ProductStatusBadgeComponent],
   templateUrl: './products.component.html',
   styleUrl: './products.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductsComponent {
-  readonly productService = inject(ProductService);
-  private fb = inject(FormBuilder);
-  private modalService = inject(NgbModal);
-  private toastService = inject(ToastService);
+  private readonly productService = inject(ProductService);
+  private readonly categoryService = inject(CategoryService);
+  private readonly modalService = inject(NgbModal);
+  private readonly toast = inject(ToastService);
 
-  readonly categories = PRODUCT_CATEGORIES;
+  readonly maxProducts = MAX_PRODUCTS_PER_STORE;
 
-  // Filter signals
-  readonly searchText = signal<string>('');
-  readonly selectedCategory = signal<string>('All');
-  readonly selectedStockStatus = signal<string>('All');
+  readonly searchQuery = signal('');
+  readonly categoryFilter = signal<'all' | number>('all');
+  readonly statusFilter = signal<'all' | ProductStatus>('all');
 
+  readonly categories = signal<Category[]>([]);
 
-  // Computed dynamic stats from ProductService
-  readonly isLimitReached = this.productService.isLimitReached;
-  readonly productsCount = this.productService.productsCount;
-  readonly productsLimit = this.productService.productsLimit;
-  readonly progressPercent = this.productService.progressPercent;
-  readonly slotsRemaining = this.productService.slotsRemaining;
-  readonly inStockCount = this.productService.inStockCount;
-  readonly lowStockCount = this.productService.lowStockCount;
-  readonly outOfStockCount = this.productService.outOfStockCount;
+  readonly products = signal<Product[]>([]);
+  readonly meta = signal<PaginationMeta | null>(null);
+  readonly loading = signal(false);
+  readonly loadError = signal<string | null>(null);
 
-  // Live filter computation using signals
-  readonly filteredProducts = computed(() => {
-    const query = this.searchText().toLowerCase().trim();
-    const cat = this.selectedCategory();
-    const stock = this.selectedStockStatus();
+  readonly mutating = signal(false);
+  readonly busy = computed(() => this.loading() || this.mutating());
 
-    return this.productService.products().filter((p) => {
-      const matchesSearch =
-        !query ||
-        p.name.toLowerCase().includes(query) ||
-        p.sku.toLowerCase().includes(query);
+  readonly hasActiveFilters = computed(
+    () => this.searchQuery().trim() !== '' || this.categoryFilter() !== 'all' || this.statusFilter() !== 'all'
+  );
 
-      const matchesCategory = cat === 'All' || p.category === cat;
+  /** Total product count for the store, independent of any active filters —
+   *  used for the product-limit banner. Refreshed on every unfiltered load. */
+  readonly storeProductTotal = signal<number | null>(null);
+  readonly isLimitReached = computed(() => (this.storeProductTotal() ?? 0) >= this.maxProducts);
+  readonly slotsRemaining = computed(() => Math.max(0, this.maxProducts - (this.storeProductTotal() ?? 0)));
 
-      let matchesStock = true;
-      if (stock === 'InStock') {
-        matchesStock = p.stock > 10;
-      } else if (stock === 'LowStock') {
-        matchesStock = p.stock > 0 && p.stock <= 10;
-      } else if (stock === 'OutOfStock') {
-        matchesStock = p.stock === 0;
-      }
+  /** Stats reflect only the current page of results, not the whole catalog —
+   *  there is no dedicated stats endpoint on the backend. */
+  readonly inStockCount = computed(() => this.products().filter((p) => p.stock_quantity > 10).length);
+  readonly lowStockCount = computed(() => this.products().filter((p) => p.stock_quantity > 0 && p.stock_quantity <= 10).length);
+  readonly outOfStockCount = computed(() => this.products().filter((p) => p.stock_quantity === 0).length);
 
-      return matchesSearch && matchesCategory && matchesStock;
+  private readonly reload$ = new Subject<number>();
+
+  constructor() {
+    this.reload$
+      .pipe(
+        switchMap((page) => {
+          this.loading.set(true);
+          this.loadError.set(null);
+
+          const categoryFilter = this.categoryFilter();
+
+          return this.productService
+            .listProducts({
+              search: this.searchQuery().trim(),
+              page,
+              status: this.statusFilter(),
+              category_id: categoryFilter === 'all' ? undefined : categoryFilter,
+            })
+            .pipe(
+              catchError((err) => {
+                this.loading.set(false);
+                this.loadError.set(err?.message ?? 'Failed to load products.');
+                return EMPTY;
+              })
+            );
+        }),
+        takeUntilDestroyed()
+      )
+      .subscribe((response) => {
+        this.loading.set(false);
+        this.products.set(response.data);
+        this.meta.set(response.meta);
+        if (!this.hasActiveFilters()) {
+          this.storeProductTotal.set(response.meta.total);
+        }
+      });
+
+    merge(
+      toObservable(this.searchQuery).pipe(skip(1), debounceTime(300), distinctUntilChanged()),
+      toObservable(this.categoryFilter).pipe(skip(1), distinctUntilChanged()),
+      toObservable(this.statusFilter).pipe(skip(1), distinctUntilChanged())
+    )
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => this.loadProducts(1));
+
+    this.loadProducts(1);
+    this.loadCategories();
+  }
+
+  private loadCategories(): void {
+    this.categoryService.listCategories({ is_active: true }).subscribe({
+      next: (response) => this.categories.set(response.data),
+      error: () => {
+        // Filter dropdown options are non-critical; leave them empty on failure.
+      },
     });
-  });
-
-  onSearchChange(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
-    this.searchText.set(value);
   }
 
-  onCategoryChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
-    this.selectedCategory.set(value);
+  loadProducts(page: number): void {
+    this.reload$.next(page);
   }
 
-  onStockStatusChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
-    this.selectedStockStatus.set(value);
+  handlePageEvent(event: PageEvent): void {
+    this.loadProducts(event.pageIndex + 1);
   }
 
   resetFilters(): void {
-    this.searchText.set('');
-    this.selectedCategory.set('All');
-    this.selectedStockStatus.set('All');
+    this.searchQuery.set('');
+    this.categoryFilter.set('all');
+    this.statusFilter.set('all');
   }
 
-  getCategoryIcon(categoryName: string): string {
-    const cat = this.categories.find((c) => c.name === categoryName);
-    return cat ? cat.iconPath : 'images/category-icons/miscellaneous.svg';
-  }
-
-  getCategoryClass(categoryName: string): string {
-    switch (categoryName) {
-      case 'Cement & Blocks':
-        return 'cat-cement';
-      case 'Steel & Metal':
-        return 'cat-steel';
-      case 'Electrical':
-        return 'cat-electrical';
-      case 'Plumbing':
-        return 'cat-plumbing';
-      default:
-        return '';
-    }
-  }
-
-  getProductSubtext(product: Product): string {
-    let brand = 'Local Brand';
-    const nameLower = product.name.toLowerCase();
-    if (nameLower.includes('al-saqr') || nameLower.includes('cement')) {
-      brand = 'Al-Saqr Brand';
-    } else if (nameLower.includes('swiftbuild') || nameLower.includes('screwdriver') || nameLower.includes('tool')) {
-      brand = 'SwiftBuild';
-    } else if (nameLower.includes('al-amal')) {
-      brand = 'Al-Amal Brand';
-    } else if (nameLower.includes('yamama')) {
-      brand = 'Yamama Brand';
-    }
-    
-    let category = product.category;
-    if (category === 'Cement & Blocks') {
-      category = 'Cement';
-    } else if (category === 'Tools & Hardware') {
-      category = 'Power tools';
-    }
-    
-    return `${category} · ${brand}`;
-  }
-
-  getProductUnit(product: Product): string {
-    const name = product.name.toLowerCase();
-    const cat = product.category.toLowerCase();
-    if (name.includes('bag') || cat.includes('cement')) {
-      return 'bag';
-    }
-    if (name.includes('rebar') || cat.includes('steel') || cat.includes('metal')) {
-      return 'ton';
-    }
-    return 'unit';
-  }
-
-  // --- Status Toggle Confirmation Modal ---
+  /** Store users may only toggle between active/inactive, and never on a
+   *  suspended product (the backend has no valid transition for them there). */
   onStatusToggle(product: Product, event: Event): void {
     event.preventDefault();
+    if (product.status === 'suspended') return;
+
     const modalRef = this.modalService.open(StatusConfirmModalComponent, { centered: true });
     modalRef.componentInstance.product = product;
+    modalRef.result.then(
+      (updated) => {
+        if (updated) this.loadProducts(this.meta()?.current_page ?? 1);
+      },
+      () => {}
+    );
   }
 
-  // --- View Details Modal ---
   openViewDetailsModal(product: Product): void {
     const modalRef = this.modalService.open(ProductDetailsModalComponent, { centered: true, size: 'md' });
     modalRef.componentInstance.product = product;
   }
 
-  // --- Quick Stock Update Modal ---
   openQuickStockModal(product: Product): void {
     const modalRef = this.modalService.open(QuickStockModalComponent, { centered: true });
     modalRef.componentInstance.product = product;
+    modalRef.result.then(
+      (updated) => {
+        if (updated) this.loadProducts(this.meta()?.current_page ?? 1);
+      },
+      () => {}
+    );
   }
 
-  // --- Delete Modal ---
   openDeleteConfirmModal(product: Product): void {
     const modalRef = this.modalService.open(DeleteConfirmModalComponent, { centered: true });
     modalRef.componentInstance.product = product;
+    modalRef.result.then(
+      (deleted) => {
+        if (deleted) this.loadProducts(this.meta()?.current_page ?? 1);
+      },
+      () => {}
+    );
   }
 }

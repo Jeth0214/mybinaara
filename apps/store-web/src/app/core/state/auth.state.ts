@@ -1,14 +1,14 @@
 import { Injectable } from '@angular/core';
 import { State, Action, StateContext, Selector, NgxsOnInit } from '@ngxs/store';
 import { tap, catchError } from 'rxjs/operators';
-import { throwError } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { StoreService } from '../services/store.service';
 import { AuthStateModel, StoreUser } from '../models/auth.model';
 import * as AuthActions from './auth.actions';
 
 const defaultState: AuthStateModel = {
   user: null,
-  tempSession: null,
   loading: false,
   error: null,
 };
@@ -19,23 +19,25 @@ const defaultState: AuthStateModel = {
 })
 @Injectable()
 export class AuthState implements NgxsOnInit {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private storeService: StoreService
+  ) {}
 
   ngxsOnInit(ctx: StateContext<AuthStateModel>) {
     const user = this.authService.getCurrentUser();
     if (user) {
       ctx.patchState({ user });
+      // Stale-while-revalidate: show the cached session immediately, then
+      // quietly refresh from the API in case the store changed elsewhere
+      // (e.g. an admin edited it) since this session was last saved.
+      ctx.dispatch(new AuthActions.RefreshStore());
     }
   }
 
   @Selector()
   static user(state: AuthStateModel): StoreUser | null {
     return state.user;
-  }
-
-  @Selector()
-  static tempSession(state: AuthStateModel) {
-    return state.tempSession;
   }
 
   @Selector()
@@ -61,7 +63,7 @@ export class AuthState implements NgxsOnInit {
   @Action(AuthActions.Login)
   login(ctx: StateContext<AuthStateModel>, action: AuthActions.Login) {
     ctx.patchState({ loading: true, error: null });
-    return this.authService.login(action.email, action.pass).pipe(
+    return this.authService.login(action.email, action.pass, action.remember).pipe(
       tap((user) => {
         ctx.patchState({ user, loading: false });
       }),
@@ -72,50 +74,12 @@ export class AuthState implements NgxsOnInit {
     );
   }
 
-  @Action(AuthActions.VerifyTemporaryCredentials)
-  verifyTemporaryCredentials(
-    ctx: StateContext<AuthStateModel>,
-    action: AuthActions.VerifyTemporaryCredentials
-  ) {
+  @Action(AuthActions.VerifyActivationCredentials)
+  verifyActivationCredentials(ctx: StateContext<AuthStateModel>, action: AuthActions.VerifyActivationCredentials) {
     ctx.patchState({ loading: true, error: null });
-    return this.authService.verifyTemporaryCredentials(action.email, action.tempPass).pipe(
-      tap((res) => {
-        ctx.patchState({
-          tempSession: {
-            email: res.email,
-            tempPasswordVerified: true,
-            newPasswordEntered: false,
-          },
-          loading: false,
-        });
-      }),
-      catchError((err) => {
-        ctx.patchState({ error: err.message, loading: false });
-        return throwError(() => err);
-      })
-    );
-  }
-
-  @Action(AuthActions.UpdateActivationPassword)
-  updateActivationPassword(
-    ctx: StateContext<AuthStateModel>,
-    action: AuthActions.UpdateActivationPassword
-  ) {
-    ctx.patchState({ loading: true, error: null });
-    return this.authService.updatePassword(action.email, action.newPass).pipe(
+    return this.authService.verifyActivationCredentials(action.token, action.email, action.currentPassword).pipe(
       tap(() => {
-        const state = ctx.getState();
-        if (state.tempSession) {
-          ctx.patchState({
-            tempSession: {
-              ...state.tempSession,
-              newPasswordEntered: true,
-            },
-            loading: false,
-          });
-        } else {
-          ctx.patchState({ loading: false });
-        }
+        ctx.patchState({ loading: false });
       }),
       catchError((err) => {
         ctx.patchState({ error: err.message, loading: false });
@@ -124,24 +88,55 @@ export class AuthState implements NgxsOnInit {
     );
   }
 
-  @Action(AuthActions.VerifyActivationOtp)
-  verifyActivationOtp(
-    ctx: StateContext<AuthStateModel>,
-    action: AuthActions.VerifyActivationOtp
-  ) {
+  @Action(AuthActions.ForgotPassword)
+  forgotPassword(ctx: StateContext<AuthStateModel>, action: AuthActions.ForgotPassword) {
     ctx.patchState({ loading: true, error: null });
-    return this.authService.verifyOtp(action.email, action.otpCode).pipe(
-      tap((user) => {
-        ctx.patchState({
-          user,
-          tempSession: null,
-          loading: false,
-        });
+    return this.authService.forgotPassword(action.email).pipe(
+      tap(() => {
+        ctx.patchState({ loading: false });
       }),
       catchError((err) => {
         ctx.patchState({ error: err.message, loading: false });
         return throwError(() => err);
       })
+    );
+  }
+
+  @Action(AuthActions.ResetPassword)
+  resetPassword(ctx: StateContext<AuthStateModel>, action: AuthActions.ResetPassword) {
+    ctx.patchState({ loading: true, error: null });
+    return this.authService.resetPassword(action.token, action.email, action.password).pipe(
+      tap(() => {
+        ctx.patchState({ loading: false });
+      }),
+      catchError((err) => {
+        ctx.patchState({ error: err.message, loading: false });
+        return throwError(() => err);
+      })
+    );
+  }
+
+  @Action(AuthActions.ActivateStore)
+  activateStore(ctx: StateContext<AuthStateModel>, action: AuthActions.ActivateStore) {
+    ctx.patchState({ loading: true, error: null });
+    return this.authService.activateStore(action.token, action.email, action.currentPassword, action.newPassword).pipe(
+      tap((user) => {
+        ctx.patchState({ user, loading: false });
+      }),
+      catchError((err) => {
+        ctx.patchState({ error: err.message, loading: false });
+        return throwError(() => err);
+      })
+    );
+  }
+
+  @Action(AuthActions.RefreshStore)
+  refreshStore(ctx: StateContext<AuthStateModel>) {
+    return this.authService.refreshStore().pipe(
+      tap((user) => {
+        ctx.patchState({ user });
+      }),
+      catchError(() => of(void 0)) // best-effort background refresh; keep the cached session on failure
     );
   }
 
@@ -152,7 +147,61 @@ export class AuthState implements NgxsOnInit {
       return throwError(() => new Error('Not authenticated'));
     }
     ctx.patchState({ loading: true, error: null });
-    return this.authService.updateProfile(state.user.id, action.payload).pipe(
+    return this.storeService.updateSchedule(state.user.storeId, action.payload.workingHours).pipe(
+      tap((user) => {
+        ctx.patchState({ user, loading: false });
+      }),
+      catchError((err) => {
+        ctx.patchState({ error: err.message, loading: false });
+        return throwError(() => err);
+      })
+    );
+  }
+
+  @Action(AuthActions.UpdateStoreLocation)
+  updateStoreLocation(ctx: StateContext<AuthStateModel>, action: AuthActions.UpdateStoreLocation) {
+    const state = ctx.getState();
+    if (!state.user) {
+      return throwError(() => new Error('Not authenticated'));
+    }
+    ctx.patchState({ loading: true, error: null });
+    return this.storeService.updateLocation(state.user.storeId, action.payload).pipe(
+      tap((user) => {
+        ctx.patchState({ user, loading: false });
+      }),
+      catchError((err) => {
+        ctx.patchState({ error: err.message, loading: false });
+        return throwError(() => err);
+      })
+    );
+  }
+
+  @Action(AuthActions.UpdateLogo)
+  updateLogo(ctx: StateContext<AuthStateModel>, action: AuthActions.UpdateLogo) {
+    const state = ctx.getState();
+    if (!state.user) {
+      return throwError(() => new Error('Not authenticated'));
+    }
+    ctx.patchState({ loading: true, error: null });
+    return this.storeService.updateLogo(state.user.storeId, action.payload).pipe(
+      tap((user) => {
+        ctx.patchState({ user, loading: false });
+      }),
+      catchError((err) => {
+        ctx.patchState({ error: err.message, loading: false });
+        return throwError(() => err);
+      })
+    );
+  }
+
+  @Action(AuthActions.RemoveLogo)
+  removeLogo(ctx: StateContext<AuthStateModel>) {
+    const state = ctx.getState();
+    if (!state.user) {
+      return throwError(() => new Error('Not authenticated'));
+    }
+    ctx.patchState({ loading: true, error: null });
+    return this.storeService.removeLogo(state.user.storeId).pipe(
       tap((user) => {
         ctx.patchState({ user, loading: false });
       }),
@@ -183,7 +232,7 @@ export class AuthState implements NgxsOnInit {
 
   @Action(AuthActions.Logout)
   logout(ctx: StateContext<AuthStateModel>) {
-    this.authService.logout();
     ctx.setState(defaultState);
+    return this.authService.logout().pipe(catchError(() => of(void 0)));
   }
 }

@@ -1,0 +1,117 @@
+<div
+  class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3"
+>
+  <p class="text-muted fs-8 mb-2 mb-md-0">
+    Drag the pin or click the map to pinpoint the store location
+  </p>
+  <button
+    type="button"
+    class="btn btn-outline-secondary btn-sm"
+    [disabled]="locating()"
+    (click)="locateUser()"
+  >
+    @if (locating()) {
+      <span
+        class="spinner-border spinner-border-sm me-1"
+        role="status"
+        aria-hidden="true"
+      ></span>
+    } @else {
+      <i class="bi bi-crosshair me-1" aria-hidden="true"></i>
+    }
+    Use my current location
+  </button>
+</div>
+
+@if (locationNotice()) {
+  <div class="alert alert-warning py-2 px-3 mb-3" role="alert">
+    {{ locationNotice() }}
+  </div>
+}
+
+<div class="location-map-container mb-3">
+  <div
+    class="location-map-style-toggle btn-group btn-group-sm"
+    role="group"
+    aria-label="Map view"
+  >
+    <button
+      type="button"
+      class="btn"
+      [class.btn-primary]="mapViewMode() === 'street'"
+      [class.btn-light]="mapViewMode() !== 'street'"
+      (click)="setMapViewMode('street')"
+    >
+      Street
+    </button>
+    <button
+      type="button"
+      class="btn"
+      [class.btn-primary]="mapViewMode() === 'satellite'"
+      [class.btn-light]="mapViewMode() !== 'satellite'"
+      (click)="setMapViewMode('satellite')"
+    >
+      Satellite
+    </button>
+  </div>
+  <mgl-map
+    [accessToken]="mapboxToken"
+    [style]="mapStyle()"
+    [zoom]="mapZoom"
+    [center]="mapCenter()"
+    movingMethod="flyTo"
+    (mapClick)="onMapClick($event)"
+  >
+    <mgl-marker
+      [lngLat]="markerLngLat()"
+      [draggable]="true"
+      (markerDragEnd)="onMarkerDragEnd($event)"
+    >
+      <i class="bi bi-geo-alt-fill location-map-pin" aria-hidden="true"></i>
+    </mgl-marker>
+  </mgl-map>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-6 mb-4">
+    <label class="form-label fw-medium text-dark fs-8.5">Latitude</label>
+    <input
+      type="text"
+      class="form-control shadow-2xs"
+      [value]="markerPosition().lat.toFixed(6)"
+      readonly
+    />
+  </div>
+  <div class="col-md-6 mb-4">
+    <label class="form-label fw-medium text-dark fs-8.5">Longitude</label>
+    <input
+      type="text"
+      class="form-control shadow-2xs"
+      [value]="markerPosition().lng.toFixed(6)"
+      readonly
+    />
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-6 mb-4">
+    <label class="form-label fw-medium text-dark fs-8.5">City</label>
+    <input
+      type="text"
+      class="form-control shadow-2xs"
+      [value]="city() || (geocoding() ? 'Detecting…' : 'Unknown')"
+      readonly
+    />
+  </div>
+  <div class="col-md-6 mb-4">
+    <label class="form-label fw-medium text-dark fs-8.5"
+      >Formatted address</label
+    >
+    <input
+      type="text"
+      class="form-control shadow-2xs"
+      [value]="formattedAddress() || (geocoding() ? 'Detecting…' : 'Unknown')"
+      readonly
+    />
+  </div>
+</div>

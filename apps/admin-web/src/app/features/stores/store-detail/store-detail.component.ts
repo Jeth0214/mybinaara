@@ -1,19 +1,16 @@
 import { ChangeDetectionStrategy, Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { StoreService } from '../../../core/services/store.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { Store, StoreStatus, DocumentType, DocumentStatus } from '../../../core/models/store.model';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { Store, StoreStatus } from '../../../core/models/store.model';
 import { StoreConfirmModalComponent } from '../components/store-confirm-modal/store-confirm-modal.component';
 
 import { StoreDetailProfileComponent } from './components/store-detail-profile/store-detail-profile.component';
-import { StoreDetailDocumentsComponent } from './components/store-detail-documents/store-detail-documents.component';
 import { StoreDetailStatusComponent } from './components/store-detail-status/store-detail-status.component';
-import { StoreDetailCredentialsComponent } from './components/store-detail-credentials/store-detail-credentials.component';
-import { StoreDetailProductsComponent } from './components/store-detail-products/store-detail-products.component';
 import { StoreDetailScheduleComponent } from './components/store-detail-schedule/store-detail-schedule.component';
 
 @Component({
@@ -24,10 +21,7 @@ import { StoreDetailScheduleComponent } from './components/store-detail-schedule
     RouterLink,
     FormsModule,
     StoreDetailProfileComponent,
-    StoreDetailDocumentsComponent,
     StoreDetailStatusComponent,
-    StoreDetailCredentialsComponent,
-    StoreDetailProductsComponent,
     StoreDetailScheduleComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,71 +30,50 @@ import { StoreDetailScheduleComponent } from './components/store-detail-schedule
 })
 export class StoreDetailComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly storeService = inject(StoreService);
   private readonly toast = inject(ToastService);
   private readonly modalService = inject(NgbModal);
   private sub = new Subscription();
 
-  // Route State Signal
-  readonly storeId = signal<string | null>(null);
-
-  // Loading Indicator Signal
+  readonly storeId = signal<number | null>(null);
+  readonly store = signal<Store | null>(null);
   readonly loading = signal(false);
+  readonly loadError = signal<string | null>(null);
+  readonly notFound = signal(false);
+  readonly mutating = signal(false);
+  readonly busy = computed(() => this.loading() || this.mutating());
 
-  // Selected Tab Signal
-  readonly activeTab = signal<'profile' | 'docs'>('profile');
+  // Status-change modal state
+  readonly showStatusModal = signal(false);
+  readonly targetStatus = signal<StoreStatus | null>(null);
+  readonly statusReason = signal('');
 
-  // Modal State Signals
-  readonly showSuspendModal = signal(false);
-  readonly selectedSuspensionOption = signal('');
-  readonly suspensionReason = signal('');
-  readonly showRejectDocModal = signal(false);
-  readonly rejectDocType = signal<DocumentType | null>(null);
-  readonly rejectionReason = signal('');
-
-  // Selected Document for preview
-  readonly selectedDocType = signal<DocumentType>('cr');
-
-  // Computed Store Record
-  readonly store = computed(() => {
-    const id = this.storeId();
-    return id ? this.storeService.stores().find(s => s.id === id) : null;
-  });
-
-  // Selected Document Data
-  readonly currentDocument = computed(() => {
-    const s = this.store();
-    const type = this.selectedDocType();
-    return s?.documents.find(d => d.type === type) || null;
-  });
-
-  // Computed Today's Schedule for the header badge
   readonly todaySchedule = computed(() => {
     const s = this.store();
-    if (!s || !s.schedule) {
+    if (!s || !s.schedule?.length) {
       return { isOpen: false, text: 'Closed (Schedule not configured)' };
     }
 
     const daysMap: Array<'sun' | 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat'> = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
-    const currentDayIndex = new Date().getDay();
-    const dayKey = daysMap[currentDayIndex];
-    const daySched = s.schedule.find(item => item.day === dayKey);
+    const dayKey = daysMap[new Date().getDay()];
+    const daySched = s.schedule.find((item) => item.day === dayKey);
 
-    if (!daySched || daySched.isOff) {
+    if (!daySched || daySched.is_off) {
       return { isOpen: false, text: 'Closed Today' };
     }
 
-    return {
-      isOpen: true,
-      text: `Open Today: ${daySched.openTime} - ${daySched.closeTime}`
-    };
+    return { isOpen: true, text: `Open Today: ${daySched.open_time} - ${daySched.close_time}` };
   });
-
 
   ngOnInit(): void {
     this.sub.add(
-      this.route.params.subscribe(params => {
-        this.storeId.set(params['id'] || null);
+      this.route.params.subscribe((params) => {
+        const id = Number(params['id']);
+        if (id) {
+          this.storeId.set(id);
+          this.fetchStore(id);
+        }
       })
     );
   }
@@ -109,150 +82,101 @@ export class StoreDetailComponent implements OnInit, OnDestroy {
     this.sub.unsubscribe();
   }
 
-  changeTab(tab: 'profile' | 'docs'): void {
-    this.activeTab.set(tab);
+  fetchStore(id: number): void {
+    this.loading.set(true);
+    this.loadError.set(null);
+    this.notFound.set(false);
+
+    this.storeService.getStore(id).subscribe({
+      next: (store) => {
+        this.loading.set(false);
+        this.store.set(store);
+      },
+      error: (err) => {
+        this.loading.set(false);
+        const message: string = err?.message ?? '';
+        if (message.toLowerCase().includes('no query results')) {
+          this.notFound.set(true);
+        } else {
+          this.loadError.set(message || 'Failed to load this store.');
+        }
+      }
+    });
   }
 
-  selectDoc(type: DocumentType): void {
-    this.selectedDocType.set(type);
+  openStatusModal(status: StoreStatus): void {
+    this.targetStatus.set(status);
+    this.statusReason.set('');
+    this.showStatusModal.set(true);
   }
 
-  approveDocument(type: DocumentType): void {
+  closeStatusModal(): void {
+    this.showStatusModal.set(false);
+    this.targetStatus.set(null);
+  }
+
+  submitStatusChange(): void {
+    const s = this.store();
+    const status = this.targetStatus();
+    if (!s || !status) return;
+
+    if (status === 'rejected' && !this.statusReason().trim()) {
+      this.toast.error('Please provide a reason for rejecting this store.');
+      return;
+    }
+
+    if (status === 'suspended' && !this.statusReason().trim()) {
+      this.toast.error('Please provide a reason for suspending this store.');
+      return;
+    }
+
+    this.mutating.set(true);
+    this.closeStatusModal();
+
+    this.storeService.updateStoreStatus(s.id, status, this.statusReason().trim() || undefined).subscribe({
+      next: (updated) => {
+        this.mutating.set(false);
+        this.store.set(updated);
+        this.toast.success(`Store status changed to "${status}".`);
+      },
+      error: (err) => {
+        this.mutating.set(false);
+        this.toast.error(err?.message ?? 'Failed to update store status.');
+      }
+    });
+  }
+
+  deleteStore(): void {
     const s = this.store();
     if (!s) return;
 
     const modalRef = this.modalService.open(StoreConfirmModalComponent, { centered: true });
-    modalRef.componentInstance.title.set('Approve Document');
+    modalRef.componentInstance.title.set('Delete Store Account');
     modalRef.componentInstance.message.set(
-      `Are you sure you want to approve the <strong>${type.toUpperCase()}</strong> document for <strong>${s.name}</strong>?`
+      `Are you sure you want to delete <strong>${s.name}</strong>?<br>This action cannot be undone and all merchant data will be permanently removed.`
     );
-    modalRef.componentInstance.confirmText.set('Approve');
+    modalRef.componentInstance.confirmText.set('Delete Store');
     modalRef.componentInstance.cancelText.set('Cancel');
-    modalRef.componentInstance.isDanger.set(false);
+    modalRef.componentInstance.isDanger.set(true);
 
     modalRef.result.then(
       (confirmed) => {
-        if (confirmed) {
-          this.loading.set(true);
-          setTimeout(() => {
-            this.storeService.verifyDocument(s.id, type, 'approved');
-            this.toast.success(`Document (${type.toUpperCase()}) approved.`);
-            this.loading.set(false);
-          }, 600);
-        }
+        if (!confirmed) return;
+
+        this.mutating.set(true);
+        this.storeService.deleteStore(s.id).subscribe({
+          next: () => {
+            this.mutating.set(false);
+            this.toast.success(`Store "${s.name}" has been deleted successfully.`);
+            this.router.navigate(['/stores']);
+          },
+          error: (err) => {
+            this.mutating.set(false);
+            this.toast.error(err?.message ?? 'Failed to delete store.');
+          }
+        });
       },
       () => {}
     );
-  }
-
-  openRejectDocModal(type: DocumentType): void {
-    this.rejectDocType.set(type);
-    this.rejectionReason.set('');
-    this.showRejectDocModal.set(true);
-  }
-
-  closeRejectDocModal(): void {
-    this.showRejectDocModal.set(false);
-    this.rejectDocType.set(null);
-  }
-
-  submitRejectDocument(): void {
-    const s = this.store();
-    const type = this.rejectDocType();
-    const reason = this.rejectionReason().trim();
-
-    if (!s || !type) return;
-    if (!reason) {
-      this.toast.error('Please provide a reason for rejecting this document.');
-      return;
-    }
-
-    this.loading.set(true);
-    this.closeRejectDocModal();
-
-    setTimeout(() => {
-      this.storeService.verifyDocument(s.id, type, 'rejected', reason);
-      this.toast.warning(`Document (${type.toUpperCase()}) rejected.`);
-      this.loading.set(false);
-    }, 600);
-  }
-
-  activateStore(): void {
-    const s = this.store();
-    if (!s) return;
-
-    const isReactivating = s.status === 'suspended';
-    const actionWord = isReactivating ? 'reactivate' : 'activate';
-
-    const modalRef = this.modalService.open(StoreConfirmModalComponent, { centered: true });
-    modalRef.componentInstance.title.set(`${isReactivating ? 'Reactivate' : 'Activate'} Store Account`);
-    modalRef.componentInstance.message.set(
-      `Are you sure you want to ${actionWord} the store account <strong>${s.name}</strong>?`
-    );
-    modalRef.componentInstance.confirmText.set(isReactivating ? 'Reactivate' : 'Activate');
-    modalRef.componentInstance.cancelText.set('Cancel');
-    modalRef.componentInstance.isDanger.set(false);
-
-    modalRef.result.then(
-      (confirmed) => {
-        if (confirmed) {
-          this.loading.set(true);
-          setTimeout(() => {
-            this.storeService.updateStoreStatus(s.id, 'active');
-            this.toast.success(`Store "${s.name}" is now active!`);
-            this.loading.set(false);
-          }, 600);
-        }
-      },
-      () => {}
-    );
-  }
-
-  openSuspendModal(): void {
-    this.selectedSuspensionOption.set('');
-    this.suspensionReason.set('');
-    this.showSuspendModal.set(true);
-  }
-
-  closeSuspendModal(): void {
-    this.showSuspendModal.set(false);
-  }
-
-  submitSuspendStore(): void {
-    const s = this.store();
-    const option = this.selectedSuspensionOption();
-    let reason = '';
-
-    if (option === 'Other') {
-      reason = this.suspensionReason().trim();
-    } else {
-      reason = option;
-    }
-
-    if (!s) return;
-    if (!option) {
-      this.toast.error('Please select a suspension reason.');
-      return;
-    }
-    if (option === 'Other' && !reason) {
-      this.toast.error('Please specify the reason for suspension.');
-      return;
-    }
-
-    this.loading.set(true);
-    this.closeSuspendModal();
-
-    setTimeout(() => {
-      this.storeService.updateStoreStatus(s.id, 'suspended', reason);
-      this.toast.warning(`Store "${s.name}" is now suspended.`);
-      this.loading.set(false);
-    }, 600);
-  }
-
-  resendCredentials(): void {
-    const s = this.store();
-    if (!s) return;
-
-    this.toast.info(`Credentials and activation details re-sent to ${s.ownerEmail}.`);
   }
 }

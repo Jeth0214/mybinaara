@@ -5,8 +5,11 @@ import { LocationService } from '../../../shared/services/location.service';
 import { Router } from '@angular/router';
 
 interface StoreWithDistance extends Store {
-  distanceKm: number;
+  distanceKm: number | null;
+  displayAddress: string;
 }
+
+const SAUDI_ARABIA_SUFFIX = /,?\s*Saudi Arabia\s*$/i;
 
 @Component({
   selector: 'app-home-stores-nearby',
@@ -23,17 +26,32 @@ export class HomeStoresNearbyComponent {
 
   displayStores = computed<StoreWithDistance[]>(() => {
     const coords = this.locationService.coords();
-    return this.stores()
-      .map((store) => ({
-        ...store,
-        distanceKm: coords
-          ? this.locationService.calculateDistance(coords.lat, coords.lng, store.lat, store.lng)
-          : 0,
-      }))
-      .sort((a, b) => a.distanceKm - b.distanceKm);
+
+    return this.stores().map((store) => ({
+      ...store,
+      distanceKm:
+        store.distance_km ??
+        (coords
+          ? this.locationService.calculateDistance(
+              coords.lat,
+              coords.lng,
+              store.location.latitude ?? 0,
+              store.location.longitude ?? 0
+            )
+          : null),
+      displayAddress: this.formatAddress(store),
+    }));
   });
 
-  navigateToStore(storeId: string) {
+  navigateToStore(storeId: number) {
     this.router.navigate(['/store', storeId]);
+  }
+
+  private formatAddress(store: Store): string {
+    const address = store.location.formatted_address;
+    if (address) {
+      return address.replace(SAUDI_ARABIA_SUFFIX, '');
+    }
+    return store.location.city ?? '';
   }
 }

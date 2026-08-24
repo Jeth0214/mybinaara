@@ -1,8 +1,8 @@
 <div class="row g-4 mt-2">
-  <div class="col-lg-8 border-end-lg">
-    <form [formGroup]="form()" class="pe-lg-4">
+  <div class="col-lg-9 mx-auto">
+    <form [formGroup]="form()">
       <h5 class="fw-semibold mb-3">Step 1: Business Details & Contacts</h5>
-      
+
       <!-- Store Name -->
       <div class="mb-4">
         <label class="form-label fw-medium text-dark">Store / Company Name <span class="text-danger">*</span></label>
@@ -18,54 +18,46 @@
 
       <!-- Store Logo Image -->
       <div class="mb-4">
-        <label class="form-label fw-semibold text-dark mb-2">Store Logo Image <span class="text-danger">*</span></label>
-        
-        @if (logoUploading()) {
-          <div class="d-flex align-items-center gap-3 p-4 border border-dashed rounded-3 bg-white justify-content-center">
-            <div class="spinner-border text-success" role="status" style="width: 1.5rem; height: 1.5rem;">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-            <span class="text-success fw-semibold fs-7.5">Uploading logo...</span>
-          </div>
-        } @else if (form().get('storeLogo')?.value; as logoData) {
+        <label class="form-label fw-semibold text-dark mb-2">Store Logo <span class="text-muted fw-normal">(optional)</span></label>
+
+        @if (currentLogoPreview(); as logoUrl) {
           <div class="d-flex align-items-center gap-3 p-3 bg-white border rounded-3">
-            <div class="avatar avatar--circle overflow-hidden border border-success border-opacity-50 bg-white d-flex align-items-center justify-content-center" style="width: 64px; height: 64px; flex-shrink: 0; box-shadow: var(--shadow-2xs);">
-              <img [src]="logoData" alt="Store Logo Preview" style="width: 100%; height: 100%; object-fit: cover;" />
+            <div class="avatar avatar--circle overflow-hidden border border-success border-opacity-50 bg-white d-flex align-items-center justify-content-center" style="width: 100px; height: 100px; flex-shrink: 0; box-shadow: var(--shadow-2xs);">
+              <img [src]="logoUrl" alt="Store Logo Preview" style="width: 100%; height: 100%; object-fit: contain;" />
             </div>
             <div>
-              <span class="d-block text-success fw-semibold fs-7-5 mb-1"><i class="bi bi-patch-check-fill me-1"></i> Logo Uploaded</span>
-              <input 
-                #logoFileInputEdit 
-                type="file" 
-                class="d-none" 
-                accept="image/*" 
-                (change)="onLogoFileSelect($event)" 
+              <span class="d-block text-success fw-semibold fs-7-5 mb-1"><i class="bi bi-patch-check-fill me-1"></i> Logo Ready</span>
+              <input
+                #logoFileInputEdit
+                type="file"
+                class="d-none"
+                accept="image/png,image/jpeg,image/webp"
+                (change)="onLogoFileSelect($event)"
               />
-              <button type="button" class="btn btn-xs btn-outline-success py-1.5 px-3 fs-8 d-flex align-items-center gap-1.5" (click)="logoFileInputEdit.click()">
+              <button type="button" class="btn btn-xs btn-outline-success py-1.5 px-3 fs-8 d-flex align-items-center gap-1.5 d-inline-flex" (click)="logoFileInputEdit.click()">
                 <i class="bi bi-pencil-square"></i> Change Logo
+              </button>
+              <button type="button" class="btn btn-xs btn-outline-danger py-1.5 px-3 fs-8 d-inline-flex align-items-center gap-1.5 ms-2" (click)="removeLogo()">
+                <i class="bi bi-trash"></i> Remove
               </button>
             </div>
           </div>
         } @else {
-          <div 
+          <div
             class="border border-dashed rounded-3 p-4 text-center cursor-pointer bg-white hover-bg-light"
             (click)="logoFileInput.click()"
           >
-            <input 
-              #logoFileInput 
-              type="file" 
-              class="d-none" 
-              accept="image/*" 
-              (change)="onLogoFileSelect($event)" 
+            <input
+              #logoFileInput
+              type="file"
+              class="d-none"
+              accept="image/png,image/jpeg,image/webp"
+              (change)="onLogoFileSelect($event)"
             />
             <i class="bi bi-cloud-arrow-up text-success display-6 mb-2 d-block opacity-75"></i>
             <span class="d-block fw-semibold text-dark fs-7.5">Click to upload Store Logo</span>
-            <span class="text-muted fs-8-5 mt-1 d-block">Supported: PNG, JPG, JPEG, WEBP. Max: 2MB.</span>
+            <span class="text-muted fs-8-5 mt-1 d-block">Supported: PNG, JPG, WEBP. Max: 2MB.</span>
           </div>
-        }
-        
-        @if (form().get('storeLogo')?.touched && form().get('storeLogo')?.invalid) {
-          <div class="text-danger fs-8 mt-1.5"><i class="bi bi-exclamation-circle me-2"></i> Store logo is required.</div>
         }
 
         @if (logoError(); as err) {
@@ -82,14 +74,20 @@
           <i class="bi bi-person-badge-fill text-success"></i> Owner & Representative Contacts
         </h6>
 
+        @if (isEditMode() && !canEditOwner()) {
+          <div class="alert alert-light border fs-8 mb-3">
+            <i class="bi bi-info-circle me-1"></i> You don't have permission to edit owner details. Contact an administrator with vendor management access.
+          </div>
+        }
+
         <div class="mb-3">
           <label class="form-label fw-medium text-dark fs-8.5">Authorized Owner/Manager Name <span class="text-danger">*</span></label>
           <input
             type="text"
             class="form-control shadow-2xs"
-            formControlName="ownerName"
+            formControlName="owner_name"
           />
-          @if (form().get('ownerName')?.touched && form().get('ownerName')?.invalid) {
+          @if (form().get('owner_name')?.touched && form().get('owner_name')?.invalid) {
             <div class="text-danger fs-8 mt-1">Owner name is required (min 3 characters).</div>
           }
         </div>
@@ -99,9 +97,9 @@
           <input
             type="email"
             class="form-control shadow-2xs"
-            formControlName="ownerEmail"
+            formControlName="owner_email"
           />
-          @if (form().get('ownerEmail')?.touched && form().get('ownerEmail')?.invalid) {
+          @if (form().get('owner_email')?.touched && form().get('owner_email')?.invalid) {
             <div class="text-danger fs-8 mt-1">Please enter a valid business email.</div>
           }
         </div>
@@ -112,9 +110,9 @@
             <input
               type="text"
               class="form-control font-monospace shadow-2xs"
-              formControlName="ownerPhone"
+              formControlName="owner_phone"
             />
-            @if (form().get('ownerPhone')?.touched && form().get('ownerPhone')?.invalid) {
+            @if (form().get('owner_phone')?.touched && form().get('owner_phone')?.invalid) {
               <div class="text-danger fs-8 mt-1">Please enter a valid Saudi phone number.</div>
             }
           </div>
@@ -124,35 +122,14 @@
             <input
               type="text"
               class="form-control font-monospace shadow-2xs"
-              formControlName="ownerWhatsapp"
+              formControlName="owner_whatsapp"
             />
-            @if (form().get('ownerWhatsapp')?.touched && form().get('ownerWhatsapp')?.invalid) {
+            @if (form().get('owner_whatsapp')?.touched && form().get('owner_whatsapp')?.invalid) {
               <div class="text-danger fs-8 mt-1">Please enter a valid Saudi WhatsApp number.</div>
             }
           </div>
         </div>
       </div>
-
-      <!-- Switch Activation for Pending Stores -->
-      @if (isEditMode() && isPendingAccount()) {
-        <div class="mb-4 border p-3 rounded-3 bg-light bg-opacity-25 mt-3">
-          <div class="form-check form-switch d-flex align-items-start gap-2.5">
-            <input
-              class="form-check-input ms-0 mt-1"
-              type="checkbox"
-              id="isActivatedSwitch"
-              formControlName="isActivated"
-              style="width: 2.2em; height: 1.1em; cursor: pointer;"
-            />
-            <div>
-              <label class="form-check-label fw-bold text-dark cursor-pointer mb-0.5" for="isActivatedSwitch">
-                Account Activated
-              </label>
-              <span class="d-block text-muted fs-8">If checked, this store account is active. If unchecked, status remains "Pending" and credentials cannot log in.</span>
-            </div>
-          </div>
-        </div>
-      }
 
       <!-- Next Step Navigation -->
       <div class="d-flex justify-content-end mt-4 pt-3 border-top">
@@ -161,25 +138,5 @@
         </button>
       </div>
     </form>
-  </div>
-
-  <!-- Side Helper Panel -->
-  <div class="col-lg-4">
-    <div class="card bg-light border-0 p-3 h-100 shadow-3xs">
-      <h6 class="fw-bold text-dark mb-3"><i class="bi bi-info-circle text-success me-2"></i>Testing Guide</h6>
-      <p class="fs-8 text-muted">Use this mock information to fill manager details.</p>
-
-      <div class="bg-white p-2.5 rounded border border-light shadow-2xs">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <span class="fw-semibold fs-8 text-dark">Owner & Representative Contacts</span>
-          <button class="btn btn-link btn-xs p-0 text-decoration-none fs-8 fw-bold" (click)="fillTestingContacts()">Fill All</button>
-        </div>
-        <div class="fs-8 font-monospace text-muted">
-          <div>Mohammed Al-Fozan</div>
-          <div>mohammed&#64;fozan.com.sa</div>
-          <div>+966505123456</div>
-        </div>
-      </div>
-    </div>
   </div>
 </div>

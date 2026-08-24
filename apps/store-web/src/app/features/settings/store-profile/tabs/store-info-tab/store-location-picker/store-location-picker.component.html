@@ -1,0 +1,148 @@
+<div class="card p-4 border shadow-sm mb-4">
+  <div
+    class="card-header-block mb-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center"
+  >
+    <div>
+      <h2 class="section-title h5 mb-1">Store location</h2>
+      <p class="section-subtitle text-muted mb-0">
+        Drag the pin or click the map to pinpoint your exact store entrance
+      </p>
+    </div>
+    <button
+      type="button"
+      class="btn btn-outline-secondary btn-sm mt-2 mt-md-0"
+      [disabled]="locating()"
+      (click)="locateUser()"
+    >
+      @if (locating()) {
+        <span
+          class="spinner-border spinner-border-sm me-1"
+          role="status"
+          aria-hidden="true"
+        ></span>
+      } @else {
+        <i class="bi bi-crosshair me-1" aria-hidden="true"></i>
+      }
+      Use my current location
+    </button>
+  </div>
+
+  @if (locationNotice()) {
+    <div class="alert alert-warning py-2 px-3 mb-3" role="alert">
+      {{ locationNotice() }}
+    </div>
+  }
+
+  <div class="location-map-container mb-3">
+    <div
+      class="location-map-style-toggle btn-group btn-group-sm"
+      role="group"
+      aria-label="Map view"
+    >
+      <button
+        type="button"
+        class="btn"
+        [class.btn-primary]="mapViewMode() === 'street'"
+        [class.btn-light]="mapViewMode() !== 'street'"
+        (click)="setMapViewMode('street')"
+      >
+        Street
+      </button>
+      <button
+        type="button"
+        class="btn location-map-style-toggle__satellite-btn"
+        [class.active]="mapViewMode() === 'satellite'"
+        [class.btn-light]="mapViewMode() !== 'satellite'"
+        (click)="setMapViewMode('satellite')"
+      >
+        Satellite
+      </button>
+    </div>
+    <mgl-map
+      [accessToken]="mapboxToken"
+      [style]="mapStyle()"
+      [zoom]="mapZoom"
+      [center]="mapCenter()"
+      movingMethod="flyTo"
+      (mapClick)="onMapClick($event)"
+    >
+      <mgl-marker
+        [lngLat]="markerLngLat()"
+        [draggable]="true"
+        (markerDragEnd)="onMarkerDragEnd($event)"
+      >
+        <i
+          class="bi bi-geo-alt-fill location-map-pin"
+          [class.location-map-pin--satellite]="mapViewMode() === 'satellite'"
+          aria-hidden="true"
+        ></i>
+      </mgl-marker>
+    </mgl-map>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 mb-2">
+      <label class="form-label font-weight-bold location-field-label"
+        >LATITUDE</label
+      >
+      <input
+        type="text"
+        class="form-control"
+        [value]="markerPosition().lat"
+        readonly
+      />
+    </div>
+    <div class="col-md-6 mb-2">
+      <label class="form-label font-weight-bold location-field-label"
+        >LONGITUDE</label
+      >
+      <input
+        type="text"
+        class="form-control"
+        [value]="markerPosition().lng"
+        readonly
+      />
+    </div>
+  </div>
+
+  @if (hasAddress()) {
+    <div class="row">
+      <div class="col-md-6 mb-2">
+        <label class="form-label font-weight-bold location-field-label"
+          >CITY</label
+        >
+        <input
+          type="text"
+          class="form-control"
+          [value]="city() || 'Unknown'"
+          readonly
+        />
+      </div>
+      <div class="col-md-6 mb-2">
+        <label class="form-label font-weight-bold location-field-label"
+          >ADDRESS</label
+        >
+        <input
+          type="text"
+          class="form-control"
+          [value]="formattedAddress()"
+          readonly
+        />
+      </div>
+    </div>
+  } @else if (geocoding()) {
+    <p class="text-muted small mb-2">
+      <span
+        class="spinner-border spinner-border-sm me-1"
+        role="status"
+        aria-hidden="true"
+      ></span>
+      Detecting address…
+    </p>
+  }
+
+  <p class="text-muted small mb-0 mt-2">
+    <i class="bi bi-info-circle me-1" aria-hidden="true"></i>
+    This location will be saved along with the rest of your changes when you click "Save changes" below.
+  </p>
+</div>

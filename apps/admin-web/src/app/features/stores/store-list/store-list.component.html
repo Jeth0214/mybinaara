@@ -6,7 +6,13 @@
       <p class="text-muted mb-0">Manage registered merchant accounts, verification status, and plans in Saudi Arabia</p>
     </div>
     <div class="d-flex gap-2">
-      <a routerLink="create" class="btn btn-success d-flex align-items-center gap-2">
+      <a
+        routerLink="create"
+        class="btn btn-success d-flex align-items-center gap-2"
+        [class.disabled]="mutating()"
+        [attr.aria-disabled]="mutating()"
+        (click)="mutating() && $event.preventDefault()"
+      >
         <i class="bi bi-plus-lg"></i>
         <span>Add New Store</span>
       </a>
@@ -18,17 +24,26 @@
     [(searchQuery)]="searchQuery"
     [(statusFilter)]="statusFilter"
     [(cityFilter)]="cityFilter"
-    [cities]="cities"
+    [disabled]="mutating() || isDirectoryEmpty()"
   />
 
-  <!-- Table Directory Subcomponent -->
-  <app-store-list-table
-    [stores]="paginatedStores()"
-    [totalStores]="filteredStores().length"
-    [pageSize]="pageSize()"
-    [pageIndex]="pageIndex()"
-    [loading]="loading()"
-    (deleteStore)="deleteStore($event)"
-    (pageChange)="pageSize.set($event.pageSize); pageIndex.set($event.pageIndex)"
-  />
+  @if (loadError()) {
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-body text-center py-5">
+        <div class="text-danger fs-7-5 mb-3">{{ loadError() }}</div>
+        <button type="button" class="btn btn-light btn-sm" (click)="loadStores(meta()?.current_page ?? 1)">Retry</button>
+      </div>
+    </div>
+  } @else {
+    <!-- Table Directory Subcomponent -->
+    <app-store-list-table
+      [stores]="stores()"
+      [totalStores]="meta()?.total ?? 0"
+      [pageIndex]="(meta()?.current_page ?? 1) - 1"
+      [loading]="loading()"
+      [hasActiveFilters]="hasActiveFilters()"
+      (deleteStore)="deleteStore($event)"
+      (pageChange)="handlePageEvent($event)"
+    />
+  }
 </div>

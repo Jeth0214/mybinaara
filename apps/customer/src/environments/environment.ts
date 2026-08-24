@@ -3,7 +3,10 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  production: false,
+  apiUrl: 'http://localhost:8000/api',
+  mapboxToken: 'pk.eyJ1IjoicmpzdXlvbSIsImEiOiJjbXNianJ1Mjgwa3YxMzBzNXZyMWhjbGw2In0.rC_repTAPTQJxDAmZAljLg',
+  mapboxDefaultZoom: 16
 };
 
 /*

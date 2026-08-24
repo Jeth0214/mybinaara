@@ -1,10 +1,13 @@
-import { ChangeDetectionStrategy, Component, inject, signal, computed, effect, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { FormsModule } from '@angular/forms';
-import { NgbDropdownModule, NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { PageEvent } from '@angular/material/paginator';
+import { EMPTY, Subject, merge } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, skip, switchMap } from 'rxjs/operators';
 import { StoreService } from '../../../core/services/store.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { Store, SAUDI_CITIES } from '../../../core/models/store.model';
+import { PaginationMeta, Store, StoreStatus } from '../../../core/models/store.model';
 import { StoreConfirmModalComponent } from '../components/store-confirm-modal/store-confirm-modal.component';
 import { StoreListFiltersComponent } from './components/store-list-filters/store-list-filters.component';
 import { StoreListTableComponent } from './components/store-list-table/store-list-table.component';
@@ -22,70 +25,78 @@ export class StoreListComponent {
   private readonly toast = inject(ToastService);
   private readonly modalService = inject(NgbModal);
 
-  readonly cities = SAUDI_CITIES;
-
-  // Loading Indicator Signal
-  readonly loading = signal(true);
-
-  // Signal filters
   readonly searchQuery = signal('');
-  readonly statusFilter = signal('all');
-  readonly cityFilter = signal('all');
+  readonly statusFilter = signal<'all' | StoreStatus>('all');
+  readonly cityFilter = signal<'all' | string>('all');
 
-  // Pagination Signals
-  readonly pageSize = signal(10);
-  readonly pageIndex = signal(0);
+  readonly stores = signal<Store[]>([]);
+  readonly meta = signal<PaginationMeta | null>(null);
+  readonly loading = signal(false);
+  readonly loadError = signal<string | null>(null);
+  readonly mutating = signal(false);
 
-  // Master reactive data from service
-  readonly allStores = this.storeService.stores;
+  readonly hasActiveFilters = computed(
+    () => this.searchQuery().trim() !== '' || this.statusFilter() !== 'all' || this.cityFilter() !== 'all'
+  );
 
-  // Sliced stores for the current page
-  readonly paginatedStores = computed(() => {
-    const list = this.filteredStores();
-    const start = this.pageIndex() * this.pageSize();
-    const end = start + this.pageSize();
-    return list.slice(start, end);
-  });
+  /** True once we know the directory has no stores at all (not just no matches for the current filters). */
+  readonly isDirectoryEmpty = computed(
+    () => !this.loading() && !this.hasActiveFilters() && (this.meta()?.total ?? 0) === 0
+  );
+
+  /** Every fetch (search, pagination, retry, post-mutation refresh) goes through
+   *  this single switchMap pipeline, so a newer request always cancels an
+   *  older one still in flight. */
+  private readonly reload$ = new Subject<number>();
 
   constructor() {
-    // Initial loading simulator
-    setTimeout(() => this.loading.set(false), 650);
+    this.reload$
+      .pipe(
+        switchMap((page) => {
+          this.loading.set(true);
+          this.loadError.set(null);
 
-    // Reset page index on filter change
-    effect(() => {
-      this.searchQuery();
-      this.statusFilter();
-      this.cityFilter();
-      
-      untracked(() => {
-        this.pageIndex.set(0);
+          return this.storeService
+            .listStores({
+              search: this.searchQuery().trim(),
+              status: this.statusFilter(),
+              city: this.cityFilter() === 'all' ? 'all' : this.cityFilter(),
+              page,
+            })
+            .pipe(
+              catchError((err) => {
+                this.loading.set(false);
+                this.loadError.set(err?.message ?? 'Failed to load stores.');
+                return EMPTY;
+              })
+            );
+        }),
+        takeUntilDestroyed()
+      )
+      .subscribe((response) => {
+        this.loading.set(false);
+        this.stores.set(response.data);
+        this.meta.set(response.meta);
       });
-    });
+
+    merge(
+      toObservable(this.searchQuery).pipe(skip(1), debounceTime(300), distinctUntilChanged()),
+      toObservable(this.statusFilter).pipe(skip(1), distinctUntilChanged()),
+      toObservable(this.cityFilter).pipe(skip(1), distinctUntilChanged())
+    )
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => this.loadStores(1));
+
+    this.loadStores(1);
   }
 
-  // Signal-based filtering logic
-  readonly filteredStores = computed(() => {
-    const query = this.searchQuery().toLowerCase().trim();
-    const status = this.statusFilter();
-    const city = this.cityFilter();
+  loadStores(page: number): void {
+    this.reload$.next(page);
+  }
 
-    return this.allStores().filter((store) => {
-      // 1. Search filter
-      const matchesSearch = !query || 
-        store.name.toLowerCase().includes(query) ||
-        store.crNumber.includes(query) ||
-        store.ownerName.toLowerCase().includes(query) ||
-        store.ownerEmail.toLowerCase().includes(query);
-
-      // 2. Status filter
-      const matchesStatus = status === 'all' || store.status === status;
-
-      // 3. City filter
-      const matchesCity = city === 'all' || store.location.city === city;
-
-      return matchesSearch && matchesStatus && matchesCity;
-    });
-  });
+  handlePageEvent(event: PageEvent): void {
+    this.loadStores(event.pageIndex + 1);
+  }
 
   deleteStore(store: Store): void {
     const modalRef = this.modalService.open(StoreConfirmModalComponent, { centered: true });
@@ -99,10 +110,20 @@ export class StoreListComponent {
 
     modalRef.result.then(
       (confirmed) => {
-        if (confirmed) {
-          this.storeService.deleteStore(store.id);
-          this.toast.success(`Store "${store.name}" has been deleted successfully.`);
-        }
+        if (!confirmed) return;
+
+        this.mutating.set(true);
+        this.storeService.deleteStore(store.id).subscribe({
+          next: () => {
+            this.mutating.set(false);
+            this.toast.success(`Store "${store.name}" has been deleted successfully.`);
+            this.loadStores(this.meta()?.current_page ?? 1);
+          },
+          error: (err) => {
+            this.mutating.set(false);
+            this.toast.error(err?.message ?? 'Failed to delete store.');
+          },
+        });
       },
       () => {}
     );

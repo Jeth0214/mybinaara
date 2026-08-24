@@ -10,7 +10,15 @@
 </ion-header>
 
 <ion-content>
-  @if (store(); as s) {
+  @if (loading()) {
+    <div class="not-found">
+      <p>Loading store...</p>
+    </div>
+  } @else if (error()) {
+    <div class="not-found">
+      <p>Couldn't load this store. Please try again.</p>
+    </div>
+  } @else if (store(); as s) {
     <app-store-header [store]="s"></app-store-header>
     <app-store-info [store]="s" [distance]="distance()"></app-store-info>
     <app-store-map [store]="s"></app-store-map>

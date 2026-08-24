@@ -12,13 +12,7 @@ import { MatStepperModule } from '@angular/material/stepper';
 export class StoreStepRegistryComponent {
   readonly form = input.required<FormGroup>();
   readonly isEditMode = input.required<boolean>();
+  readonly submitting = input<boolean>(false);
 
   readonly submitStore = output<void>();
-
-  fillTestingRegistry(): void {
-    this.form().patchValue({
-      crNumber: '1010348712',
-      vatNumber: '300054321000003'
-    });
-  }
 }

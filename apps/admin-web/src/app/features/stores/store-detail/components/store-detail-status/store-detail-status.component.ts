@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Store } from '../../../../../core/models/store.model';
+import { Store, StoreStatus } from '../../../../../core/models/store.model';
 
 @Component({
   selector: 'app-store-detail-status',
@@ -12,7 +12,7 @@ import { Store } from '../../../../../core/models/store.model';
 })
 export class StoreDetailStatusComponent {
   readonly store = input.required<Store>();
+  readonly disabled = input<boolean>(false);
 
-  readonly suspend = output<void>();
-  readonly reactivate = output<void>();
+  readonly changeStatus = output<StoreStatus>();
 }

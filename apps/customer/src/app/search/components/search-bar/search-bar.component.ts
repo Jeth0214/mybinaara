@@ -12,6 +12,7 @@ import { IonIcon } from '@ionic/angular/standalone';
 export class SearchBarComponent implements AfterViewInit {
   query = input<string>('');
   queryChange = output<string>();
+  reset = output<void>();
 
   @ViewChild('searchInput') searchInputRef!: ElementRef<HTMLInputElement>;
 
@@ -23,6 +24,10 @@ export class SearchBarComponent implements AfterViewInit {
 
   onInput(event: Event) {
     this.queryChange.emit((event.target as HTMLInputElement).value);
+  }
+
+  onReset() {
+    this.reset.emit();
   }
 
   goBack() {

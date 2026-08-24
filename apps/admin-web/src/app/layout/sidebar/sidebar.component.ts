@@ -44,14 +44,9 @@ export class SidebarComponent {
 
   readonly currentUser = this.store.selectSignal(AdminAuthState.user);
 
-  readonly userRoleLabel = computed(() => {
-    const role = this.currentUser()?.role;
-    switch (role) {
-      case 'admin': return 'Admin';
-      case 'user':  return 'User';
-      default:            return 'Admin';
-    }
-  });
+  readonly userRoleLabel = computed(() =>
+    this.currentUser()?.role === 'administrator' ? 'Administrator' : 'Staff'
+  );
 
   readonly navGroups = computed<NavGroup[]>(() => [
     {
@@ -72,6 +67,7 @@ export class SidebarComponent {
       items: [
         { label: 'Products', icon: 'bi-box-seam', route: '/catalog/products' },
         { label: 'Categories', icon: 'bi-tags', route: '/catalog/categories' },
+        { label: 'Units', icon: 'bi-rulers', route: '/catalog/product-units' },
       ],
     },
     {

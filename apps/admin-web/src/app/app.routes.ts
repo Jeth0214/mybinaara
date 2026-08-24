@@ -131,10 +131,18 @@ export const routes: Routes = [
                 data: { title: 'Product Catalog', icon: 'bi-box-seam' },
               },
               {
+                path: 'create',
+                loadComponent: () =>
+                  import('./features/catalog/product-form/product-form.component').then(
+                    (m) => m.ProductFormComponent
+                  ),
+                data: { title: 'Create Product', icon: 'bi-plus-circle' },
+              },
+              {
                 path: ':id/edit',
                 loadComponent: () =>
-                  import('./features/catalog/product-edit/product-edit.component').then(
-                    (m) => m.ProductEditComponent
+                  import('./features/catalog/product-form/product-form.component').then(
+                    (m) => m.ProductFormComponent
                   ),
                 data: { title: 'Edit Product', icon: 'bi-pencil' },
               },
@@ -182,6 +190,35 @@ export const routes: Routes = [
                     (m) => m.CategoryDetailComponent
                   ),
                 data: { title: 'Category Details', icon: 'bi-tags' },
+              },
+            ],
+          },
+          {
+            path: 'product-units',
+            children: [
+              {
+                path: '',
+                loadComponent: () =>
+                  import('./features/catalog/product-unit-management/product-unit-management.component').then(
+                    (m) => m.ProductUnitManagementComponent
+                  ),
+                data: { title: 'Product Units', icon: 'bi-rulers' },
+              },
+              {
+                path: 'create',
+                loadComponent: () =>
+                  import('./features/catalog/product-unit-form/product-unit-form.component').then(
+                    (m) => m.ProductUnitFormComponent
+                  ),
+                data: { title: 'Create Unit', icon: 'bi-plus-circle' },
+              },
+              {
+                path: ':id/edit',
+                loadComponent: () =>
+                  import('./features/catalog/product-unit-form/product-unit-form.component').then(
+                    (m) => m.ProductUnitFormComponent
+                  ),
+                data: { title: 'Edit Unit', icon: 'bi-pencil' },
               },
             ],
           },

@@ -2,17 +2,21 @@
 
   <!-- Sticky Changes Alert Bar -->
   @if (hasChanges()) {
-    <div class="changes-indicator-bar animate__animated animate__slideInDown">
+    <div class="changes-indicator-bar">
       <div class="bar-text">
         <i class="bi bi-exclamation-triangle-fill"></i>
         <span>You have unsaved stock levels for {{ modifiedCount() }} products. Save to publish.</span>
       </div>
       <div class="bar-actions">
-        <button class="btn btn-outline-light btn-sm font-weight-bold px-3 py-2" (click)="discardChanges()">
+        <button class="btn btn-outline-light btn-sm font-weight-bold px-3 py-2" (click)="discardChanges()" [disabled]="saving()">
           Discard Changes
         </button>
-        <button class="btn btn-success btn-sm font-weight-bold px-4 py-2 text-white" (click)="saveAllChanges()">
-          Save All Changes
+        <button class="btn btn-success btn-sm font-weight-bold px-4 py-2 text-white" (click)="saveAllChanges()" [disabled]="saving()">
+          @if (saving()) {
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...
+          } @else {
+            Save All Changes
+          }
         </button>
       </div>
     </div>
@@ -33,7 +37,14 @@
 
   <!-- Table Card -->
   <div class="inventory-table-card">
-    @if (products().length > 0) {
+    @if (loading()) {
+      <div class="d-flex align-items-center justify-content-center gap-2 text-muted py-5">
+        <div class="spinner-border spinner-border-sm text-success" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        Loading products...
+      </div>
+    } @else if (products().length > 0) {
       <div class="table-responsive">
         <table class="table inventory-table">
           <thead>
@@ -51,26 +62,28 @@
                 <!-- Image -->
                 <td>
                   <div class="product-img-wrapper">
-                    <img 
-                      [src]="p.imageUrl || getCategoryIcon(p.category)" 
-                      [alt]="p.name"
-                      onerror="this.src='images/category-icons/miscellaneous.svg'"
-                    />
+                    @if (p.catalog_product.image_url) {
+                      <img [src]="p.catalog_product.image_url" [alt]="p.catalog_product.name" />
+                    } @else {
+                      <i class="bi bi-box-seam text-muted"></i>
+                    }
                   </div>
                 </td>
 
                 <!-- Info -->
                 <td>
                   <div class="product-info">
-                    <div class="font-weight-bold text-dark mb-0" style="font-size: 0.95rem;">{{ p.name }}</div>
-                    <div class="small text-muted" style="font-family: monospace;">SKU: {{ p.sku }}</div>
-                    <span class="status-modified-tag">Modified</span>
+                    <div class="font-weight-bold text-dark mb-0" style="font-size: 0.95rem;">{{ p.catalog_product.name }}</div>
+                    <div class="small text-muted" style="font-family: monospace;">SKU: {{ p.sku || '—' }}</div>
+                    @if (isModified(p.id)) {
+                      <span class="status-modified-tag">Modified</span>
+                    }
                   </div>
                 </td>
 
                 <!-- Current Stock -->
                 <td class="text-center">
-                  <span class="font-weight-bold text-dark" style="font-size: 1.1rem;">{{ p.stock }}</span>
+                  <span class="font-weight-bold text-dark" style="font-size: 1.1rem;">{{ p.stock_quantity }}</span>
                 </td>
 
                 <!-- Adjuster controls -->
@@ -117,6 +130,17 @@
           </tbody>
         </table>
       </div>
+      @if (meta() && meta()!.total > 0) {
+        <mat-paginator
+          [length]="meta()!.total"
+          [pageSize]="20"
+          [hidePageSize]="true"
+          [pageIndex]="meta()!.current_page - 1"
+          (page)="handlePageEvent($event)"
+          aria-label="Select page"
+          class="border-top"
+        />
+      }
     } @else {
       <!-- Empty State -->
       <div class="empty-state-card">

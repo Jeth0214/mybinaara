@@ -1,0 +1,19 @@
+.overview-card {
+  border: 1px solid var(--brand-border) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.015) !important;
+}
+
+.overview-card-title {
+  font-size: 1.15rem;
+  color: var(--brand-green-dark);
+}
+
+.overview-card-subtitle {
+  font-size: 0.85rem;
+  color: var(--brand-text-light) !important;
+}
+
+.chart-container {
+  position: relative;
+  width: 100%;
+}

@@ -5,7 +5,7 @@ import { Store } from '@ngxs/store';
 import { Subscription } from 'rxjs';
 import { AdminAuthState } from '../../../core/state/auth.state';
 import { AdminLogin, ClearAdminAuthError } from '../../../core/state/auth.actions';
-import { ToastService } from '../../../core/services/toast.service';
+import { EMAIL_PATTERN } from '../../../core/validators/email.validator';
 
 @Component({
   selector: 'app-login',
@@ -19,7 +19,6 @@ export class LoginComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly store = inject(Store);
   private readonly router = inject(Router);
-  private readonly toast = inject(ToastService);
   private readonly sub = new Subscription();
 
   readonly loading = signal(false);
@@ -27,7 +26,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   readonly errorMsg = signal<string | null>(null);
 
   readonly form = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
+    email: ['', [Validators.required, Validators.pattern(EMAIL_PATTERN)]],
     password: ['', [Validators.required]],
     remember: [false],
   });
@@ -57,9 +56,9 @@ export class LoginComponent implements OnInit, OnDestroy {
       return;
     }
     this.loading.set(true);
-    const { email, password } = this.form.value;
+    const { email, password, remember } = this.form.value;
 
-    this.store.dispatch(new AdminLogin(email!, password!)).subscribe({
+    this.store.dispatch(new AdminLogin(email!, password!, !!remember)).subscribe({
       next: () => {
         this.loading.set(false);
         this.router.navigate(['/dashboard']);
@@ -72,19 +71,5 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   togglePassword(): void {
     this.passwordVisible.update((v) => !v);
-  }
-
-  copyText(text: string, label: string): void {
-    navigator.clipboard.writeText(text).then(() => {
-      this.toast.info(`${label} copied to clipboard!`);
-    });
-  }
-
-  fillDemoCredentials(): void {
-    this.form.patchValue({
-      email: 'bert_llave@mybinaara.com',
-      password: 'Bert@123'
-    });
-    this.toast.success('Demo credentials filled!');
   }
 }

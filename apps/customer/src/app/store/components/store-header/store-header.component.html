@@ -1,12 +1,16 @@
 <div class="store-banner">
   <div class="logo-wrapper">
-    <ion-icon name="storefront-outline" class="logo-icon"></ion-icon>
+    @if (store().logo_url) {
+      <img [src]="store().logo_url" [alt]="store().name" class="logo-image" />
+    } @else {
+      <ion-icon name="storefront-outline" class="logo-icon"></ion-icon>
+    }
   </div>
   <div class="store-meta">
     <h1 class="store-name">{{ store().name }}</h1>
     <div class="store-location">
       <ion-icon name="location-outline" class="loc-icon"></ion-icon>
-      <span>{{ store().district }} District, {{ store().city }}</span>
+      <span>{{ displayAddress() }}</span>
     </div>
   </div>
 </div>

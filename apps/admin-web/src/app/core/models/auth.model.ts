@@ -1,14 +1,29 @@
 export type AdminRole = 'admin' | 'user';
 
+/** account types the API returns; user_type is 'admin' for both Administrator and Staff */
+export type ApiUserType = 'customer' | 'store_owner' | 'store_staff' | 'admin';
+
+/** role.name from the backend — null for customers, 'vendor' for store accounts */
+export type AccountRole = 'administrator' | 'staff' | 'vendor' | null;
+
 export interface AdminUser {
-  id: string;
-  email: string;
+  id: number;
   name: string;
-  role: AdminRole;
-  avatar?: string;
-  lastLogin?: string;
-  isActive: boolean;
+  email: string;
+  phone: string | null;
+  whatsapp: string | null;
+  user_type: ApiUserType;
+  avatar_url: string | null;
+  status: 'active' | 'inactive';
+  role: AccountRole;
+  is_administrator: boolean;
   permissions: string[];
+  created_at: string | null;
+}
+
+export interface LoginResponse {
+  token: string;
+  user: AdminUser;
 }
 
 export interface AdminAuthStateModel {
@@ -23,11 +38,16 @@ export const ADMIN_PERMISSIONS = {
   STORES_CREATE:     'stores.create',
   STORES_EDIT:       'stores.edit',
   STORES_VERIFY:     'stores.verify',
+  VENDORS_EDIT:      'vendors.edit',
   USERS_VIEW:        'users.view',
   USERS_MANAGE:      'users.manage',
   CATALOG_VIEW:      'catalog.view',
   CATALOG_MANAGE:    'catalog.manage',
   ADMIN_USERS_MANAGE:'admin.users.manage',
+  PRODUCT_UNITS_VIEW:   'product_units.view',
+  PRODUCT_UNITS_CREATE: 'product_units.create',
+  PRODUCT_UNITS_EDIT:   'product_units.edit',
+  PRODUCT_UNITS_DELETE: 'product_units.delete',
 } as const;
 
 /** Default permissions per role */

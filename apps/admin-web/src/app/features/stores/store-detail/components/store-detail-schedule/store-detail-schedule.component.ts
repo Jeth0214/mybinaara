@@ -1,9 +1,12 @@
-import { ChangeDetectionStrategy, Component, inject, input, computed, effect } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, output, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { Store, StoreDaySchedule } from '../../../../../core/models/store.model';
+import { Store as NgxsStore } from '@ngxs/store';
+import { SCHEDULE_DAYS, ScheduleDay, Store, StoreScheduleDay } from '../../../../../core/models/store.model';
 import { StoreService } from '../../../../../core/services/store.service';
 import { ToastService } from '../../../../../core/services/toast.service';
+import { AdminAuthState } from '../../../../../core/state/auth.state';
+import { ADMIN_PERMISSIONS } from '../../../../../core/models/auth.model';
 
 @Component({
   selector: 'app-store-detail-schedule',
@@ -25,12 +28,17 @@ export class StoreDetailScheduleComponent {
   private readonly fb = inject(FormBuilder);
   private readonly storeService = inject(StoreService);
   private readonly toast = inject(ToastService);
+  private readonly ngxsStore = inject(NgxsStore);
 
   readonly store = input.required<Store>();
-  
+  readonly scheduleUpdated = output<Store>();
+
+  readonly currentUser = this.ngxsStore.selectSignal(AdminAuthState.user);
+  readonly canEdit = computed(() => !!this.currentUser()?.permissions.includes(ADMIN_PERMISSIONS.STORES_EDIT));
+
   scheduleForm!: FormGroup;
 
-  readonly days: Array<{ key: 'sat' | 'sun' | 'mon' | 'tue' | 'wed' | 'thu' | 'fri'; label: string }> = [
+  readonly days: Array<{ key: ScheduleDay; label: string }> = [
     { key: 'sat', label: 'Saturday' },
     { key: 'sun', label: 'Sunday' },
     { key: 'mon', label: 'Monday' },
@@ -65,24 +73,27 @@ export class StoreDetailScheduleComponent {
 
   private initForm(): void {
     const s = this.store();
-    const storeSchedule = s?.schedule || [
-      { day: 'sat', openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
-      { day: 'sun', openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
-      { day: 'mon', openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
-      { day: 'tue', openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
-      { day: 'wed', openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
-      { day: 'thu', openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false },
-      { day: 'fri', openTime: '', closeTime: '', isOff: true }
-    ];
+    const storeSchedule: StoreScheduleDay[] = s?.schedule?.length
+      ? s.schedule
+      : SCHEDULE_DAYS.map((day) => ({
+          day,
+          is_off: false,
+          open_time: '08:00 AM',
+          close_time: '09:00 PM'
+        }));
 
     this.scheduleForm = this.fb.group({
       workingHours: this.fb.group(
         this.days.reduce((acc, day) => {
-          const matched = storeSchedule.find(item => item.day === day.key) || { openTime: '08:00 AM', closeTime: '09:00 PM', isOff: false };
+          const matched = storeSchedule.find((item) => item.day === day.key) ?? {
+            open_time: '08:00 AM',
+            close_time: '09:00 PM',
+            is_off: false
+          };
           acc[day.key] = this.fb.group({
-            openTime: [{ value: matched.openTime, disabled: matched.isOff }],
-            closeTime: [{ value: matched.closeTime, disabled: matched.isOff }],
-            isOff: [matched.isOff]
+            openTime: [{ value: matched.open_time ?? '', disabled: matched.is_off }],
+            closeTime: [{ value: matched.close_time ?? '', disabled: matched.is_off }],
+            isOff: [matched.is_off]
           });
           return acc;
         }, {} as any)
@@ -90,7 +101,7 @@ export class StoreDetailScheduleComponent {
     });
 
     // Register checkbox change listeners to disable/enable timing dropdowns
-    this.days.forEach(day => {
+    this.days.forEach((day) => {
       const dayGroup = this.scheduleForm.get(`workingHours.${day.key}`) as FormGroup;
       if (dayGroup) {
         dayGroup.get('isOff')?.valueChanges.subscribe((isOff: boolean) => {
@@ -110,24 +121,38 @@ export class StoreDetailScheduleComponent {
         });
       }
     });
+
+    if (!this.canEdit()) {
+      this.scheduleForm.disable();
+    }
   }
 
   onSave(): void {
-    if (this.scheduleForm.invalid) return;
+    if (this.scheduleForm.invalid || !this.canEdit()) return;
 
-    const workingHoursVal = this.scheduleForm.getRawValue().workingHours as any;
-    const scheduleArray: StoreDaySchedule[] = Object.keys(workingHoursVal || {}).map(day => ({
-      day: day as any,
-      openTime: workingHoursVal[day]?.openTime || '',
-      closeTime: workingHoursVal[day]?.closeTime || '',
-      isOff: !!workingHoursVal[day]?.isOff
+    const workingHoursVal = this.scheduleForm.getRawValue().workingHours as Record<
+      ScheduleDay,
+      { openTime: string; closeTime: string; isOff: boolean }
+    >;
+    const scheduleArray: StoreScheduleDay[] = SCHEDULE_DAYS.map((day) => ({
+      day,
+      is_off: !!workingHoursVal[day]?.isOff,
+      open_time: workingHoursVal[day]?.isOff ? null : workingHoursVal[day]?.openTime || null,
+      close_time: workingHoursVal[day]?.isOff ? null : workingHoursVal[day]?.closeTime || null
     }));
 
     const s = this.store();
-    if (s) {
-      this.storeService.updateStore(s.id, { schedule: scheduleArray });
-      this.toast.success('Store operations schedule updated successfully.');
-      this.scheduleForm.markAsPristine();
-    }
+    if (!s) return;
+
+    this.storeService.updateStoreSchedule(s.id, scheduleArray).subscribe({
+      next: (updated) => {
+        this.toast.success('Store operations schedule updated successfully.');
+        this.scheduleForm.markAsPristine();
+        this.scheduleUpdated.emit(updated);
+      },
+      error: (err) => {
+        this.toast.error(err?.message ?? 'Failed to update schedule.');
+      }
+    });
   }
 }

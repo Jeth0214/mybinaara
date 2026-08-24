@@ -15,31 +15,7 @@
     </div>
   }
 
-  <!-- Tab Switcher (Matching Mockup Pills Style) -->
-  <div class="profile-tabs mb-4">
-    <button
-      type="button"
-      class="tab-pill"
-      [class.active]="activeTab === 'info'"
-      (click)="setTab('info')"
-    >
-      Store Profile
-    </button>
-    <button
-      type="button"
-      class="tab-pill"
-      [class.active]="activeTab === 'security'"
-      (click)="setTab('security')"
-    >
-      <span class="d-none d-md-inline">Account & </span>Security
-    </button>
-  </div>
-
   <!-- TAB CONTENT -->
-  @if (activeTab === 'info') {
-    <app-store-info-tab></app-store-info-tab>
-  } @else if (activeTab === 'security') {
-    <app-store-security-tab></app-store-security-tab>
-  }
+  <app-store-info-tab></app-store-info-tab>
 
 </div>

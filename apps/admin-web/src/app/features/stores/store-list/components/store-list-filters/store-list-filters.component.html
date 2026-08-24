@@ -10,7 +10,10 @@
           <input
             type="text"
             class="form-control border-start-0 ps-2"
-            [(ngModel)]="searchQuery"
+            placeholder="Search by store or owner name..."
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+            [disabled]="disabled()"
           />
         </div>
       </div>
@@ -19,12 +22,15 @@
       <div class="col-lg-3 col-md-3 col-6">
         <select
           class="form-select"
-          [(ngModel)]="statusFilter"
+          [ngModel]="statusFilter()"
+          (ngModelChange)="statusFilter.set($event)"
+          [disabled]="disabled()"
         >
           <option value="all">All Statuses</option>
           <option value="active">Active</option>
-          <option value="suspended">Suspended</option>
           <option value="pending">Pending Activation</option>
+          <option value="suspended">Suspended</option>
+          <option value="rejected">Rejected</option>
         </select>
       </div>
 
@@ -32,11 +38,14 @@
       <div class="col-lg-3 col-md-3 col-6">
         <select
           class="form-select"
-          [(ngModel)]="cityFilter"
+          [ngModel]="cityFilter()"
+          (ngModelChange)="cityFilter.set($event)"
+          [disabled]="disabled()"
+          aria-label="Filter by city"
         >
-          <option value="all">All Saudi Cities</option>
-          @for (city of cities(); track city.value) {
-            <option [value]="city.value">{{ city.label }}</option>
+          <option value="all">All Cities</option>
+          @for (city of cities; track city.city_id) {
+            <option [value]="city.name_en">{{ city.name_en }}</option>
           }
         </select>
       </div>

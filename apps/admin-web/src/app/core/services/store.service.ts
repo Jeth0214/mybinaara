@@ -1,197 +1,114 @@
-import { Injectable, signal, computed, inject } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { Store, StoreStatus, StoreDocument, DocumentType, DocumentStatus } from '../models/store.model';
-import { MOCK_STORES } from '../data/mock-stores.data';
-import { UserCatalogService } from './user-catalog.service';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
+import { PaginatedStores, Store, StoreLocation, StoreScheduleDay, StoreStatus } from '../models/store.model';
+import { mapHttpError } from '../utils/http-error.util';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class StoreService {
-  private readonly catalogService = inject(UserCatalogService);
+  private readonly http = inject(HttpClient);
 
-  // Master reactive state for stores
-  private readonly _stores = signal<Store[]>(MOCK_STORES);
-  
-  // Read-only signals for consumer components
-  readonly stores = this._stores.asReadonly();
-  
-  // Computed signals for common groupings
-  readonly activeStores = computed(() =>
-    this._stores().filter(s => s.status === 'active')
-  );
+  listStores(params: {
+    search?: string;
+    status?: StoreStatus | 'all';
+    city?: string | 'all';
+    page?: number;
+  }): Observable<PaginatedStores> {
+    let httpParams = new HttpParams();
+    if (params.search) {
+      httpParams = httpParams.set('search', params.search);
+    }
+    if (params.status && params.status !== 'all') {
+      httpParams = httpParams.set('status', params.status);
+    }
+    if (params.city && params.city !== 'all') {
+      httpParams = httpParams.set('city', params.city);
+    }
+    if (params.page) {
+      httpParams = httpParams.set('page', params.page);
+    }
 
-  readonly suspendedStores = computed(() => 
-    this._stores().filter(s => s.status === 'suspended')
-  );
-
-  constructor() {
-    const products = this.catalogService.products();
-    this._stores.update(stores =>
-      stores.map(store => ({
-        ...store,
-        totalProducts: products.filter(p => p.storeId === store.id).length
-      }))
+    return this.http.get<PaginatedStores>(`${environment.apiUrl}/stores`, { params: httpParams }).pipe(
+      catchError((err) => throwError(() => mapHttpError(err)))
     );
   }
 
-  /**
-   * Fetch all stores as an Observable (for compatibility with HTTP patterns)
-   */
-  getStoresObservable(): Observable<Store[]> {
-    return of(this._stores());
-  }
-
-  /**
-   * Get store by ID
-   */
-  getStoreById(id: string): Store | undefined {
-    return this._stores().find(s => s.id === id);
-  }
-
-  /**
-   * Create a new store record (Stepper flow)
-   */
-  createStore(storeData: Partial<Store>): Store {
-    const id = `store-${Date.now()}`;
-    const tempPassword = storeData.tempPassword || `Binaara${Math.random().toString(36).substring(2, 8).toUpperCase()}!`;
-    const activationLink = storeData.activationLink || 'https://mybinaara.com/activate';
-    
-    // Create mock documents if details were not provided, defaulting to approved
-    const documents: StoreDocument[] = storeData.documents || [
-      {
-        type: 'cr',
-        status: 'approved',
-        uploadedAt: new Date().toISOString()
-      },
-      {
-        type: 'vat',
-        status: 'approved',
-        uploadedAt: new Date().toISOString()
-      }
-    ];
-
-    const newStore: Store = {
-      id,
-      name: storeData.name || 'Unnamed Store',
-      crNumber: storeData.crNumber || '',
-      vatNumber: storeData.vatNumber || '',
-      ownerName: storeData.ownerName || '',
-      ownerEmail: storeData.ownerEmail || '',
-      ownerPhone: storeData.ownerPhone || '',
-      ownerWhatsapp: storeData.ownerWhatsapp || '',
-      location: storeData.location || {
-        country: 'Saudi Arabia',
-        city: 'Riyadh',
-        district: '',
-        buildingNumber: '1234',
-        streetName: 'Main Street',
-        postalCode: '12345',
-        additionalNumber: '9123',
-        fullAddress: '1234 Main Street,\nRiyadh 12345 - 9123,\nSaudi Arabia',
-        latitude: 24.7136,
-        longitude: 46.6753
-      },
-      status: 'pending',
-      isActivated: false,
-      activationLink,
-      tempPassword,
-      storeLogo: storeData.storeLogo,
-      createdAt: new Date().toISOString(),
-      documents,
-      totalProducts: 0
-    };
-
-    this._stores.update(currentStores => [newStore, ...currentStores]);
-    return newStore;
-  }
-
-  /**
-   * Update an existing store profile
-   */
-  updateStore(id: string, updates: Partial<Store>): void {
-    this._stores.update(currentStores =>
-      currentStores.map(store =>
-        store.id === id ? { ...store, ...updates } : store
-      )
+  getStore(id: number): Observable<Store> {
+    return this.http.get<{ data: Store }>(`${environment.apiUrl}/stores/${id}`).pipe(
+      map((response) => response.data),
+      catchError((err) => throwError(() => mapHttpError(err)))
     );
   }
 
-  /**
-   * Update verification status of a specific document
-   */
-  verifyDocument(storeId: string, docType: DocumentType, status: DocumentStatus, rejectionReason?: string): void {
-    this._stores.update(currentStores =>
-      currentStores.map(store => {
-        if (store.id !== storeId) return store;
-
-        const updatedDocs = store.documents.map(doc =>
-          doc.type === docType
-            ? { ...doc, status, rejectionReason }
-            : doc
-        );
-
-        // Auto-update store status if all docs are approved/any rejected
-        let storeStatus = store.status;
-        let finalRejectionReason = store.rejectionReason;
-
-        if (status === 'rejected') {
-          storeStatus = 'suspended';
-          finalRejectionReason = `Document Verification Failed: ${rejectionReason}`;
-        } else if (updatedDocs.every(d => d.status === 'approved')) {
-          storeStatus = 'active'; // Auto-activate if all docs approved
-          finalRejectionReason = undefined;
-        }
-
-        const isActivated = storeStatus === 'active' ? true : (storeStatus === 'pending' ? false : store.isActivated);
-
-        return {
-          ...store,
-          documents: updatedDocs,
-          status: storeStatus,
-          isActivated,
-          rejectionReason: finalRejectionReason
-        };
-      })
+  createStore(formData: FormData): Observable<Store> {
+    return this.http.post<{ data: Store }>(`${environment.apiUrl}/stores`, formData).pipe(
+      map((response) => response.data),
+      catchError((err) => throwError(() => mapHttpError(err)))
     );
   }
 
-  /**
-   * Explicitly change the general store status (e.g. suspension)
-   */
-  updateStoreStatus(storeId: string, status: StoreStatus, rejectionReason?: string): void {
-    this._stores.update(currentStores =>
-      currentStores.map(store => {
-        if (store.id !== storeId) return store;
+  updateStore(id: number, formData: FormData): Observable<Store> {
+    formData.append('_method', 'PATCH');
 
-        // If activating, verify that all documents are also marked approved
-        const updatedDocs = store.documents.map(doc => {
-          if (status === 'active' && doc.status !== 'approved') {
-            return { ...doc, status: 'approved' as DocumentStatus };
-          }
-          return doc;
-        });
-
-        const isActivated = status === 'active' ? true : (status === 'pending' ? false : store.isActivated);
-
-        return {
-          ...store,
-          status,
-          isActivated,
-          documents: updatedDocs,
-          rejectionReason: (status === 'suspended') ? rejectionReason : store.rejectionReason
-        };
-      })
+    return this.http.post<{ data: Store }>(`${environment.apiUrl}/stores/${id}`, formData).pipe(
+      map((response) => response.data),
+      catchError((err) => throwError(() => mapHttpError(err)))
     );
   }
 
-  /**
-   * Delete Store
-   */
-  deleteStore(storeId: string): void {
-    this._stores.update(currentStores =>
-      currentStores.filter(store => store.id !== storeId)
+  updateStoreLogo(id: number, file: File): Observable<Store> {
+    const formData = new FormData();
+    formData.append('logo', file, file.name);
+
+    return this.http.post<{ data: Store }>(`${environment.apiUrl}/stores/${id}/logo`, formData).pipe(
+      map((response) => response.data),
+      catchError((err) => throwError(() => mapHttpError(err)))
+    );
+  }
+
+  updateStoreLocation(id: number, payload: StoreLocation): Observable<Store> {
+    return this.http.patch<{ data: Store }>(`${environment.apiUrl}/stores/${id}/location`, payload).pipe(
+      map((response) => response.data),
+      catchError((err) => throwError(() => mapHttpError(err)))
+    );
+  }
+
+  updateStoreSchedule(id: number, schedule: StoreScheduleDay[]): Observable<Store> {
+    return this.http.put<{ data: Store }>(`${environment.apiUrl}/stores/${id}/schedule`, { schedule }).pipe(
+      map((response) => response.data),
+      catchError((err) => throwError(() => mapHttpError(err)))
+    );
+  }
+
+  updateStoreOwner(
+    id: number,
+    payload: { name?: string | null; email?: string | null; phone?: string | null; whatsapp?: string | null }
+  ): Observable<Store> {
+    return this.http.patch<{ data: Store }>(`${environment.apiUrl}/stores/${id}/owner`, payload).pipe(
+      map((response) => response.data),
+      catchError((err) => throwError(() => mapHttpError(err)))
+    );
+  }
+
+  updateStoreStatus(id: number, status: StoreStatus, reason?: string): Observable<Store> {
+    const payload: { status: StoreStatus; rejection_reason?: string; suspension_reason?: string } = { status };
+    if (status === 'rejected') {
+      payload.rejection_reason = reason;
+    } else if (status === 'suspended') {
+      payload.suspension_reason = reason;
+    }
+
+    return this.http.patch<{ data: Store }>(`${environment.apiUrl}/stores/${id}/status`, payload).pipe(
+      map((response) => response.data),
+      catchError((err) => throwError(() => mapHttpError(err)))
+    );
+  }
+
+  deleteStore(id: number): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/stores/${id}`).pipe(
+      catchError((err) => throwError(() => mapHttpError(err)))
     );
   }
 }
-

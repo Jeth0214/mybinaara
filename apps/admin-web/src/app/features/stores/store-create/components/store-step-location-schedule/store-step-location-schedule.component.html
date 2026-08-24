@@ -1,167 +1,39 @@
 <div class="row g-4 mt-2">
-  <div class="col-lg-8 border-end-lg">
-    <form [formGroup]="form()" class="pe-lg-4">
+  <div class="col-lg-9 mx-auto">
+    <form [formGroup]="form()">
       <h5 class="fw-semibold mb-3">Step 2: Location & Schedule Setup</h5>
-      
-      <!-- Address Configuration Layout -->
+      <p class="text-muted fs-8 mb-3">Adding a location is optional. Use the map below, or leave it blank to skip.</p>
+
+      <!-- Location Configuration -->
       <div class="card p-4 border shadow-sm mb-4 bg-white">
         <h6 class="fw-bold text-dark border-bottom pb-2 mb-3 d-flex align-items-center gap-2">
-          <i class="bi bi-building text-success"></i> National Address
+          <i class="bi bi-map text-success"></i> Store location <span class="text-muted fw-normal fs-8">(optional)</span>
         </h6>
 
-        <!-- Dynamic Form Fields Grouped inside "location" -->
-        <div formGroupName="location">
-          
-          <!-- National Address Section -->
-          <div>
-            <div class="row g-3 mb-3">
-              <!-- City Select Dropdown -->
-              <div class="col-md-6">
-                <label class="form-label fw-medium text-dark fs-8.5">City <span class="text-danger">*</span></label>
-                <select
-                  class="form-select shadow-2xs fs-8.5"
-                  formControlName="city"
-                  style="height: 38px;"
-                >
-                  <option value="" disabled>Select City</option>
-                  @for (city of saudiCities(); track city.city_id) {
-                    <option [value]="city.name_en">{{ city.name_en }}</option>
-                  }
-                </select>
-                @if (form().get('location.city')?.touched && form().get('location.city')?.invalid) {
-                  <div class="text-danger fs-8 mt-1">City selection is required.</div>
-                }
-              </div>
-
-              <!-- District Select Dropdown (Dependent on City) -->
-              <div class="col-md-6">
-                <label class="form-label fw-medium text-dark fs-8.5">District <span class="text-danger">*</span></label>
-                <select
-                  class="form-select shadow-2xs fs-8.5"
-                  formControlName="district"
-                  style="height: 38px;"
-                >
-                  <option value="" disabled>Select District</option>
-                  @for (district of saudiDistricts(); track district.district_id) {
-                    <option [value]="district.name_en">{{ district.name_en }}</option>
-                  }
-                </select>
-                @if (form().get('location.district')?.touched && form().get('location.district')?.invalid) {
-                  <div class="text-danger fs-8 mt-1">District is required (please select a city first).</div>
-                }
-              </div>
-            </div>
-
-            <div class="row g-3 mb-3">
-              <!-- Building Number -->
-              <div class="col-md-4">
-                <label class="form-label fw-medium text-dark fs-8.5">Building Number</label>
-                <input
-                  type="text"
-                  class="form-control shadow-2xs"
-                  formControlName="building_number"
-                />
-              </div>
-
-              <!-- Postal Code -->
-              <div class="col-md-4">
-                <label class="form-label fw-medium text-dark fs-8.5">Postal Code</label>
-                <input
-                  type="text"
-                  class="form-control shadow-2xs"
-                  formControlName="postal_code"
-                />
-              </div>
-
-              <!-- Additional Number -->
-              <div class="col-md-4">
-                <label class="form-label fw-medium text-dark fs-8.5">Additional Number</label>
-                <input
-                  type="text"
-                  class="form-control shadow-2xs"
-                  formControlName="additional_number"
-                />
-              </div>
-            </div>
-
-            <div class="row g-3 mb-3">
-              <!-- Street Name -->
-              <div class="col-md-12">
-                <label class="form-label fw-medium text-dark fs-8.5">Street Name</label>
-                <input
-                  type="text"
-                  class="form-control shadow-2xs"
-                  formControlName="street_name"
-                />
-              </div>
-            </div>
-
+        @if (!showPicker()) {
+          <div class="d-flex flex-column align-items-start gap-2">
+            @if (committedLocation().latitude) {
+              <p class="mb-0 fs-8 text-dark">
+                <i class="bi bi-geo-alt-fill text-success"></i>
+                {{ committedLocation().formatted_address || committedLocation().city || 'Location set' }}
+              </p>
+            } @else {
+              <p class="mb-0 fs-8 text-muted">Location not set</p>
+            }
+            <button type="button" class="btn btn-outline-success btn-sm" (click)="onSetLocation()">
+              Set Location
+            </button>
           </div>
-
-          <!-- Plus Code Integration Section -->
-          <div class="pt-3 mt-5">
-             <h6 class="fw-bold text-dark border-bottom pb-2 mb-3 d-flex align-items-center gap-2">
-                <i class="bi bi-geo-alt-fill text-success"></i> Pin Location
-             </h6>
-            <div class="row g-3 mb-3">
-              <div class="col-12">
-                <label class="form-label fw-medium text-dark fs-8.5">Plus Code</label>
-                <div class="input-group">
-                  <input
-                    type="text"
-                    class="form-control shadow-2xs fs-8.5"
-                    formControlName="plus_code"
-                  />
-                  <button
-                    class="btn btn-success d-flex align-items-center gap-1.5 px-3 shadow-2xs"
-                    type="button"
-                    [disabled]="geocoding()"
-                    (click)="resolvePlusCode()"
-                  >
-                    @if (geocoding()) {
-                      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                    } @else {
-                      <i class="bi bi-search me-2"></i>
-                    }
-                    <span>Preview</span>
-                  </button>
-                </div>
-                @if (plusCodeError(); as error) {
-                  <div class="text-danger fs-8 mt-1">{{ error }}</div>
-                }
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-
-        <!-- Live OSM Map Preview Frame -->
-        <div class="mt-4">
-          <label class="form-label fw-medium d-flex align-items-center gap-2 text-dark fs-8.5">
-            <i class="bi bi-map-fill text-success"></i> Live Map Preview
-          </label>
-          @if (safeMapUrl(); as mapUrl) {
-            <div class="map-container border rounded overflow-hidden shadow-sm mt-1" style="height: 250px;">
-              <iframe
-                width="100%"
-                height="100%"
-                frameborder="0"
-                scrolling="no"
-                marginheight="0"
-                marginwidth="0"
-                [src]="mapUrl"
-                style="border: 0;">
-              </iframe>
-            </div>
-          } @else {
-            <div class="bg-light border rounded text-center py-5 text-muted shadow-3xs mt-1">
-              <i class="bi bi-map fs-2 d-block mb-2 text-secondary opacity-50"></i>
-              <span class="fs-8">Select address coordinates or click geocode address button to load preview</span>
-            </div>
-          }
-        </div>
-
+        } @else {
+          <app-store-location-picker
+            [initialLocation]="lastCommitted() ?? existingLocation()"
+            [isEditMode]="isEditMode()"
+            (locationChange)="onLocationChange($event)"
+          />
+          <button type="button" class="btn btn-success btn-sm mt-2" [disabled]="!draftLocation()" (click)="onSaveLocation()">
+            Save Location
+          </button>
+        }
       </div>
 
       <!-- Working Hours Section -->
@@ -174,11 +46,11 @@
         <div formGroupName="workingHours" class="working-hours-grid">
           @for (day of days; track day.key) {
             <div [formGroupName]="day.key" class="day-schedule-row d-flex align-items-center py-2 border-bottom">
-              
+
               <div class="day-label fw-semibold text-dark" style="width: 80px;" [class.text-warning]="day.key === 'fri'">
                 {{ day.label }}
               </div>
-              
+
               <div class="time-input-cell flex-grow-1 mx-2">
                 <select
                   formControlName="openTime"
@@ -191,7 +63,7 @@
                   }
                 </select>
               </div>
-              
+
               <div class="time-input-cell flex-grow-1 mx-2">
                 <select
                   formControlName="closeTime"
@@ -204,12 +76,12 @@
                   }
                 </select>
               </div>
-              
+
               <div class="form-check ms-3 mb-0 d-flex align-items-center">
-                <input 
-                  class="form-check-input" 
-                  type="checkbox" 
-                  formControlName="isOff" 
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  formControlName="isOff"
                   [id]="'isOff-' + day.key"
                   style="cursor: pointer; width: 1.15rem; height: 1.15rem;"
                 />
@@ -233,63 +105,5 @@
         </button>
       </div>
     </form>
-  </div>
-
-  <!-- Side Helper Panel -->
-  <div class="col-lg-4">
-    <div class="card bg-light border-0 p-3 h-100 shadow-3xs">
-      <h6 class="fw-bold text-dark mb-3"><i class="bi bi-info-circle text-success me-2"></i>Testing Guide</h6>
-      <p class="fs-8 text-muted">Use these pre-verified Saudi store location presets to auto-populate location fields.</p>
-      
-      <div class="d-flex flex-column gap-3">
-        <div class="bg-white p-2.5 rounded border border-light shadow-2xs">
-          <div class="d-flex justify-content-between align-items-start mb-2">
-            <span class="badge bg-success-subtle text-success fs-8">Riyadh HQ Preset</span>
-            <button class="btn btn-link btn-xs p-0 text-decoration-none fs-8 fw-bold" 
-                    (click)="usePreset({city: 'Riyadh', district: 'Al Olaya', streetName: 'King Fahd Rd', buildingNumber: '1234', postalCode: '12211', additionalNumber: '9123', lat: 24.7136, lng: 46.6753, plusCode: 'PP37+72 Riyadh'})">
-              Use Data
-            </button>
-          </div>
-          <div class="fs-8 text-muted mt-1">
-            <div><strong>City:</strong> Riyadh</div>
-            <div><strong>District:</strong> Al Olaya</div>
-            <div><strong>Coordinates:</strong> 24.7136, 46.6753</div>
-            <div><strong>Plus Code:</strong> PP37+72 Riyadh</div>
-          </div>
-        </div>
-
-        <div class="bg-white p-2.5 rounded border border-light shadow-2xs">
-          <div class="d-flex justify-content-between align-items-start mb-2">
-            <span class="badge bg-success-subtle text-success fs-8">Jeddah Hub Preset</span>
-            <button class="btn btn-link btn-xs p-0 text-decoration-none fs-8 fw-bold" 
-                    (click)="usePreset({city: 'Jeddah', district: 'Al Safa', streetName: 'Prince Majid Rd', buildingNumber: '4726', postalCode: '23447', additionalNumber: '9123', lat: 21.5794, lng: 39.2014, plusCode: '7G35+XJ Jeddah'})">
-              Use Data
-            </button>
-          </div>
-          <div class="fs-8 text-muted mt-1">
-            <div><strong>City:</strong> Jeddah</div>
-            <div><strong>District:</strong> Al Safa</div>
-            <div><strong>Coordinates:</strong> 21.5794, 39.2014</div>
-            <div><strong>Plus Code:</strong> 7G35+XJ Jeddah</div>
-          </div>
-        </div>
-
-        <div class="bg-white p-2.5 rounded border border-light shadow-2xs">
-          <div class="d-flex justify-content-between align-items-start mb-2">
-            <span class="badge bg-success-subtle text-success fs-8">Dammam Branch Preset</span>
-            <button class="btn btn-link btn-xs p-0 text-decoration-none fs-8 fw-bold" 
-                    (click)="usePreset({city: 'Dammam', district: 'Al Faisaliyyah', streetName: 'King Abdulaziz Rd', buildingNumber: '5678', postalCode: '34567', additionalNumber: '9123', lat: 26.3927, lng: 49.9777, plusCode: 'HR2P+86 Dammam'})">
-              Use Data
-            </button>
-          </div>
-          <div class="fs-8 text-muted mt-1">
-            <div><strong>City:</strong> Dammam</div>
-            <div><strong>District:</strong> Al Faisaliyyah</div>
-            <div><strong>Coordinates:</strong> 26.3927, 49.9777</div>
-            <div><strong>Plus Code:</strong> HR2P+86 Dammam</div>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 </div>

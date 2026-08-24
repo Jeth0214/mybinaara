@@ -1,177 +1,239 @@
-import { ChangeDetectionStrategy, Component, inject, signal, computed, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, computed, effect, untracked, OnInit, OnDestroy } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { FormBuilder, FormGroup, ReactiveFormsModule, AbstractControl, ValidationErrors, Validators } from '@angular/forms';
+import { Subscription, forkJoin } from 'rxjs';
 import { ProductService } from '../../../core/services/product.service';
+import { CategoryService } from '../../../core/services/category.service';
+import { ProductUnitService } from '../../../core/services/product-unit.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { PRODUCT_CATEGORIES, CategoryInfo } from '../../../core/models/product.model';
+import { MAX_PRODUCTS_PER_STORE, ProductStatus } from '../../../core/models/product.model';
+import { Category } from '../../../core/models/category.model';
+import { ProductUnit } from '../../../core/models/product-unit.model';
+import { CatalogProduct } from '../../../core/models/catalog-product.model';
+import { ProductStatusBadgeComponent } from '../components/product-status-badge/product-status-badge.component';
+import { CatalogProductPickerComponent } from '../../../shared/ui/catalog-product-picker/catalog-product-picker.component';
+
+function comparePriceValidator(control: AbstractControl): ValidationErrors | null {
+  const group = control.parent;
+  if (!group) return null;
+
+  const price = Number(group.get('price')?.value);
+  const compareAtPrice = control.value;
+
+  if (compareAtPrice === '' || compareAtPrice === null || compareAtPrice === undefined) {
+    return null;
+  }
+
+  return Number(compareAtPrice) > price ? null : { gtPrice: true };
+}
 
 @Component({
   selector: 'app-add-product',
   standalone: true,
-  imports: [CommonModule, RouterLink, ReactiveFormsModule],
+  imports: [CommonModule, RouterLink, ReactiveFormsModule, ProductStatusBadgeComponent, CatalogProductPickerComponent],
   templateUrl: './add-product.component.html',
   styleUrl: './add-product.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AddProductComponent implements OnInit {
+export class AddProductComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private productService = inject(ProductService);
+  private categoryService = inject(CategoryService);
+  private productUnitService = inject(ProductUnitService);
   private toastService = inject(ToastService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private sub = new Subscription();
 
-  // Expose configuration and states
-  readonly categories = PRODUCT_CATEGORIES;
-  readonly isLimitReached = this.productService.isLimitReached;
-  readonly productsLimit = this.productService.productsLimit;
-  readonly currentUser = this.productService.currentUser;
+  readonly maxProducts = MAX_PRODUCTS_PER_STORE;
 
-  // Local state signals
-  readonly loading = signal<boolean>(false);
-  readonly fetching = signal<boolean>(false);
-  readonly selectedImage = signal<string | null>(null);
-  readonly isEditMode = signal<boolean>(false);
-  productId?: string;
+  readonly categories = signal<Category[]>([]);
+  readonly units = signal<ProductUnit[]>([]);
+
+  readonly loading = signal(false);
+  readonly fetching = signal(false);
+  readonly loadError = signal<string | null>(null);
+  readonly isEditMode = signal(false);
+  readonly productId = signal<number | null>(null);
+
+  readonly productStatus = signal<ProductStatus | null>(null);
+  readonly suspensionReason = signal<string | null>(null);
+  readonly statusUpdating = signal(false);
+
+  readonly selectedCatalogProduct = signal<CatalogProduct | null>(null);
+  readonly catalogProductTouched = signal(false);
+  readonly catalogPickerBusy = signal(false);
 
   productForm: FormGroup = this.fb.group({
-    name: ['', [Validators.required]],
-    sku: [''],
-    price: ['', [Validators.required, Validators.min(0.01)]],
-    stock: ['', [Validators.required, Validators.min(0)]],
-    category: ['', [Validators.required]],
-    brand: ['', [Validators.required]],
-    unit: ['per bag', [Validators.required]],
-    status: ['Available', [Validators.required]],
-    description: ['', [Validators.required]],
+    sku: ['', [Validators.maxLength(50)]],
+    price: [null as number | null, [Validators.required, Validators.min(0)]],
+    compare_at_price: [null as number | null, [comparePriceValidator]],
+    stock_quantity: [0, [Validators.required, Validators.min(0)]],
   });
+
+  private readonly formStatus = toSignal(this.productForm.statusChanges, { initialValue: this.productForm.status });
+  readonly busy = computed(() => this.loading() || this.fetching() || this.catalogPickerBusy());
+  readonly canSubmit = computed(
+    () => !!this.selectedCatalogProduct() && this.formStatus() === 'VALID' && !this.busy()
+  );
+
+  constructor() {
+    // Pricing/stock only make sense once a catalog product is chosen — keep them
+    // disabled until then so the form can't be half-filled out of order.
+    effect(() => {
+      const isBusy = this.loading() || this.fetching();
+      const hasCatalogProduct = !!this.selectedCatalogProduct();
+      untracked(() => {
+        if (isBusy) {
+          this.productForm.disable({ emitEvent: false });
+        } else {
+          this.productForm.enable({ emitEvent: false });
+          if (!hasCatalogProduct) {
+            this.productForm.get('price')?.disable({ emitEvent: false });
+            this.productForm.get('compare_at_price')?.disable({ emitEvent: false });
+            this.productForm.get('stock_quantity')?.disable({ emitEvent: false });
+          }
+        }
+      });
+    });
+  }
 
   ngOnInit(): void {
     const id = this.route.snapshot.params['id'];
     if (id) {
-      this.productId = id;
+      this.productId.set(+id);
       this.isEditMode.set(true);
-      this.loadProductDetails(id);
+      this.loadProductDetails(+id);
     }
+
+    this.sub.add(
+      this.productForm.get('price')?.valueChanges.subscribe(() => {
+        this.productForm.get('compare_at_price')?.updateValueAndValidity({ emitEvent: false });
+      })
+    );
+
+    this.loadDropdownOptions();
   }
 
-  private loadProductDetails(id: string): void {
+  ngOnDestroy(): void {
+    this.sub.unsubscribe();
+  }
+
+  private loadDropdownOptions(): void {
+    this.sub.add(
+      forkJoin({
+        categories: this.categoryService.listCategories({ is_active: true }),
+        units: this.productUnitService.listActive(),
+      }).subscribe({
+        next: ({ categories, units }) => {
+          this.categories.set(categories.data);
+          this.units.set(units);
+        },
+        error: (err) => {
+          this.toastService.error(err?.message || 'Failed to load categories/units.');
+        },
+      })
+    );
+  }
+
+  private loadProductDetails(id: number): void {
     this.fetching.set(true);
-    setTimeout(() => {
-      const product = this.productService.products().find((p) => p.id === id);
-      if (product) {
+    this.loadError.set(null);
+
+    this.productService.getProduct(id).subscribe({
+      next: (product) => {
+        this.fetching.set(false);
         this.productForm.patchValue({
-          name: product.name,
-          sku: product.sku || '',
+          sku: product.sku ?? '',
           price: product.price,
-          stock: product.stock,
-          category: product.category,
-          brand: product.brand || '',
-          unit: product.unit || 'per bag',
-          lowStockThreshold: product.lowStockThreshold ?? 20,
-          status: product.status || 'Available',
-          description: product.description || '',
+          compare_at_price: product.compare_at_price,
+          stock_quantity: product.stock_quantity,
         });
-        if (product.imageUrl) {
-          this.selectedImage.set(product.imageUrl);
-        }
-      } else {
-        this.toastService.error('Product not found.');
+        this.selectedCatalogProduct.set(product.catalog_product);
+        this.productStatus.set(product.status);
+        this.suspensionReason.set(product.suspension_reason);
+      },
+      error: (err) => {
+        this.fetching.set(false);
+        this.toastService.error(err?.message || 'Product not found.');
         this.router.navigate(['/products']);
-      }
-      this.fetching.set(false);
-    }, 500);
+      },
+    });
   }
 
-  /**
-   * Action when the category selector changes:
-   * Dynamically sets a default category SVG icon as the preview image.
-   */
-  onCategoryChange(): void {
-    const selectedCat = this.productForm.get('category')?.value;
-    if (selectedCat) {
-      const match = this.categories.find((c) => c.name === selectedCat);
-      if (match) {
-        this.selectedImage.set(match.iconPath);
-      }
-    }
+  onCatalogProductSelected(product: CatalogProduct): void {
+    this.selectedCatalogProduct.set(product);
+    this.catalogProductTouched.set(true);
   }
 
-  removeSelectedImage(): void {
-    this.selectedImage.set(null);
+  onCatalogProductCleared(): void {
+    this.selectedCatalogProduct.set(null);
   }
 
-  /**
-   * Simulates a drag-and-drop or file upload and sets a mock image.
-   */
-  simulateUpload(): void {
-    const selectedCat = this.productForm.get('category')?.value || 'Miscellaneous';
-    const match = this.categories.find((c) => c.name === selectedCat) || this.categories[17];
+  /** Never reachable while suspended: the switch is hidden in that state,
+   *  and the service's active/inactive-only signature makes it impossible to
+   *  send anything else regardless. */
+  onStatusToggle(): void {
+    const current = this.productStatus();
+    const id = this.productId();
+    if (!id || !current || current === 'suspended' || this.statusUpdating()) return;
 
-    this.selectedImage.set(match.iconPath);
-    this.toastService.success('Simulated file upload: Product photo applied successfully.');
+    const target = current === 'active' ? 'inactive' : 'active';
+
+    this.statusUpdating.set(true);
+    this.productService.updateProductStatus(id, target).subscribe({
+      next: (updated) => {
+        this.statusUpdating.set(false);
+        this.productStatus.set(updated.status);
+        this.toastService.success(`Product is now ${updated.status}.`);
+      },
+      error: (err) => {
+        this.statusUpdating.set(false);
+        this.toastService.error(err?.message || 'Failed to update product status.');
+      },
+    });
   }
 
   onSubmit(): void {
-    if (this.productForm.invalid || this.loading()) {
+    this.catalogProductTouched.set(true);
+
+    if (this.busy()) return;
+
+    if (this.productForm.invalid) {
       this.productForm.markAllAsTouched();
       return;
     }
 
-    this.loading.set(true);
+    const catalogProduct = this.selectedCatalogProduct();
+    if (!catalogProduct) return;
 
-    const formVal = this.productForm.value;
+    const { sku, price, compare_at_price, stock_quantity } = this.productForm.getRawValue();
 
-    // Generate SKU if not present
-    let skuVal = formVal.sku;
-    if (!skuVal) {
-      const storePrefix = this.currentUser()
-        ? this.currentUser()!.storeName.toUpperCase().split(' ').map((w: string) => w[0]).join('').replace(/[^A-Z]/g, '')
-        : 'MYB';
-      const catAbbr = formVal.category ? formVal.category.substring(0, 3).toUpperCase().replace(/[^A-Z]/g, '') : 'GEN';
-      const prodAbbr = formVal.name ? formVal.name.toUpperCase().split(' ').slice(0, 2).map((w: string) => w[0]).join('').replace(/[^A-Z]/g, '') : 'ITM';
-      const randNum = Math.floor(100 + Math.random() * 900);
-      skuVal = `${storePrefix}-${catAbbr}-${prodAbbr || 'ITM'}-${randNum}`;
-    }
-
-    const productData = {
-      name: formVal.name,
-      sku: skuVal,
-      price: Number(formVal.price),
-      stock: Number(formVal.stock),
-      category: formVal.category,
-      brand: formVal.brand,
-      unit: formVal.unit,
-      lowStockThreshold: Number(formVal.lowStockThreshold),
-      status: formVal.status,
-      description: formVal.description,
-      imageUrl: this.selectedImage() || undefined,
+    const id = this.productId();
+    const payload: Record<string, unknown> = {
+      catalog_product_id: catalogProduct.id,
+      price,
+      stock_quantity,
+      sku: sku || null,
+      compare_at_price: compare_at_price === '' || compare_at_price === null ? null : compare_at_price,
     };
 
-    if (this.isEditMode() && this.productId) {
-      this.productService.updateProduct(this.productId, productData).subscribe({
-        next: () => {
-          this.toastService.success(`Updated "${productData.name}" successfully.`);
-          this.loading.set(false);
-          this.router.navigate(['/products']);
-        },
-        error: (err) => {
-          this.toastService.error(err?.message || 'Failed to update product.');
-          this.loading.set(false);
-        },
-      });
-    } else {
-      this.productService.addProduct(productData).subscribe({
-        next: () => {
-          this.toastService.success(`Listed "${productData.name}" in your catalog.`);
-          this.loading.set(false);
-          this.router.navigate(['/products']);
-        },
-        error: (err) => {
-          this.toastService.error(err?.message || 'Failed to list product.');
-          this.loading.set(false);
-        },
-      });
-    }
+    this.loading.set(true);
+
+    const request$ = id ? this.productService.updateProduct(id, payload) : this.productService.createProduct(payload);
+
+    request$.subscribe({
+      next: (product) => {
+        this.loading.set(false);
+        this.toastService.success(`${id ? 'Updated' : 'Listed'} "${product.catalog_product.name}" successfully.`);
+        this.router.navigate(['/products']);
+      },
+      error: (err) => {
+        this.loading.set(false);
+        this.toastService.error(err?.message || `Failed to ${id ? 'update' : 'list'} product.`);
+      },
+    });
   }
 }

@@ -33,9 +33,13 @@
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "assets"
+              },
+              {
+                "glob": "mapbox-gl-csp-worker.js",
+                "input": "../../node_modules/mapbox-gl/dist"
               }
             ],
-            "styles": ["src/global.scss", "src/theme/variables.scss"],
+            "styles": ["src/global.scss", "src/theme/variables.scss", "mapbox-gl/dist/mapbox-gl.css"],
             "scripts": [],
             "browser": "src/main.ts"
           },

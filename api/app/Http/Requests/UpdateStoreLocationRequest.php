@@ -1,0 +1,30 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Requests;
+
+use App\Http\Requests\Concerns\ValidatesStoreLocation;
+use App\Models\Store;
+use Illuminate\Foundation\Http\FormRequest;
+
+class UpdateStoreLocationRequest extends FormRequest
+{
+    use ValidatesStoreLocation;
+
+    public function authorize(): bool
+    {
+        /** @var Store $store */
+        $store = $this->route('store');
+
+        return $this->user()?->can('updateLocation', $store) ?? false;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function rules(): array
+    {
+        return $this->storeLocationRules(requirePresence: true);
+    }
+}

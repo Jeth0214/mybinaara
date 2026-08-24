@@ -6,7 +6,7 @@
     </div>
     <div class="info-content">
       <span class="info-label">PHONE</span>
-      <span class="info-value">{{ store().phone }}</span>
+      <span class="info-value">{{ store().contact?.phone ?? '—' }}</span>
     </div>
   </div>
 
@@ -18,7 +18,7 @@
     </div>
     <div class="info-content">
       <span class="info-label">WHATSAPP</span>
-      <span class="info-value">{{ store().whatsapp }}</span>
+      <span class="info-value">{{ store().contact?.whatsapp ?? '—' }}</span>
     </div>
   </div>
 
@@ -30,7 +30,7 @@
     </div>
     <div class="info-content">
       <span class="info-label">WORKING HOURS</span>
-      <span class="info-value">{{ store().workingHours }}</span>
+      <span class="info-value">{{ todayHours() }}</span>
     </div>
   </div>
 

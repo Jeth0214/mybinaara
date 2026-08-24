@@ -1,0 +1,179 @@
+<div class="catalog-picker">
+  @if (selected(); as product) {
+    <div class="selected-product d-flex align-items-center gap-3 p-3 border rounded">
+      <div class="selected-thumb">
+        @if (product.image_url) {
+          <img [src]="product.image_url" [alt]="product.name" />
+        } @else {
+          <i class="bi bi-box-seam"></i>
+        }
+      </div>
+      <div class="flex-grow-1">
+        <div class="font-weight-bold">{{ product.name }}</div>
+        <div class="small text-muted">
+          {{ product.category?.name ?? 'No category' }}
+          @if (product.unit) {
+            · {{ product.unit.name }}
+          }
+        </div>
+      </div>
+      @if (!locked()) {
+        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="changeSelection()">
+          Change
+        </button>
+      }
+    </div>
+  } @else if (!creatingNew()) {
+    <div class="position-relative">
+      <input
+        type="text"
+        class="form-control"
+        placeholder="Search the catalog (e.g. Cable Ties)"
+        [value]="query()"
+        (input)="onQueryInput($any($event.target).value)"
+        (focus)="showResults.set(true)"
+      />
+
+      @if (showResults() && query().trim()) {
+        <div class="catalog-results border rounded shadow-sm">
+          @if (searching()) {
+            <div class="p-3 text-center text-muted small">
+              <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+              Searching...
+            </div>
+          } @else if (results().length > 0) {
+            @for (product of results(); track product.id) {
+              <button type="button" class="catalog-result-item" (click)="select(product)">
+                <div class="result-thumb">
+                  @if (product.image_url) {
+                    <img [src]="product.image_url" [alt]="product.name" />
+                  } @else {
+                    <i class="bi bi-box-seam"></i>
+                  }
+                </div>
+                <div class="flex-grow-1 text-start">
+                  <div class="font-weight-bold small">{{ product.name }}</div>
+                  <div class="text-muted" style="font-size: 11px">
+                    {{ product.category?.name ?? 'No category' }} · {{ product.listings_count }} store(s) already listing it
+                  </div>
+                </div>
+              </button>
+            }
+          } @else {
+            <div class="p-3 text-center text-muted small">No matches.</div>
+          }
+
+          <button type="button" class="catalog-create-new" (click)="startCreatingNew()">
+            <i class="bi bi-plus-circle me-1"></i>
+            Can't find it? Create "{{ query().trim() }}"
+          </button>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="create-catalog-form border rounded p-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="mb-0 font-weight-bold">New catalog product</h6>
+        <button type="button" class="btn-close" aria-label="Cancel" (click)="cancelCreatingNew()"></button>
+      </div>
+
+      <form [formGroup]="createForm">
+        <div class="mb-3">
+          <label class="form-label font-weight-bold small">Name *</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="name"
+            [class.is-invalid]="createForm.get('name')?.touched && createForm.get('name')?.invalid"
+          />
+        </div>
+
+        <div class="row">
+          <div class="col-6 mb-3">
+            <label class="form-label font-weight-bold small">Category *</label>
+            <select
+              class="form-select"
+              formControlName="category_id"
+              [class.is-invalid]="createForm.get('category_id')?.touched && createForm.get('category_id')?.invalid"
+            >
+              <option [ngValue]="null" disabled>Select a category</option>
+              @for (cat of categories(); track cat.id) {
+                <option [ngValue]="cat.id">{{ cat.name }}</option>
+              }
+            </select>
+            @if (createForm.get('category_id')?.touched && createForm.get('category_id')?.invalid) {
+              <div class="text-danger small mt-1">Category is required.</div>
+            }
+          </div>
+          <div class="col-6 mb-3">
+            <label class="form-label font-weight-bold small">Unit *</label>
+            <select
+              class="form-select"
+              formControlName="unit_id"
+              [class.is-invalid]="createForm.get('unit_id')?.touched && createForm.get('unit_id')?.invalid"
+            >
+              <option [ngValue]="null" disabled>Select a unit</option>
+              @for (unit of units(); track unit.id) {
+                <option [ngValue]="unit.id">{{ unit.name }}</option>
+              }
+            </select>
+            @if (createForm.get('unit_id')?.touched && createForm.get('unit_id')?.invalid) {
+              <div class="text-danger small mt-1">Unit is required.</div>
+            }
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label font-weight-bold small">Description</label>
+          <textarea class="form-control" rows="3" formControlName="description"></textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label font-weight-bold small">Image *</label>
+
+          @if (imagePreviewUrl(); as preview) {
+            <div class="d-flex align-items-center gap-3 p-3 bg-white border rounded-3">
+              <div class="catalog-image-thumb overflow-hidden border rounded-3 d-flex align-items-center justify-content-center flex-shrink-0">
+                <img [src]="preview" alt="Preview" />
+              </div>
+              <div>
+                <span class="d-block text-success fw-semibold fs-7-5 mb-1"><i class="bi bi-patch-check-fill me-1"></i>Image Ready</span>
+                <input #catalogImageInputEdit type="file" class="d-none" accept="image/*" (change)="onImageSelect($event)" />
+                <button type="button" class="btn btn-xs btn-outline-success py-1.5 px-3 fs-8 d-inline-flex align-items-center gap-1.5" (click)="catalogImageInputEdit.click()">
+                  <i class="bi bi-pencil-square"></i> Change
+                </button>
+                <button type="button" class="btn btn-xs btn-outline-danger py-1.5 px-3 fs-8 d-inline-flex align-items-center gap-1.5 ms-2" (click)="removeImage()">
+                  <i class="bi bi-trash"></i> Remove
+                </button>
+              </div>
+            </div>
+          } @else {
+            <div class="border border-dashed rounded-3 p-4 text-center cursor-pointer bg-white hover-bg-light" (click)="catalogImageInput.click()">
+              <input #catalogImageInput type="file" class="d-none" accept="image/*" (change)="onImageSelect($event)" />
+              <i class="bi bi-cloud-arrow-up text-success display-6 mb-2 d-block opacity-75"></i>
+              <span class="d-block fw-semibold text-dark fs-7-5">Click to upload Product Image</span>
+              <span class="text-muted fs-8-5 mt-1 d-block">PNG, JPG, WEBP. Min: 300x300px. Max: 2MB.</span>
+            </div>
+          }
+
+          @if (imageError(); as err) {
+            <div class="alert alert-danger d-flex align-items-center gap-2 py-2 px-3 mt-2.5 fs-8 border-0 shadow-2xs">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              <span>{{ err }}</span>
+            </div>
+          }
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-light" (click)="cancelCreatingNew()">Cancel</button>
+          <button type="button" class="btn btn-success" [disabled]="creating()" (click)="submitNewCatalogProduct()">
+            @if (creating()) {
+              <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+            }
+            Add to catalog
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+</div>

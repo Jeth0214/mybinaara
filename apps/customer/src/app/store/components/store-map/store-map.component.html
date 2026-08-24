@@ -1,11 +1,50 @@
 <div class="map-section">
-  <div class="map-wrapper" (click)="openDirections()">
-    <div class="map-tiles"></div>
-    <div class="road road--h"></div>
-    <div class="road road--v"></div>
-    <div class="pin-container">
-      <ion-icon name="location" class="pin-icon"></ion-icon>
-      <div class="pin-label">{{ store().name }}</div>
+  @if (storeLngLat(); as storePos) {
+    <div class="map-wrapper">
+      <div class="map-style-toggle">
+        <button
+          type="button"
+          [class.active]="mapViewMode() === 'street'"
+          (click)="setMapViewMode('street')"
+        >
+          Street
+        </button>
+        <button
+          type="button"
+          [class.active]="mapViewMode() === 'satellite'"
+          (click)="setMapViewMode('satellite')"
+        >
+          Satellite
+        </button>
+      </div>
+      <mgl-map
+        [accessToken]="mapboxToken"
+        [style]="mapStyle()"
+        [zoom]="mapZoom"
+        [center]="mapCenter()"
+        [fitBounds]="bounds()"
+        [fitBoundsOptions]="fitBoundsOptions"
+      >
+        <mgl-marker [lngLat]="storePos">
+          <ion-icon name="location" class="pin-icon pin-icon--store"></ion-icon>
+        </mgl-marker>
+        @if (userLngLat(); as userPos) {
+          <mgl-marker [lngLat]="userPos">
+            <ion-icon name="location" class="pin-icon pin-icon--user"></ion-icon>
+          </mgl-marker>
+        }
+      </mgl-map>
     </div>
-  </div>
+
+    <div class="map-legend">
+      <span class="legend-item">
+        <span class="legend-dot legend-dot--store"></span> Store location
+      </span>
+      @if (userLngLat()) {
+        <span class="legend-item">
+          <span class="legend-dot legend-dot--user"></span> Your location
+        </span>
+      }
+    </div>
+  }
 </div>

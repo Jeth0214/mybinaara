@@ -1,87 +1,121 @@
 <div class="profile-tab">
-  <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">Saudi Arabia Business Registry</h6>
+  <!-- Basic Information -->
+  <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">Basic Information</h6>
+  <div class="mb-4">
+    <span class="d-block text-muted fs-8">STORE NAME</span>
+    <strong class="text-dark">{{ store().name }}</strong>
+  </div>
   <div class="row g-3 mb-4">
-    <div class="col-md-6">
+    <div class="col-6 mb-4">
       <span class="d-block text-muted fs-8">COMMERCIAL REGISTRATION (CR)</span>
-      <strong class="text-dark font-monospace">{{ store().crNumber }}</strong>
+      <strong class="text-dark font-monospace">{{ store().cr_number }}</strong>
     </div>
-    <div class="col-md-6">
+    <div class="col-6 mb-4">
       <span class="d-block text-muted fs-8">VAT NUMBER</span>
-      <strong class="text-dark font-monospace">{{ store().vatNumber }}</strong>
+      <strong class="text-dark font-monospace">{{ store().vat_number }}</strong>
+    </div>
+    <div class="col-12 mb-4">
+      <span class="d-block text-muted fs-8">CREATED BY</span>
+      <strong class="text-dark">{{ store().creator?.name ?? "N/A" }}</strong>
+    </div>
+    <div class="col-6 mb-4">
+      <span class="d-block text-muted fs-8">CREATED AT</span>
+      <strong class="text-dark">{{
+        store().created_at | date: "medium"
+      }}</strong>
+    </div>
+    <div class="col-6 mb-4">
+      <span class="d-block text-muted fs-8">LAST UPDATED</span>
+      <strong class="text-dark">{{
+        store().updated_at | date: "medium"
+      }}</strong>
     </div>
   </div>
 
-  <h6 class="fw-bold text-dark border-bottom pb-2 mb-3 mt-4">Authorized Representative</h6>
-  <div class="row g-3 mb-4">
-    <div class="col-md-6">
-      <span class="d-block text-muted fs-8">OWNER / MANAGER</span>
-      <strong class="text-dark">{{ store().ownerName }}</strong>
+  <!-- Owner / Contact Information -->
+  <h6 class="fw-bold text-dark border-bottom pb-2 mb-3 mt-4">Owner</h6>
+  @if (store().owner; as owner) {
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <span class="d-block text-muted fs-8">OWNER / MANAGER</span>
+        <strong class="text-dark">{{ owner.name }}</strong>
+      </div>
+      <div class="col-md-3">
+        <span class="d-block text-muted fs-8">MOBILE NUMBER</span>
+        <strong class="text-dark font-monospace">{{ owner.phone }}</strong>
+      </div>
+      <div class="col-md-3">
+        <span class="d-block text-muted fs-8">WHATSAPP NUMBER</span>
+        <strong class="text-dark font-monospace">{{
+          owner.whatsapp ?? "N/A"
+        }}</strong>
+        @if (owner.whatsapp) {
+          <div class="mt-1">
+            <a
+              [href]="getCleanWhatsappLink(owner.whatsapp)"
+              target="_blank"
+              class="btn btn-xs btn-outline-success d-inline-flex align-items-center gap-1 py-0.5 px-2 fs-8 text-decoration-none"
+            >
+              <i class="bi bi-whatsapp"></i>
+              <span>Chat</span>
+            </a>
+          </div>
+        }
+      </div>
+      <div class="col-md-12 mt-3">
+        <span class="d-block text-muted fs-8">EMAIL ADDRESS</span>
+        <strong class="text-dark font-monospace">{{ owner.email }}</strong>
+      </div>
     </div>
-    <div class="col-md-3">
-      <span class="d-block text-muted fs-8">MOBILE NUMBER</span>
-      <strong class="text-dark font-monospace">{{ store().ownerPhone }}</strong>
-    </div>
-    <div class="col-md-3">
-      <span class="d-block text-muted fs-8">WHATSAPP NUMBER</span>
-      <strong class="text-dark font-monospace">@if (store().ownerWhatsapp) { {{ store().ownerWhatsapp }} } @else { N/A }</strong>
-      @if (store().ownerWhatsapp) {
-        <div class="mt-1">
-          <a 
-            [href]="getCleanWhatsappLink(store().ownerWhatsapp)" 
-            target="_blank" 
-            class="btn btn-xs btn-outline-success d-inline-flex align-items-center gap-1 py-0.5 px-2 fs-8 text-decoration-none"
+  } @else {
+    <p class="text-muted fs-7 fst-italic mb-4">
+      No owner information available
+    </p>
+  }
+
+  <!-- Location -->
+  <h6 class="fw-bold text-dark border-bottom pb-2 mb-3 mt-4">Location</h6>
+  @if (store().location; as location) {
+    <div class="row g-3">
+      <div class="col-md-6">
+        <span class="d-block text-muted fs-8">CITY</span>
+        <strong class="text-dark">{{ location.city || "N/A" }}</strong>
+      </div>
+      <div class="col-md-6">
+        <span class="d-block text-muted fs-8">GPS COORDINATES (LAT, LNG)</span>
+        <strong class="text-dark font-monospace">
+          @if (location.latitude && location.longitude) {
+            {{ location.latitude }}, {{ location.longitude }}
+          } @else {
+            N/A
+          }
+        </strong>
+      </div>
+      <div class="col-md-12 mt-3">
+        <span class="d-block text-muted fs-8">FORMATTED ADDRESS</span>
+        <strong class="text-dark" style="white-space: pre-line">{{
+          location.formatted_address || "N/A"
+        }}</strong>
+      </div>
+      @if (location.latitude && location.longitude) {
+        <div class="col-md-12 mt-3">
+          <a
+            [href]="
+              'https://www.google.com/maps?q=' +
+              location.latitude +
+              ',' +
+              location.longitude
+            "
+            target="_blank"
+            class="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-2"
           >
-            <i class="bi bi-whatsapp"></i>
-            <span>Chat</span>
+            <i class="bi bi-map"></i>
+            <span>View on Google Maps</span>
           </a>
         </div>
       }
     </div>
-    <div class="col-md-12 mt-3">
-      <span class="d-block text-muted fs-8">EMAIL ADDRESS</span>
-      <strong class="text-dark font-monospace">{{ store().ownerEmail }}</strong>
-    </div>
-  </div>
-
-  <h6 class="fw-bold text-dark border-bottom pb-2 mb-3 mt-4">Store Location & Coordinates</h6>
-  <div class="row g-3">
-    <div class="col-md-6">
-      <span class="d-block text-muted fs-8">CITY & DISTRICT</span>
-      <strong class="text-dark">{{ store().location.city || 'N/A' }}@if (store().location.district) { ({{ store().location.district }}) }</strong>
-    </div>
-    <div class="col-md-6">
-      <span class="d-block text-muted fs-8">GPS COORDINATES (LAT, LNG)</span>
-      <strong class="text-dark font-monospace">@if (store().location.latitude && store().location.longitude) { {{ store().location.latitude }}, {{ store().location.longitude }} } @else { N/A }</strong>
-    </div>
-    <div class="col-md-6 mt-3">
-      <span class="d-block text-muted fs-8">STREET ADDRESS</span>
-      <strong class="text-dark">{{ store().location.buildingNumber || '' }} {{ store().location.streetName || '' }}</strong>
-    </div>
-    <div class="col-md-6 mt-3">
-      <span class="d-block text-muted fs-8">POSTAL CODE</span>
-      <strong class="text-dark">{{ store().location.postalCode || 'N/A' }}@if (store().location.additionalNumber) { - {{ store().location.additionalNumber }} }</strong>
-    </div>
-    <div class="col-md-6 mt-3">
-      <span class="d-block text-muted fs-8">COUNTRY</span>
-      <strong class="text-dark">{{ store().location.country || 'Saudi Arabia' }}</strong>
-    </div>
-    <div class="col-md-12 mt-3">
-      <span class="d-block text-muted fs-8">FORMATTED FULL ADDRESS</span>
-      <strong class="text-dark" style="white-space: pre-line;">{{ store().location.fullAddress || 'N/A' }}</strong>
-    </div>
-    @if (store().location.latitude && store().location.longitude) {
-      <div class="col-md-12 mt-3">
-        <a 
-          [href]="'https://www.google.com/maps?q=' + store().location.latitude + ',' + store().location.longitude" 
-          target="_blank" 
-          class="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-2"
-        >
-          <i class="bi bi-map"></i>
-          <span>View on Google Maps</span>
-        </a>
-      </div>
-    }
-  </div>
-
+  } @else {
+    <p class="text-muted fs-7 fst-italic">No location set for this store</p>
+  }
 </div>
-

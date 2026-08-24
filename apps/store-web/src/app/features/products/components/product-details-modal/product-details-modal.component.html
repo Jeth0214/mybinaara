@@ -1,67 +1,187 @@
 <div class="modal-header border-0 pb-0">
   <h5 class="modal-title font-weight-bold text-dark">Product Specifications</h5>
-  <button type="button" class="btn-close" aria-label="Close" (click)="activeModal.dismiss()"></button>
+  <button
+    type="button"
+    class="btn-close"
+    aria-label="Close"
+    (click)="activeModal.dismiss()"
+  ></button>
 </div>
 <div class="modal-body">
+  @if (product.status === "suspended") {
+    <div
+      class="alert alert-danger d-flex align-items-start gap-2 mb-4"
+      role="alert"
+    >
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <div>
+        <p class="d-block mb-2">This product has been suspended.</p>
+        @if (product.suspension_reason) {
+          <h5>Reason:{{ product.suspension_reason }}</h5>
+        }
+      </div>
+    </div>
+  }
+
   <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded border">
-    <div class="product-img-wrapper animate__animated animate__zoomIn" style="width: 64px; height: 64px; border-radius: 10px; border-color: var(--brand-border);">
-      <img 
-        [src]="product.imageUrl || getCategoryIcon(product.category || '')" 
-        [alt]="product.name"
-        style="max-width: 100%; max-height: 100%; object-fit: contain;"
-        onerror="this.src='images/category-icons/miscellaneous.svg'"
-      />
+    <div
+      class="product-img-wrapper"
+      style="
+        width: 100px;
+        height: 100px;
+        border-radius: 10px;
+        border-color: var(--brand-border);
+      "
+    >
+      @if (product.catalog_product.image_url) {
+        <img
+          [src]="product.catalog_product.image_url"
+          [alt]="product.catalog_product.name"
+          style="max-width: 100%; max-height: 100%; object-fit: contain"
+        />
+      } @else {
+        <i class="bi bi-box-seam text-muted fs-3"></i>
+      }
     </div>
     <div>
-      <h4 class="h6 mb-1 font-weight-bold text-dark" style="font-size: 1rem;">{{ product.name }}</h4>
-      <code class="small text-muted font-family-monospace">SKU: {{ product.sku }}</code>
+      <h4 class="h6 mb-1 font-weight-bold text-dark" style="font-size: 1rem">
+        {{ product.catalog_product.name }}
+      </h4>
+      <code class="small text-muted font-family-monospace"
+        >SKU: {{ product.sku || "—" }}</code
+      >
     </div>
   </div>
 
   <div class="row g-3 mb-4">
     <div class="col-6">
       <div class="p-3 border rounded text-center bg-light">
-        <div class="small text-muted font-weight-bold mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">PRICE</div>
-        <div class="h5 text-success font-weight-bold mb-0">{{ product.price.toFixed(2) }} <span class="small font-weight-normal text-muted" style="font-size: 0.8rem;">SAR</span></div>
+        <div
+          class="small text-muted font-weight-bold mb-1"
+          style="font-size: 0.75rem; letter-spacing: 0.5px"
+        >
+          PRICE
+        </div>
+        <div class="h5 text-success font-weight-bold mb-0">
+          {{ product.price | number: "1.2-2" }}
+          <span
+            class="small font-weight-normal text-muted"
+            style="font-size: 0.8rem"
+            >SAR</span
+          >
+        </div>
       </div>
     </div>
     <div class="col-6">
       <div class="p-3 border rounded text-center bg-light">
-        <div class="small text-muted font-weight-bold mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">STOCK LEVEL</div>
-        <div 
-          class="h5 font-weight-bold mb-0" 
-          [class.text-danger]="product.stock === 0" 
-          [class.text-warning]="product.stock > 0 && product.stock <= 10" 
-          [class.text-success]="product.stock > 10"
+        <div
+          class="small text-muted font-weight-bold mb-1"
+          style="font-size: 0.75rem; letter-spacing: 0.5px"
         >
-          {{ product.stock }} <span class="small font-weight-normal text-muted" style="font-size: 0.8rem;">units</span>
+          STOCK LEVEL
+        </div>
+        <div
+          class="h5 font-weight-bold mb-0"
+          [class.text-danger]="product.stock_quantity === 0"
+          [class.text-warning]="
+            product.stock_quantity > 0 && product.stock_quantity <= 10
+          "
+          [class.text-success]="product.stock_quantity > 10"
+        >
+          {{ product.stock_quantity }}
+          <span
+            class="small font-weight-normal text-muted"
+            style="font-size: 0.8rem"
+            >{{ product.catalog_product.unit?.name || "units" }}</span
+          >
         </div>
       </div>
     </div>
   </div>
 
-  <div class="mb-4">
-    <div class="small text-muted font-weight-bold mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">CATEGORY</div>
-    <div>
-      <span class="category-badge" [class]="getCategoryClass(product.category || '')">
-        {{ product.category }}
-      </span>
+  <div class="row g-3 my-4">
+    <div class="col-4">
+      <div
+        class="small text-muted font-weight-bold mb-1"
+        style="font-size: 0.75rem; letter-spacing: 0.5px"
+      >
+        CATEGORY
+      </div>
+      <div>
+        <span class="category-badge">{{
+          product.catalog_product.category?.name || "Uncategorized"
+        }}</span>
+      </div>
+    </div>
+    <div
+      class="col-4 d-flex flex-column justify-content-center align-items-center"
+    >
+      <div
+        class="small text-muted font-weight-bold mb-1"
+        style="font-size: 0.75rem; letter-spacing: 0.5px"
+      >
+        STATUS
+      </div>
+      <div>
+        <app-product-status-badge [status]="product.status" />
+      </div>
+    </div>
+    <div
+      class="col-4 d-flex flex-column justify-content-center align-items-center"
+    >
+      <div
+        class="small text-muted font-weight-bold mb-1"
+        style="font-size: 0.75rem; letter-spacing: 0.5px"
+      >
+        UNIT
+      </div>
+      <div>
+        <span class="unit-badge">{{ product.catalog_product.unit?.name || "—" }}</span>
+      </div>
     </div>
   </div>
 
-  @if (product.description) {
-    <div class="mb-2">
-      <div class="small text-muted font-weight-bold mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">SPECIFICATIONS / DESCRIPTION</div>
-      <p class="text-dark small bg-light p-3 rounded border mb-0" style="white-space: pre-wrap; line-height: 1.5; font-size: 0.9rem;">{{ product.description }}</p>
+  @if (product.catalog_product.description) {
+    <div class="mb-2 mt-4">
+      <div
+        class="small text-muted font-weight-bold mb-1"
+        style="font-size: 0.75rem; letter-spacing: 0.5px"
+      >
+        SPECIFICATIONS / DESCRIPTION
+      </div>
+      <p
+        class="text-dark small bg-light p-3 rounded border mb-0"
+        style="white-space: pre-wrap; line-height: 1.5; font-size: 0.9rem"
+      >
+        {{ product.catalog_product.description }}
+      </p>
     </div>
   } @else {
     <div class="mb-2">
-      <div class="small text-muted font-weight-bold mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">SPECIFICATIONS / DESCRIPTION</div>
-      <p class="text-muted small p-2 rounded border mb-0 italic">No specifications provided for this product.</p>
+      <div
+        class="small text-muted font-weight-bold mb-1"
+        style="font-size: 0.75rem; letter-spacing: 0.5px"
+      >
+        SPECIFICATIONS / DESCRIPTION
+      </div>
+      <p class="text-muted small p-2 rounded border mb-0 italic">
+        No specifications provided for this product.
+      </p>
     </div>
   }
 </div>
 <div class="modal-footer border-0 pt-0 d-flex gap-2">
-  <button type="button" class="btn btn-light border px-4 py-2 font-weight-bold flex-grow-1" (click)="activeModal.dismiss()">Close Details</button>
-  <a [routerLink]="['/products/edit', product.id]" (click)="activeModal.dismiss()" class="btn btn-success px-4 py-2 font-weight-bold text-white flex-grow-1 text-center">Edit Product</a>
+  <button
+    type="button"
+    class="btn btn-light border px-4 py-2 font-weight-bold flex-grow-1"
+    (click)="activeModal.dismiss()"
+  >
+    Close Details
+  </button>
+  <a
+    [routerLink]="['/products/edit', product.id]"
+    (click)="activeModal.dismiss()"
+    class="btn btn-success px-4 py-2 font-weight-bold text-white flex-grow-1 text-center"
+    >Edit Product</a
+  >
 </div>
