@@ -37,6 +37,10 @@
               {
                 "glob": "mapbox-gl-csp-worker.js",
                 "input": "../../node_modules/mapbox-gl/dist"
+              },
+              {
+                "glob": "_redirects",
+                "input": "public"
               }
             ],
             "styles": ["src/global.scss", "src/theme/variables.scss", "mapbox-gl/dist/mapbox-gl.css"],
